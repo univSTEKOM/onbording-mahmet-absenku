@@ -27,8 +27,8 @@ export default function AbsensiPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-lg mx-auto space-y-6">
-        <div className="text-center"><h1 className="text-2xl font-bold">Absensi Hari Ini</h1></div>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold tracking-tight">Absensi Hari Ini</h1>
         <Card><CardContent className="py-12"><LoadingState /></CardContent></Card>
       </div>
     )
@@ -38,11 +38,11 @@ export default function AbsensiPage() {
   const isCheckedOut = !!absensi?.checkOut
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
-      <div className="text-center space-y-1">
+    <div className="space-y-6 max-w-xl">
+      <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Absensi Hari Ini</h1>
         <p className="text-muted-foreground">{today}</p>
-        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-3.5 w-3.5" /> {currentTime}
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function AbsensiPage() {
         <CardContent className="pt-6 space-y-6">
           {!isCheckedIn ? (
             <div className="space-y-6">
-              <div className="text-center space-y-2">
+              <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-muted text-sm text-muted-foreground">
                   <XCircle className="h-4 w-4" /> Belum absen
                 </div>
@@ -88,7 +88,7 @@ export default function AbsensiPage() {
               </Button>
             </div>
           ) : isCheckedOut ? (
-            <div className="space-y-6 text-center">
+            <div className="space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium">
                 <CheckCircle2 className="h-4 w-4" /> Absensi Selesai
               </div>
@@ -106,7 +106,7 @@ export default function AbsensiPage() {
               <p className="text-sm capitalize text-muted-foreground">Status: {absensi.status}</p>
             </div>
           ) : (
-            <div className="space-y-6 text-center">
+            <div className="space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-medium">
                 Sudah Check-in
               </div>

@@ -57,7 +57,7 @@ export default function ProfilPage() {
   if (!user) return null
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Profil</h1>
         <p className="text-muted-foreground">Kelola data diri Anda</p>

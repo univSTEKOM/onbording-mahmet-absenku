@@ -45,7 +45,7 @@ export default function PengajuanFormPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
+    <div className="space-y-6 max-w-xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Ajukan Izin / Cuti</h1>
         <p className="text-muted-foreground">Isi form di bawah untuk mengajukan</p>
