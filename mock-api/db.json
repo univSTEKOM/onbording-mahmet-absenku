@@ -1,0 +1,154 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "andika@stekom.ac.id",
+      "password": "password",
+      "nama": "Andika",
+      "jabatan": "Manager HRD",
+      "role": "admin",
+      "foto": "",
+      "phone": "081234567890",
+      "alamat": "Jl. Merdeka No. 1, Jakarta",
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "email": "rudi@stekom.ac.id",
+      "password": "password",
+      "nama": "Rudi Hartono",
+      "jabatan": "Staff IT",
+      "role": "karyawan",
+      "foto": "",
+      "phone": "081234567891",
+      "alamat": "Jl. Sudirman No. 2, Jakarta",
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "email": "siti@stekom.ac.id",
+      "password": "password",
+      "nama": "Siti Nurhaliza",
+      "jabatan": "Staff Keuangan",
+      "role": "karyawan",
+      "foto": "",
+      "phone": "081234567892",
+      "alamat": "Jl. Gatot Subroto No. 3, Jakarta",
+      "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "email": "kangpecuts@a.ai",
+      "password": "kang",
+      "jabatan": "Pengangguran",
+      "role": "karyawan",
+      "foto": "",
+      "phone": "",
+      "alamat": "",
+      "createdAt": "2026-07-21T01:32:13.257Z"
+    }
+  ],
+  "absensi": [
+    {
+      "id": 1,
+      "userId": 2,
+      "tanggal": "2026-07-13",
+      "checkIn": "2026-07-13T08:00:00Z",
+      "checkOut": "2026-07-13T17:00:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-13T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "tanggal": "2026-07-14",
+      "checkIn": "2026-07-14T08:15:00Z",
+      "checkOut": "2026-07-14T17:00:00Z",
+      "status": "terlambat",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-14T08:15:00Z"
+    },
+    {
+      "id": 3,
+      "userId": 3,
+      "tanggal": "2026-07-13",
+      "checkIn": "2026-07-13T07:55:00Z",
+      "checkOut": "2026-07-13T16:30:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-13T07:55:00Z"
+    },
+    {
+      "id": 4,
+      "userId": 3,
+      "tanggal": "2026-07-14",
+      "checkIn": "2026-07-14T08:00:00Z",
+      "checkOut": null,
+      "status": "hadir",
+      "faceVerified": false,
+      "keterangan": "",
+      "createdAt": "2026-07-14T08:00:00Z"
+    },
+    {
+      "id": 5,
+      "userId": 2,
+      "tanggal": "2026-07-15",
+      "checkIn": "2026-07-15T08:00:00Z",
+      "checkOut": "2026-07-15T17:00:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-15T08:00:00Z"
+    },
+    {
+      "id": 6,
+      "userId": 2,
+      "tanggal": "2026-07-16",
+      "checkIn": "2026-07-16T08:00:00Z",
+      "checkOut": "2026-07-16T17:00:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-16T08:00:00Z"
+    },
+    {
+      "id": 7,
+      "userId": 2,
+      "tanggal": "2026-07-17",
+      "checkIn": "2026-07-17T08:00:00Z",
+      "checkOut": "2026-07-17T17:00:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-17T08:00:00Z"
+    }
+  ],
+  "pengajuan": [
+    {
+      "id": 1,
+      "userId": 2,
+      "jenis": "cuti",
+      "tanggalMulai": "2026-07-25",
+      "tanggalSelesai": "2026-07-27",
+      "alasan": "Acara keluarga",
+      "status": "pending",
+      "catatan": "",
+      "createdAt": "2026-07-18T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "userId": 3,
+      "jenis": "izin",
+      "tanggalMulai": "2026-07-21",
+      "tanggalSelesai": "2026-07-21",
+      "alasan": "Keperluan bank",
+      "status": "approved",
+      "catatan": "Disetujui",
+      "createdAt": "2026-07-17T09:00:00Z"
+    }
+  ]
+}
