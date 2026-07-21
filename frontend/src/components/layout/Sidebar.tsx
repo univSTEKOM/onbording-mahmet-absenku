@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { SheetContent } from '@/components/ui/sheet'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
 const karyawanMenu = [
@@ -26,9 +27,9 @@ const adminMenu = [
 ]
 
 function SidebarContent({ onNav }: { onNav?: () => void }) {
+  const { user } = useAuth()
   const location = useLocation()
-  const isAdmin = location.pathname.startsWith('/hrd')
-  const menu = isAdmin ? adminMenu : karyawanMenu
+  const menu = user?.role === 'admin' ? adminMenu : karyawanMenu
 
   return (
     <div className="flex h-full flex-col">
