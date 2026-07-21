@@ -101,44 +101,15 @@ export default function RiwayatPage() {
           ) : absensi?.length ? (
             absensi.map((a) => (
               <TableRow key={a.id}>
-                <TableCell>
-                  {new Date(a.tanggal).toLocaleDateString('id-ID', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </TableCell>
-                <TableCell>
-                  {a.checkIn
-                    ? new Date(a.checkIn).toLocaleTimeString('id-ID', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : '-'}
-                </TableCell>
-                <TableCell>
-                  {a.checkOut
-                    ? new Date(a.checkOut).toLocaleTimeString('id-ID', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : '-'}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="secondary"
-                    className={statusColor[a.status]}
-                  >
-                    {a.status}
-                  </Badge>
-                </TableCell>
+                <TableCell>{new Date(a.tanggal).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
+                <TableCell>{a.checkIn ? new Date(a.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</TableCell>
+                <TableCell>{a.checkOut ? new Date(a.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</TableCell>
+                <TableCell><Badge variant="secondary" className={statusColor[a.status]}>{a.status}</Badge></TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center text-muted-foreground">
-                Belum ada riwayat absensi
-              </TableCell>
+              <TableCell colSpan={4} className="text-center text-muted-foreground">Belum ada riwayat absensi</TableCell>
             </TableRow>
           )}
         </TableBody>

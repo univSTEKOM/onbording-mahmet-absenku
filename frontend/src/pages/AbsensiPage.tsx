@@ -1,6 +1,7 @@
 import { useAbsensiToday, useCheckIn, useCheckOut } from '@/hooks/useAbsensi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { LoadingState } from '@/components/shared/LoadingState'
 import { LogIn, LogOut, Loader2 } from 'lucide-react'
 
 export default function AbsensiPage() {
@@ -28,8 +29,8 @@ export default function AbsensiPage() {
           <p className="text-muted-foreground">{today}</p>
         </div>
         <Card>
-          <CardContent className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <CardContent>
+            <LoadingState />
           </CardContent>
         </Card>
       </div>

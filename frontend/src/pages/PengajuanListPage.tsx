@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePengajuanList, useDeletePengajuan } from '@/hooks/usePengajuan'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { LoadingState } from '@/components/shared/LoadingState'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { PlusCircle, Trash2 } from 'lucide-react'
 import type { PengajuanStatus, PengajuanJenis } from '@/types'
 
@@ -29,6 +33,7 @@ export default function PengajuanListPage() {
   const navigate = useNavigate()
   const { data: pengajuan, isLoading } = usePengajuanList()
   const deleteMutation = useDeletePengajuan()
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   return (
     <div className="space-y-4">
@@ -60,48 +65,26 @@ export default function PengajuanListPage() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center">
-                Memuat...
+              <TableCell colSpan={7}>
+                <LoadingState />
               </TableCell>
             </TableRow>
           ) : pengajuan?.length ? (
             pengajuan.map((p) => (
               <TableRow key={p.id}>
-                <TableCell className="font-medium">
-                  {jenisLabel[p.jenis as PengajuanJenis] || p.jenis}
-                </TableCell>
+                <TableCell className="font-medium">{jenisLabel[p.jenis as PengajuanJenis] || p.jenis}</TableCell>
+                <TableCell>{new Date(p.tanggalMulai).toLocaleDateString('id-ID')}</TableCell>
+                <TableCell>{new Date(p.tanggalSelesai).toLocaleDateString('id-ID')}</TableCell>
+                <TableCell className="max-w-[200px] truncate">{p.alasan}</TableCell>
                 <TableCell>
-                  {new Date(p.tanggalMulai).toLocaleDateString('id-ID')}
-                </TableCell>
-                <TableCell>
-                  {new Date(p.tanggalSelesai).toLocaleDateString('id-ID')}
-                </TableCell>
-                <TableCell className="max-w-[200px] truncate">
-                  {p.alasan}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="secondary"
-                    className={statusColor[p.status]}
-                  >
-                    {p.status === 'pending'
-                      ? 'Menunggu'
-                      : p.status === 'approved'
-                        ? 'Disetujui'
-                        : 'Ditolak'}
+                  <Badge variant="secondary" className={statusColor[p.status]}>
+                    {p.status === 'pending' ? 'Menunggu' : p.status === 'approved' ? 'Disetujui' : 'Ditolak'}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {p.catatan || '-'}
-                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">{p.catatan || '-'}</TableCell>
                 <TableCell>
                   {p.status === 'pending' && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteMutation.mutate(p.id)}
-                      disabled={deleteMutation.isPending}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   )}
@@ -110,16 +93,29 @@ export default function PengajuanListPage() {
             ))
           ) : (
             <TableRow>
-              <TableCell
-                colSpan={7}
-                className="text-center text-muted-foreground"
-              >
-                Belum ada pengajuan
+              <TableCell colSpan={7}>
+                <EmptyState message="Belum ada pengajuan" />
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(o) => { if (!o) setDeleteId(null) }}
+        title="Hapus Pengajuan"
+        actions={[
+          {
+            label: 'Hapus',
+            onClick: () => { if (deleteId) { deleteMutation.mutate(deleteId); setDeleteId(null) } },
+            variant: 'destructive',
+            disabled: deleteMutation.isPending,
+          },
+        ]}
+      >
+        <p className="text-sm">Yakin ingin menghapus pengajuan ini? Tindakan ini tidak dapat dibatalkan.</p>
+      </ConfirmDialog>
     </div>
   )
 }
