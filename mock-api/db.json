@@ -149,6 +149,17 @@
       "status": "approved",
       "catatan": "Disetujui",
       "createdAt": "2026-07-17T09:00:00Z"
+    },
+    {
+      "jenis": "cuti",
+      "tanggalMulai": "2026-07-21",
+      "tanggalSelesai": "2026-07-30",
+      "alasan": "Ngantuk Berattt boss",
+      "userId": 4,
+      "status": "pending",
+      "catatan": "",
+      "createdAt": "2026-07-21T07:40:22.591Z",
+      "id": 3
     }
   ]
 }
