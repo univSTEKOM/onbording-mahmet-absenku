@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePengajuanList, useDeletePengajuan } from '@/hooks/usePengajuan'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,7 @@ export default function PengajuanListPage() {
   const { data: pengajuan, isLoading, refetch, isFetching } = usePengajuanList()
   const deleteMutation = useDeletePengajuan()
   const [deleteId, setDeleteId] = useState<number | null>(null)
+  const skId = useId()
 
   return (
     <div className="space-y-6">
@@ -49,7 +50,7 @@ export default function PengajuanListPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
+          {Array.from({ length: 3 }, (_, i) => ({ id: `${skId}-s${i}` })).map((item) => <Skeleton key={item.id} className="h-12 w-full rounded-lg" />)}
         </div>
       ) : pengajuan?.length ? (
         <div className="rounded-lg border">

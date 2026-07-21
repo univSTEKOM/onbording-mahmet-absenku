@@ -1,17 +1,8 @@
 import api from './axios'
-import type { Pengajuan, PengajuanStatus } from '@/types'
+import type { Pengajuan, PengajuanStatus, PengajuanFormData, PengajuanFilters } from '@/types'
 
-export interface PengajuanFormData {
-  userId: number
-  jenis: string
-  tanggalMulai: string
-  tanggalSelesai: string
-  alasan: string
-}
-
-export async function getPengajuan(userId?: number): Promise<Pengajuan[]> {
-  const params = userId ? { userId } : {}
-  const res = await api.get('/pengajuan', { params })
+export async function getPengajuan(filters?: PengajuanFilters): Promise<Pengajuan[]> {
+  const res = await api.get('/pengajuan', { params: filters })
   return res.data
 }
 
@@ -25,11 +16,7 @@ export async function createPengajuan(data: PengajuanFormData): Promise<Pengajua
   return res.data
 }
 
-export async function updatePengajuanStatus(
-  id: number,
-  status: PengajuanStatus,
-  catatan?: string
-): Promise<Pengajuan> {
+export async function updatePengajuanStatus(id: number, status: PengajuanStatus, catatan?: string): Promise<Pengajuan> {
   const res = await api.patch(`/pengajuan/${id}`, { status, catatan })
   return res.data
 }

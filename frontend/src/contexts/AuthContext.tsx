@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import type { User, LoginRequest, RegisterRequest } from '@/types'
 import api from '@/api/axios'
@@ -31,49 +31,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  async function login(data: LoginRequest) {
+  const login = useCallback(async (data: LoginRequest) => {
     const res = await api.post('/api/auth/login', data)
     setUser(res.data.user)
     setToken(res.data.token)
     localStorage.setItem('token', res.data.token)
     localStorage.setItem('user', JSON.stringify(res.data.user))
     toast.success('Login berhasil')
-  }
+  }, [])
 
-  async function register(data: RegisterRequest) {
+  const register = useCallback(async (data: RegisterRequest) => {
     await api.post('/api/auth/register', data)
     toast.success('Registrasi berhasil')
-  }
+  }, [])
 
-  function updateUser(data: Partial<User>) {
+  const updateUser = useCallback((data: Partial<User>) => {
     setUser((prev) => {
       if (!prev) return prev
       const updated = { ...prev, ...data }
       localStorage.setItem('user', JSON.stringify(updated))
       return updated
     })
-  }
+  }, [])
 
-  function logout() {
+  const logout = useCallback(() => {
     setUser(null)
     setToken(null)
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-  }
+  }, [])
+
+  const value = useMemo(
+    () => ({ user, token, isLoading, login, register, logout, updateUser, isAdmin: user?.role === 'admin' }),
+    [user, token, isLoading, login, register, logout, updateUser]
+  )
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        login,
-        register,
-        logout,
-        updateUser,
-        isAdmin: user?.role === 'admin',
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

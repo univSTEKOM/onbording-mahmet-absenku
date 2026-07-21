@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import { useUsers } from '@/hooks/useUsers'
 import { useAbsensiList } from '@/hooks/useAbsensi'
 import { useAllPengajuan, useUpdatePengajuanStatus } from '@/hooks/usePengajuan'
@@ -25,6 +25,7 @@ export default function HrdDashboardPage() {
   const { data: allPengajuan, refetch: refetchPengajuan, isFetching: fetchingPengajuan } = useAllPengajuan()
   const updateStatus = useUpdatePengajuanStatus()
   const [search, setSearch] = useState('')
+  const skId = useId()
   const [selectedPengajuan, setSelectedPengajuan] = useState<Pengajuan | null>(null)
   const [catatan, setCatatan] = useState('')
   const [actionType, setActionType] = useState<PengajuanStatus | null>(null)
@@ -128,7 +129,7 @@ export default function HrdDashboardPage() {
           </div>
 
           {usersLoading ? (
-            <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}</div>
+            <div className="space-y-3">{Array.from({ length: 4 }, (_, i) => ({ id: `${skId}-s${i}` })).map((item) => <Skeleton key={item.id} className="h-10 w-full rounded-lg" />)}</div>
           ) : filteredUsers.length ? (
             <div className="rounded-lg border">
               <Table>

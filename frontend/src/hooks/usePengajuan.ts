@@ -1,20 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import {
-  getPengajuan,
-  createPengajuan,
-  updatePengajuanStatus,
-  deletePengajuan,
-  type PengajuanFormData,
-} from '@/api/pengajuan'
-import type { PengajuanStatus } from '@/types'
+import { getPengajuan, createPengajuan, updatePengajuanStatus, deletePengajuan } from '@/api/pengajuan'
+import type { PengajuanStatus, PengajuanFormData } from '@/types'
 import { useAuth } from './useAuth'
 
 export function usePengajuanList() {
   const { user } = useAuth()
   return useQuery({
     queryKey: ['pengajuan', user?.id],
-    queryFn: () => getPengajuan(user?.id),
+    queryFn: () => getPengajuan(user ? { userId: user.id } : undefined),
     enabled: !!user,
   })
 }

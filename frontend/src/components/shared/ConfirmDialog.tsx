@@ -41,9 +41,9 @@ export function ConfirmDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Batal
           </Button>
-          {actions.map((action, i) => (
+          {actions.map((action) => (
             <Button
-              key={i}
+              key={action.label}
               variant={action.variant || 'default'}
               className={action.className}
               onClick={action.onClick}

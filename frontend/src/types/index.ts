@@ -1,10 +1,10 @@
-export type Role = "admin" | "karyawan"
+export type Role = 'admin' | 'karyawan'
 
-export type AbsensiStatus = "hadir" | "terlambat" | "pulang_cepat" | "izin" | "sakit" | "cuti"
+export type AbsensiStatus = 'hadir' | 'terlambat' | 'pulang_cepat' | 'izin' | 'sakit' | 'cuti'
 
-export type PengajuanJenis = "cuti" | "izin" | "sakit"
+export type PengajuanJenis = 'cuti' | 'izin' | 'sakit'
 
-export type PengajuanStatus = "pending" | "approved" | "rejected"
+export type PengajuanStatus = 'pending' | 'approved' | 'rejected'
 
 export interface User {
   id: number
@@ -43,20 +43,31 @@ export interface Pengajuan {
   createdAt: string
 }
 
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface RegisterRequest {
-  email: string
-  password: string
-  nama: string
-  jabatan: string
+export interface UpdateUserData {
+  nama?: string
+  email?: string
+  jabatan?: string
   phone?: string
+  alamat?: string
+  foto?: string
+  role?: Role
 }
 
-export interface LoginResponse {
-  user: User
-  token: string
+export interface AbsensiFilters {
+  userId?: number
+  tanggal?: string
+  tanggal_gte?: string
+  tanggal_lte?: string
+  status?: string
+  _sort?: string
+  _order?: string
+  _page?: number
+  _limit?: number
 }
+
+export interface PengajuanFilters {
+  userId?: number
+  status?: string
+}
+
+export type { LoginRequest, RegisterRequest, LoginResponse, PaginatedResult, ApiResponse, ApiError, CheckInData, CheckOutData, PengajuanFormData } from './api'

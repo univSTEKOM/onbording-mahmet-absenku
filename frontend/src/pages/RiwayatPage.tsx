@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
 import {
@@ -33,6 +33,7 @@ export default function RiwayatPage() {
   const [page, setPage] = useState(1)
   const [filterStatus, setFilterStatus] = useState('')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const skId = useId()
 
   const { data, isLoading, refetch, isFetching } = useAbsensiListPaginated({
     userId: user?.id,
@@ -92,8 +93,8 @@ export default function RiwayatPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full rounded-lg" />
+          {Array.from({ length: 5 }, (_, i) => ({ id: `${skId}-s${i}` })).map((item) => (
+            <Skeleton key={item.id} className="h-12 w-full rounded-lg" />
           ))}
         </div>
       ) : absensi?.length ? (

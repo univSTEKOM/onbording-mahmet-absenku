@@ -1,5 +1,5 @@
 import api from './axios'
-import type { User } from '@/types'
+import type { User, UpdateUserData } from '@/types'
 
 export async function getUsers(): Promise<User[]> {
   const res = await api.get('/users')
@@ -11,7 +11,7 @@ export async function getUser(id: number): Promise<User> {
   return res.data
 }
 
-export async function updateUser(id: number, data: Partial<User>): Promise<User> {
+export async function updateUser(id: number, data: UpdateUserData): Promise<User> {
   const res = await api.patch(`/users/${id}`, data)
   return res.data
 }

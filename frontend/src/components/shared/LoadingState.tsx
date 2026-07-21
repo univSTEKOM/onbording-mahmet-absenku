@@ -14,15 +14,13 @@ export function LoadingState({ message = 'Memuat...' }: LoadingStateProps) {
 }
 
 export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
+  const rowKeys = Array.from({ length: rows }, (_, i) => ({ id: `sk-r-${i}`, cols: Array.from({ length: cols }, (_, j) => `sk-c-${i}-${j}`) }))
   return (
     <div className="space-y-3">
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex gap-4">
-          {Array.from({ length: cols }).map((_, j) => (
-            <div
-              key={j}
-              className="h-4 bg-muted rounded animate-pulse flex-1"
-            />
+      {rowKeys.map((row) => (
+        <div key={row.id} className="flex gap-4">
+          {row.cols.map((colKey) => (
+            <div key={colKey} className="h-4 bg-muted rounded animate-pulse flex-1" />
           ))}
         </div>
       ))}
