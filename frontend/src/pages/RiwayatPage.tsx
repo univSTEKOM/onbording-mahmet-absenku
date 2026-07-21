@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
+import { useAbsensiListPaginated, useAbsensiList } from '@/hooks/useAbsensi'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -21,8 +22,9 @@ import {
 import { LoadingState } from '@/components/shared/LoadingState'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
-import { Search } from 'lucide-react'
+import { Search, Download } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/utils'
+import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import type { AbsensiStatus } from '@/types'
 
 const statusColor: Record<AbsensiStatus, string> = {
@@ -50,8 +52,29 @@ export default function RiwayatPage() {
     ...(filterStatus ? { status: filterStatus } : {}),
   })
 
+  const { data: allAbsensi } = useAbsensiList({
+    userId: user?.id,
+    ...(filterStatus ? { status: filterStatus } : {}),
+    _sort: 'tanggal',
+    _order: 'desc',
+  })
+
   const absensi = data?.data
   const totalPages = data?.totalPages || 1
+
+  function handleExport() {
+    if (!allAbsensi?.length) return
+    exportToCsv(
+      `riwayat-absensi-${new Date().toISOString().split('T')[0]}`,
+      ['Tanggal', 'Masuk', 'Pulang', 'Status'],
+      allAbsensi.map((a) => [
+        formatCsvDate(a.tanggal),
+        formatCsvTime(a.checkIn),
+        formatCsvTime(a.checkOut),
+        a.status,
+      ])
+    )
+  }
 
   function handleStatusChange(value: string) {
     setFilterStatus(value === ' ' ? '' : value)
@@ -99,6 +122,10 @@ export default function RiwayatPage() {
             <SelectItem value="asc">Terlama</SelectItem>
           </SelectContent>
         </Select>
+        <Button variant="outline" className="gap-2" onClick={handleExport}>
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {isLoading ? (

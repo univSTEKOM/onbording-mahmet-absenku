@@ -18,7 +18,8 @@ import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { Users, Clock, FileText, CheckCircle2, Search } from 'lucide-react'
+import { exportToCsv } from '@/lib/export'
+import { Users, Clock, FileText, CheckCircle2, Search, Download } from 'lucide-react'
 import type { Pengajuan, PengajuanStatus } from '@/types'
 
 export default function HrdDashboardPage() {
@@ -56,6 +57,26 @@ export default function HrdDashboardPage() {
     setCatatan('')
   }
 
+  function handleExportKaryawan() {
+    if (!filteredUsers?.length) return
+    const monthStart = new Date()
+    monthStart.setDate(1)
+    exportToCsv(
+      `data-karyawan-${new Date().toISOString().split('T')[0]}`,
+      ['Nama', 'Jabatan', 'Status Hari Ini', 'Hadir Bulan Ini'],
+      filteredUsers.map((u) => {
+        const userToday = todayAbsensi.find((a) => a.userId === u.id)
+        const userMonth = allAbsensi?.filter((a) => a.userId === u.id && a.tanggal >= monthStart.toISOString().split('T')[0])
+        return [
+          u.nama || '-',
+          u.jabatan || '-',
+          userToday ? (userToday.status === 'terlambat' ? 'Terlambat' : userToday.status) : 'Belum absen',
+          `${userMonth?.length || 0} hari`,
+        ]
+      })
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -71,8 +92,12 @@ export default function HrdDashboardPage() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Data Karyawan</CardTitle>
+          <Button variant="outline" size="sm" className="gap-2" onClick={handleExportKaryawan}>
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">

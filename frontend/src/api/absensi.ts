@@ -25,6 +25,15 @@ export async function getAbsensi(filters?: AbsensiFilters): Promise<Absensi[]> {
   return res.data
 }
 
+export async function getAllAbsensiForExport(
+  filters?: Omit<AbsensiFilters, '_page' | '_limit'>
+): Promise<Absensi[]> {
+  const res = await api.get('/absensi', {
+    params: { ...filters, _sort: 'tanggal', _order: 'desc' },
+  })
+  return res.data
+}
+
 export async function getAbsensiPaginated(
   filters?: AbsensiFilters
 ): Promise<PaginatedResult<Absensi>> {
