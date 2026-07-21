@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (data: LoginRequest) => Promise<void>
   register: (data: RegisterRequest) => Promise<void>
   logout: () => void
+  updateUser: (data: Partial<User>) => void
   isAdmin: boolean
 }
 
@@ -44,6 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success('Registrasi berhasil')
   }
 
+  function updateUser(data: Partial<User>) {
+    setUser((prev) => {
+      if (!prev) return prev
+      const updated = { ...prev, ...data }
+      localStorage.setItem('user', JSON.stringify(updated))
+      return updated
+    })
+  }
+
   function logout() {
     setUser(null)
     setToken(null)
@@ -60,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        updateUser,
         isAdmin: user?.role === 'admin',
       }}
     >

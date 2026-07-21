@@ -4,7 +4,7 @@
       "id": 1,
       "email": "andika@stekom.ac.id",
       "password": "password",
-      "nama": "Andika",
+      "nama": "Andiu",
       "jabatan": "Manager HRD",
       "role": "admin",
       "foto": "",
@@ -125,6 +125,16 @@
       "faceVerified": true,
       "keterangan": "",
       "createdAt": "2026-07-17T08:00:00Z"
+    },
+    {
+      "userId": 2,
+      "tanggal": "2026-07-21",
+      "checkIn": "2026-07-21T02:18:54.576Z",
+      "status": "hadir",
+      "faceVerified": false,
+      "keterangan": "",
+      "createdAt": "2026-07-21T02:18:54.576Z",
+      "id": 8
     }
   ],
   "pengajuan": [
@@ -149,6 +159,17 @@
       "status": "approved",
       "catatan": "Disetujui",
       "createdAt": "2026-07-17T09:00:00Z"
+    },
+    {
+      "jenis": "sakit",
+      "tanggalMulai": "2112-02-21",
+      "tanggalSelesai": "2222-12-12",
+      "alasan": "Ndak tahu sih bro",
+      "userId": 2,
+      "status": "pending",
+      "catatan": "",
+      "createdAt": "2026-07-21T02:19:51.081Z",
+      "id": 3
     }
   ]
 }

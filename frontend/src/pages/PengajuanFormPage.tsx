@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCreatePengajuan } from '@/hooks/usePengajuan'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -12,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Loader2 } from 'lucide-react'
 
 export default function PengajuanFormPage() {
   const navigate = useNavigate()
@@ -22,20 +28,29 @@ export default function PengajuanFormPage() {
     tanggalSelesai: '',
     alasan: '',
   })
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [apiError, setApiError] = useState('')
+
+  function validate() {
+    const errs: Record<string, string> = {}
+    if (!form.tanggalMulai) errs.tanggalMulai = 'Tanggal mulai harus diisi'
+    if (!form.tanggalSelesai)
+      errs.tanggalSelesai = 'Tanggal selesai harus diisi'
+    if (form.tanggalMulai && form.tanggalSelesai) {
+      if (form.tanggalSelesai < form.tanggalMulai)
+        errs.tanggalSelesai = 'Tanggal selesai harus setelah tanggal mulai'
+    }
+    if (!form.alasan.trim()) errs.alasan = 'Alasan harus diisi'
+    else if (form.alasan.length < 10)
+      errs.alasan = 'Alasan minimal 10 karakter'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-
-    if (!form.tanggalMulai || !form.tanggalSelesai || !form.alasan) {
-      setError('Semua field harus diisi')
-      return
-    }
-    if (form.tanggalSelesai < form.tanggalMulai) {
-      setError('Tanggal selesai harus setelah tanggal mulai')
-      return
-    }
+    setApiError('')
+    if (!validate()) return
 
     mutation.mutate(
       {
@@ -46,7 +61,12 @@ export default function PengajuanFormPage() {
       },
       {
         onSuccess: () => navigate('/pengajuan'),
-        onError: () => setError('Gagal mengajukan. Coba lagi.'),
+        onError: (err) => {
+          const msg =
+            (err as { response?: { data?: { message?: string } } })
+              ?.response?.data?.message || 'Gagal mengajukan. Coba lagi.'
+          setApiError(msg)
+        },
       }
     )
   }
@@ -59,17 +79,23 @@ export default function PengajuanFormPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
+            {apiError && (
+              <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+                {apiError}
+              </div>
             )}
 
             <div className="space-y-2">
-              <Label>Jenis</Label>
+              <Label htmlFor="jenis">
+                Jenis <span className="text-destructive">*</span>
+              </Label>
               <Select
                 value={form.jenis}
-                onValueChange={(v) => setForm({ ...form, jenis: v })}
+                onValueChange={(v) =>
+                  setForm({ ...form, jenis: v })
+                }
               >
-                <SelectTrigger>
+                <SelectTrigger id="jenis">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -82,42 +108,71 @@ export default function PengajuanFormPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="tanggalMulai">Tanggal Mulai</Label>
+                <Label htmlFor="tanggalMulai">
+                  Tanggal Mulai <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="tanggalMulai"
                   type="date"
                   value={form.tanggalMulai}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setForm({ ...form, tanggalMulai: e.target.value })
+                    setErrors((prev) => ({ ...prev, tanggalMulai: '' }))
+                  }}
+                  className={
+                    errors.tanggalMulai ? 'border-destructive' : ''
                   }
-                  required
                 />
+                {errors.tanggalMulai && (
+                  <p className="text-xs text-destructive">
+                    {errors.tanggalMulai}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tanggalSelesai">Tanggal Selesai</Label>
+                <Label htmlFor="tanggalSelesai">
+                  Tanggal Selesai{' '}
+                  <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="tanggalSelesai"
                   type="date"
                   value={form.tanggalSelesai}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setForm({ ...form, tanggalSelesai: e.target.value })
+                    setErrors((prev) => ({ ...prev, tanggalSelesai: '' }))
+                  }}
+                  className={
+                    errors.tanggalSelesai ? 'border-destructive' : ''
                   }
-                  required
                 />
+                {errors.tanggalSelesai && (
+                  <p className="text-xs text-destructive">
+                    {errors.tanggalSelesai}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="alasan">Alasan</Label>
+              <Label htmlFor="alasan">
+                Alasan <span className="text-destructive">*</span>
+              </Label>
               <textarea
                 id="alasan"
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className={`flex min-h-[80px] w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm ${errors.alasan ? 'border-destructive' : 'border-input'}`}
                 value={form.alasan}
-                onChange={(e) =>
+                onChange={(e) => {
                   setForm({ ...form, alasan: e.target.value })
-                }
-                required
+                  setErrors((prev) => ({ ...prev, alasan: '' }))
+                }}
+                placeholder="Jelaskan alasan pengajuan Anda..."
               />
+              {errors.alasan && (
+                <p className="text-xs text-destructive">
+                  {errors.alasan}
+                </p>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -134,7 +189,14 @@ export default function PengajuanFormPage() {
                 className="flex-1"
                 disabled={mutation.isPending}
               >
-                {mutation.isPending ? 'Mengirim...' : 'Ajukan'}
+                {mutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Mengirim...
+                  </>
+                ) : (
+                  'Ajukan'
+                )}
               </Button>
             </div>
           </form>

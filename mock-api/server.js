@@ -11,6 +11,7 @@ const middlewares = jsonServer.defaults()
 
 server.use(upload.none())
 server.use(jsonServer.bodyParser)
+server.use(middlewares)
 
 server.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body
@@ -61,7 +62,6 @@ server.post('/api/auth/register', (req, res) => {
   })
 })
 
-server.use(middlewares)
 server.use(router)
 
 const PORT = process.env.PORT || 3001
