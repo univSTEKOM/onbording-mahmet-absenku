@@ -1,6 +1,6 @@
 export type Role = "admin" | "karyawan"
 
-export type AbsensiStatus = "hadir" | "terlambat" | "izin" | "sakit" | "cuti"
+export type AbsensiStatus = "hadir" | "terlambat" | "pulang_cepat" | "izin" | "sakit" | "cuti"
 
 export type PengajuanJenis = "cuti" | "izin" | "sakit"
 

@@ -47,10 +47,32 @@
       "phone": "23094823409823",
       "alamat": "Semarang Jekerte",
       "createdAt": "2026-07-21T03:47:27.676Z"
+    },
+    {
+      "id": 5,
+      "email": "SUS",
+      "password": "password",
+      "nama": "SUS",
+      "jabatan": "PASSWORD",
+      "role": "karyawan",
+      "foto": "",
+      "phone": "",
+      "alamat": "",
+      "createdAt": "2026-07-21T05:55:25.036Z"
     }
   ],
   "absensi": [
-    
+    {
+      "userId": 4,
+      "tanggal": "2026-07-21",
+      "checkIn": "2026-07-21T05:55:49.317Z",
+      "status": "hadir",
+      "faceVerified": false,
+      "keterangan": "",
+      "createdAt": "2026-07-21T05:55:49.317Z",
+      "id": 1,
+      "checkOut": "2026-07-21T05:56:33.455Z"
+    }
   ],
   "pengajuan": [
     {

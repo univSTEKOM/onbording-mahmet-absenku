@@ -30,6 +30,7 @@ import type { AbsensiStatus } from '@/types'
 const statusColor: Record<AbsensiStatus, string> = {
   hadir: 'bg-green-100 text-green-800',
   terlambat: 'bg-yellow-100 text-yellow-800',
+  pulang_cepat: 'bg-orange-100 text-orange-800',
   izin: 'bg-blue-100 text-blue-800',
   sakit: 'bg-purple-100 text-purple-800',
   cuti: 'bg-orange-100 text-orange-800',

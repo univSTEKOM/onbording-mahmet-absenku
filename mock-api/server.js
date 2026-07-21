@@ -66,6 +66,47 @@ server.post('/api/auth/register', (req, res) => {
   })
 })
 
+function toMinutes(time) {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+function nowTime() {
+  const n = new Date()
+  return `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`
+}
+
+const CHECK_IN_START = '06:45'
+const CHECK_IN_END = '07:45'
+const CHECK_OUT_MIN = '16:00'
+
+server.post('/absensi', (req, res, next) => {
+  const time = nowTime()
+  const mins = toMinutes(time)
+
+  if (mins < toMinutes(CHECK_IN_START)) {
+    return res.status(400).json({
+      message: `Belum waktunya absen. Absensi dibuka pukul ${CHECK_IN_START}.`,
+    })
+  }
+
+  req.body.status = mins <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'
+  next()
+})
+
+server.patch('/absensi/:id', (req, res, next) => {
+  if (!req.body.checkOut) return next()
+
+  const time = nowTime()
+  const mins = toMinutes(time)
+
+  if (mins < toMinutes(CHECK_OUT_MIN)) {
+    req.body.status = 'pulang_cepat'
+  }
+
+  next()
+})
+
 server.use(router)
 
 const PORT = process.env.PORT || 3001
