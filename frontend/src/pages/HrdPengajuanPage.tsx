@@ -1,6 +1,7 @@
 import { useState, useId } from 'react'
 import { useUsers } from '@/hooks/useUsers'
 import { useAllPengajuan, useUpdatePengajuanStatus } from '@/hooks/usePengajuan'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -13,28 +14,55 @@ import {
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { pengajuanJenisLabel, pengajuanStatusBadge, pengajuanStatusLabel } from '@/lib/constants'
-import { Search, RefreshCw, CheckCircle2, XCircle } from 'lucide-react'
+import { pengajuanJenisLabel, pengajuanStatusBadge, pengajuanStatusLabel, pengajuanJenisBadge } from '@/lib/constants'
+import { Search, RefreshCw, CheckCircle2, XCircle, FileText, Clock, CheckCheck, X } from 'lucide-react'
 import type { Pengajuan, PengajuanStatus } from '@/types'
+
+const datePresets = [
+  { label: 'Hari Ini', get: () => { const d = new Date(); return d.toISOString().split('T')[0] } },
+  { label: '7 Hari', get: () => { const d = new Date(); d.setDate(d.getDate() - 7); return d.toISOString().split('T')[0] } },
+  { label: 'Bulan Ini', get: () => { const d = new Date(); d.setDate(1); return d.toISOString().split('T')[0] } },
+]
 
 export default function HrdPengajuanPage() {
   const { data: users } = useUsers()
   const { data: allPengajuan, isLoading, refetch, isFetching } = useAllPengajuan()
   const updateStatus = useUpdatePengajuanStatus()
+  const skId = useId()
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
-  const skId = useId()
+  const [filterJenis, setFilterJenis] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [selectedPengajuan, setSelectedPengajuan] = useState<Pengajuan | null>(null)
   const [catatan, setCatatan] = useState('')
   const [actionType, setActionType] = useState<PengajuanStatus | null>(null)
+
+  const monthStart = new Date(); monthStart.setDate(1)
+  const monthStr = monthStart.toISOString().split('T')[0]
+  const monthData = allPengajuan?.filter((p) => p.createdAt >= monthStr) || []
+
+  const totalMonth = monthData.length
+  const pendingMonth = monthData.filter((p) => p.status === 'pending').length
+  const approvedMonth = monthData.filter((p) => p.status === 'approved').length
+  const rejectedMonth = monthData.filter((p) => p.status === 'rejected').length
 
   const filtered = allPengajuan?.filter((p) => {
     const pengaju = users?.find((u) => u.id === p.userId)
     const matchNama = (pengaju?.nama || '').toLowerCase().includes(search.toLowerCase())
     const matchAlasan = p.alasan.toLowerCase().includes(search.toLowerCase())
     const matchStatus = !filterStatus || p.status === filterStatus
-    return (matchNama || matchAlasan) && matchStatus
+    const matchJenis = !filterJenis || p.jenis === filterJenis
+    const matchDateFrom = !dateFrom || p.tanggalMulai >= dateFrom
+    const matchDateTo = !dateTo || p.tanggalMulai <= dateTo
+    return (matchNama || matchAlasan) && matchStatus && matchJenis && matchDateFrom && matchDateTo
   })
+
+  function setDatePreset(get: () => string) {
+    const val = get()
+    setDateFrom(val)
+    setDateTo(new Date().toISOString().split('T')[0])
+  }
 
   function handleConfirm() {
     if (!selectedPengajuan || !actionType) return
@@ -60,13 +88,61 @@ export default function HrdPengajuanPage() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-muted-foreground">Total Bulan Ini</span>
+              <FileText className="h-4 w-4 text-primary" />
+            </div>
+            <p className="text-2xl font-bold">{totalMonth}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-muted-foreground">Pending</span>
+              <Clock className="h-4 w-4 text-yellow-600" />
+            </div>
+            <p className="text-2xl font-bold text-yellow-600">{pendingMonth}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-muted-foreground">Disetujui</span>
+              <CheckCheck className="h-4 w-4 text-green-600" />
+            </div>
+            <p className="text-2xl font-bold text-green-600">{approvedMonth}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-muted-foreground">Ditolak</span>
+              <X className="h-4 w-4 text-red-600" />
+            </div>
+            <p className="text-2xl font-bold text-red-600">{rejectedMonth}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex flex-wrap gap-3 items-end">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Cari karyawan atau alasan..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <Select value={filterJenis} onValueChange={(v) => setFilterJenis(v === ' ' ? '' : v || '')}>
+          <SelectTrigger className="w-[120px]"><SelectValue placeholder="Jenis" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value=" ">Semua</SelectItem>
+            <SelectItem value="cuti">Cuti</SelectItem>
+            <SelectItem value="izin">Izin</SelectItem>
+            <SelectItem value="sakit">Sakit</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v === ' ' ? '' : v || '')}>
-          <SelectTrigger className="w-[130px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-[120px]"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value=" ">Semua</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
@@ -74,6 +150,14 @@ export default function HrdPengajuanPage() {
             <SelectItem value="rejected">Ditolak</SelectItem>
           </SelectContent>
         </Select>
+        <Input type="date" className="w-[140px]" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} placeholder="Dari" />
+        <span className="text-sm text-muted-foreground -mx-2">—</span>
+        <Input type="date" className="w-[140px]" value={dateTo} onChange={(e) => setDateTo(e.target.value)} placeholder="Sampai" />
+        <div className="flex gap-1">
+          {datePresets.map((p) => (
+            <Button key={p.label} variant="outline" size="sm" onClick={() => setDatePreset(p.get)}>{p.label}</Button>
+          ))}
+        </div>
       </div>
 
       {isLoading ? (
@@ -90,7 +174,8 @@ export default function HrdPengajuanPage() {
                 <TableHead>Tanggal</TableHead>
                 <TableHead>Alasan</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Aksi</TableHead>
+                <TableHead>Catatan</TableHead>
+                <TableHead className="w-20">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -99,27 +184,20 @@ export default function HrdPengajuanPage() {
                 return (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{pengaju?.nama || '-'}</TableCell>
-                    <TableCell>{pengajuanJenisLabel[p.jenis]}</TableCell>
+                    <TableCell><Badge variant="secondary" className={pengajuanJenisBadge[p.jenis]}>{pengajuanJenisLabel[p.jenis]}</Badge></TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {new Date(p.tanggalMulai).toLocaleDateString('id-ID')} — {new Date(p.tanggalSelesai).toLocaleDateString('id-ID')}
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">{p.alasan}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className={pengajuanStatusBadge[p.status]}>{pengajuanStatusLabel[p.status]}</Badge>
-                    </TableCell>
+                    <TableCell><Badge variant="secondary" className={pengajuanStatusBadge[p.status]}>{pengajuanStatusLabel[p.status]}</Badge></TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[120px] truncate">{p.catatan || '-'}</TableCell>
                     <TableCell>
                       {p.status === 'pending' ? (
                         <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" className="text-green-600 h-8 w-8 p-0" onClick={() => openConfirm(p, 'approved')}>
-                            <CheckCircle2 className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="text-red-600 h-8 w-8 p-0" onClick={() => openConfirm(p, 'rejected')}>
-                            <XCircle className="h-4 w-4" />
-                          </Button>
+                          <Button size="sm" variant="ghost" className="text-green-600 h-8 w-8 p-0" onClick={() => openConfirm(p, 'approved')}><CheckCircle2 className="h-4 w-4" /></Button>
+                          <Button size="sm" variant="ghost" className="text-red-600 h-8 w-8 p-0" onClick={() => openConfirm(p, 'rejected')}><XCircle className="h-4 w-4" /></Button>
                         </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">{p.catatan || '-'}</span>
-                      )}
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 )
@@ -128,7 +206,7 @@ export default function HrdPengajuanPage() {
           </Table>
         </div>
       ) : (
-        <EmptyState message={search ? 'Tidak ditemukan' : 'Belum ada pengajuan'} />
+        <EmptyState message={search || filterJenis || filterStatus || dateFrom ? 'Tidak ditemukan' : 'Belum ada pengajuan'} />
       )}
 
       <ConfirmDialog
