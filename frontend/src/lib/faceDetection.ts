@@ -1,27 +1,33 @@
 import * as faceapi from 'face-api.js'
 
 const MODEL_URL = '/models'
-let loaded = false
 
 export async function loadModels() {
-  if (loaded) return
   await Promise.all([
-    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
   ])
-  loaded = true
 }
 
 export async function detectFace(
-  input: HTMLVideoElement | HTMLCanvasElement
+  input: HTMLVideoElement | HTMLCanvasElement,
+  timeoutMs = 10000
 ): Promise<faceapi.WithFaceDescriptor<faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }>> | null> {
-  const result = await faceapi
-    .detectSingleFace(input)
-    .withFaceLandmarks()
-    .withFaceDescriptor()
+  const timer = setTimeout(() => {
+    throw new Error('Timeout: wajah tidak terdeteksi dalam batas waktu')
+  }, timeoutMs)
 
-  return result || null
+  try {
+    const result = await faceapi
+      .detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor()
+
+    return result || null
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 export function computeDistance(
@@ -34,7 +40,7 @@ export function computeDistance(
 export function isMatch(
   descriptor1: Float32Array,
   descriptor2: Float32Array,
-  threshold = 0.6
+  threshold = 0.5
 ): boolean {
   return computeDistance(descriptor1, descriptor2) < threshold
 }

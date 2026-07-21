@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -8,10 +8,17 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { WebcamCapture } from './WebcamCapture'
-import { loadModels, detectFace, descriptorToArray, isMatch, arrayToDescriptor, isFaceDescriptor } from '@/lib/faceDetection'
+import {
+  loadModels,
+  detectFace,
+  descriptorToArray,
+  isMatch,
+  arrayToDescriptor,
+  isFaceDescriptor,
+} from '@/lib/faceDetection'
 import { useAuth } from '@/hooks/useAuth'
 import { useUpdateUser } from '@/hooks/useUsers'
-import { CheckCircle2, XCircle } from 'lucide-react'
+import { CheckCircle2, XCircle, Loader2, AlertTriangle } from 'lucide-react'
 
 interface FaceVerificationProps {
   open: boolean
@@ -29,18 +36,35 @@ export function FaceVerification({
   const { user, updateUser } = useAuth()
   const updateUserMutation = useUpdateUser()
   const [processing, setProcessing] = useState(false)
+  const [modelsLoaded, setModelsLoaded] = useState(false)
+  const [modelsError, setModelsError] = useState('')
   const [status, setStatus] = useState<'idle' | 'success' | 'fail'>('idle')
   const [message, setMessage] = useState('')
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const loadingRef = useRef(false)
+
+  useEffect(() => {
+    if (!open || loadingRef.current || modelsLoaded) return
+    loadingRef.current = true
+
+    loadModels()
+      .then(() => {
+        setModelsLoaded(true)
+        setModelsError('')
+      })
+      .catch(() => {
+        setModelsError('Gagal memuat model. Periksa koneksi Internet.')
+      })
+      .finally(() => {
+        loadingRef.current = false
+      })
+  }, [open, modelsLoaded])
 
   async function handleCapture(canvas: HTMLCanvasElement) {
-    canvasRef.current = canvas
     setProcessing(true)
     setStatus('idle')
     setMessage('')
 
     try {
-      await loadModels()
       const result = await detectFace(canvas)
 
       if (!result) {
@@ -50,43 +74,52 @@ export function FaceVerification({
         return
       }
 
-      const storedDescriptor = user?.foto
-      let registered: number[]
+      const storedRaw = user?.foto
+      let storedDescriptor: number[] | null = null
+      if (storedRaw) {
+        try {
+          const parsed = JSON.parse(storedRaw)
+          if (isFaceDescriptor(parsed)) storedDescriptor = parsed
+        } catch {
+          /* ignore invalid stored data */
+        }
+      }
 
-      if (storedDescriptor && isFaceDescriptor(storedDescriptor)) {
-        registered = storedDescriptor
-        const match = isMatch(
-          result.descriptor,
-          arrayToDescriptor(registered),
-          0.5
-        )
+      if (storedDescriptor) {
+        const match = isMatch(result.descriptor, arrayToDescriptor(storedDescriptor), 0.5)
         if (match) {
           setStatus('success')
           setMessage('Wajah cocok!')
-          setTimeout(onVerified, 1000)
+          setTimeout(onVerified, 800)
         } else {
           setStatus('fail')
           setMessage('Wajah tidak cocok dengan data terdaftar.')
         }
       } else {
-        registered = descriptorToArray(result.descriptor)
-        if (user) {
-          updateUserMutation.mutate(
-            { id: user.id, data: { foto: JSON.stringify(registered) } },
-            {
-              onSuccess: () => {
-                updateUser({ foto: JSON.stringify(registered) })
-                setStatus('success')
-                setMessage('Wajah berhasil didaftarkan!')
-                setTimeout(onVerified, 1000)
-              },
-            }
-          )
-        }
+        const registered = descriptorToArray(result.descriptor)
+        if (!user) return
+        updateUserMutation.mutate(
+          { id: user.id, data: { foto: JSON.stringify(registered) } },
+          {
+            onSuccess: () => {
+              updateUser({ foto: JSON.stringify(registered) })
+              setStatus('success')
+              setMessage('Wajah berhasil didaftarkan!')
+              setTimeout(onVerified, 800)
+            },
+            onError: () => {
+              setStatus('fail')
+              setMessage('Gagal menyimpan data wajah.')
+            },
+          }
+        )
       }
     } catch (err) {
       setStatus('fail')
-      setMessage('Gagal memproses wajah. Coba lagi.')
+      const msg = err instanceof Error && err.message.includes('Timeout')
+        ? 'Wajah tidak terdeteksi. Pastikan wajah terlihat jelas.'
+        : 'Gagal memproses wajah. Coba lagi.'
+      setMessage(msg)
     } finally {
       setProcessing(false)
     }
@@ -98,13 +131,28 @@ export function FaceVerification({
         <DialogHeader>
           <DialogTitle>Verifikasi Wajah</DialogTitle>
           <DialogDescription>
-            {user?.foto && isFaceDescriptor(user.foto)
+            {user?.foto
               ? 'Arahkan wajah ke kamera untuk verifikasi'
               : 'Daftarkan wajah Anda untuk absensi selanjutnya'}
           </DialogDescription>
         </DialogHeader>
 
-        <WebcamCapture onCapture={handleCapture} processing={processing} />
+        {modelsError ? (
+          <div className="p-4 rounded-md bg-destructive/10 text-destructive text-sm text-center space-y-3">
+            <AlertTriangle className="h-8 w-8 mx-auto" />
+            <p>{modelsError}</p>
+            <Button variant="outline" size="sm" onClick={onSkip}>
+              Lewati verifikasi
+            </Button>
+          </div>
+        ) : !modelsLoaded ? (
+          <div className="flex items-center justify-center py-8 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            Memuat model pengenalan wajah...
+          </div>
+        ) : (
+          <WebcamCapture onCapture={handleCapture} processing={processing} autoStart />
+        )}
 
         {status === 'success' && (
           <div className="flex items-center gap-2 justify-center text-green-600">
@@ -120,11 +168,17 @@ export function FaceVerification({
           </div>
         )}
 
-        <div className="flex justify-center">
-          <Button variant="ghost" onClick={onSkip} className="text-muted-foreground">
-            Lewati verifikasi wajah
-          </Button>
-        </div>
+        {modelsLoaded && !processing && status !== 'success' && (
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              onClick={onSkip}
+              className="text-muted-foreground"
+            >
+              Lewati verifikasi wajah
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

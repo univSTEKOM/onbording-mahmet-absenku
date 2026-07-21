@@ -123,7 +123,8 @@
       "faceVerified": false,
       "keterangan": "",
       "createdAt": "2026-07-21T02:18:54.576Z",
-      "id": 8
+      "id": 8,
+      "checkOut": "2026-07-21T03:02:31.899Z"
     }
   ],
   "pengajuan": [
@@ -134,8 +135,8 @@
       "tanggalMulai": "2026-07-25",
       "tanggalSelesai": "2026-07-27",
       "alasan": "Acara keluarga",
-      "status": "pending",
-      "catatan": "",
+      "status": "rejected",
+      "catatan": "Acara keluarga apaan ? yang jelas dikit napa alasannya",
       "createdAt": "2026-07-18T10:00:00Z"
     },
     {
@@ -148,17 +149,6 @@
       "status": "approved",
       "catatan": "Disetujui",
       "createdAt": "2026-07-17T09:00:00Z"
-    },
-    {
-      "jenis": "sakit",
-      "tanggalMulai": "2112-02-21",
-      "tanggalSelesai": "2222-12-12",
-      "alasan": "Ndak tahu sih bro",
-      "userId": 2,
-      "status": "pending",
-      "catatan": "",
-      "createdAt": "2026-07-21T02:19:51.081Z",
-      "id": 3
     }
   ]
 }
