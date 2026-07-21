@@ -33,6 +33,18 @@ export const pengajuanJenisLabel: Record<PengajuanJenis, string> = {
   sakit: 'Sakit',
 }
 
+export const MAX_NAMA_LENGTH = 100
+export const MAX_JABATAN_LENGTH = 100
+export const MAX_ALASAN_LENGTH = 500
+export const MAX_ALAMAT_LENGTH = 500
+export const MAX_CATATAN_LENGTH = 500
+export const MIN_PASSWORD_LENGTH = 8
+export const MIN_PHONE_LENGTH = 10
+export const MAX_PHONE_LENGTH = 15
+export const MIN_ALASAN_LENGTH = 10
+export const MAX_FOTO_SIZE_MB = 5
+export const MAX_PENGAJUAN_DURATION_DAYS = 30
+
 export const absensiStatusLabel: Record<AbsensiStatus, string> = {
   hadir: 'Hadir',
   terlambat: 'Terlambat',

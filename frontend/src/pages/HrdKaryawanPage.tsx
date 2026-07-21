@@ -34,6 +34,7 @@ import api from '@/api/axios'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import type { User } from '@/types'
+import { MAX_NAMA_LENGTH, MAX_JABATAN_LENGTH } from '@/lib/constants'
 
 export default function HrdKaryawanPage() {
   const { user: currentUser } = useAuth()
@@ -46,6 +47,7 @@ export default function HrdKaryawanPage() {
   const [editTarget, setEditTarget] = useState<User | null>(null)
   const [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const })
   const [formError, setFormError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
 
@@ -60,6 +62,7 @@ export default function HrdKaryawanPage() {
     setEditTarget(null)
     setForm({ nama: '', email: '', jabatan: '', role: 'karyawan' })
     setFormError('')
+    setFieldErrors({})
     setModalOpen(true)
   }
 
@@ -67,15 +70,20 @@ export default function HrdKaryawanPage() {
     setEditTarget(user)
     setForm({ nama: user.nama, email: user.email, jabatan: user.jabatan, role: user.role })
     setFormError('')
+    setFieldErrors({})
     setModalOpen(true)
   }
 
   async function handleSave() {
     setFormError('')
-    if (!form.nama?.trim() || !form.email?.trim() || !form.jabatan?.trim()) {
-      setFormError('Nama, Email, dan Jabatan harus diisi')
-      return
-    }
+    const errs: Record<string, string> = {}
+    if (!form.nama?.trim()) errs.nama = 'Nama harus diisi'
+    else if (form.nama.length > MAX_NAMA_LENGTH) errs.nama = `Maksimal ${MAX_NAMA_LENGTH} karakter`
+    if (!form.email?.trim()) errs.email = 'Email harus diisi'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Format email tidak valid'
+    if (!form.jabatan?.trim()) errs.jabatan = 'Jabatan harus diisi'
+    else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = `Maksimal ${MAX_JABATAN_LENGTH} karakter`
+    if (Object.keys(errs).length > 0) { setFieldErrors(errs); return }
 
     try {
       if (editTarget) {
@@ -182,16 +190,22 @@ export default function HrdKaryawanPage() {
             {formError && <p className="text-sm text-destructive">{formError}</p>}
             <div className="space-y-2">
               <Label>Nama</Label>
-              <Input value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} />
+              <Input value={form.nama} onChange={(e) => { setForm({ ...form, nama: e.target.value }); setFieldErrors((p) => ({ ...p, nama: '' })) }}
+                className={fieldErrors.nama ? 'border-destructive' : ''} />
+              {fieldErrors.nama && <p className="text-xs text-destructive">{fieldErrors.nama}</p>}
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} disabled={!!editTarget} />
+              <Input type="email" value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setFieldErrors((p) => ({ ...p, email: '' })) }}
+                disabled={!!editTarget} className={fieldErrors.email ? 'border-destructive' : ''} />
+              {fieldErrors.email && <p className="text-xs text-destructive">{fieldErrors.email}</p>}
             </div>
             {!editTarget && <p className="text-xs text-muted-foreground">Password default: <code>password</code></p>}
             <div className="space-y-2">
               <Label>Jabatan</Label>
-              <Input value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} />
+              <Input value={form.jabatan} onChange={(e) => { setForm({ ...form, jabatan: e.target.value }); setFieldErrors((p) => ({ ...p, jabatan: '' })) }}
+                className={fieldErrors.jabatan ? 'border-destructive' : ''} />
+              {fieldErrors.jabatan && <p className="text-xs text-destructive">{fieldErrors.jabatan}</p>}
             </div>
             <div className="space-y-2">
               <Label>Role</Label>

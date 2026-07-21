@@ -107,6 +107,40 @@ server.patch('/absensi/:id', (req, res, next) => {
   next()
 })
 
+server.delete('/pengajuan/:id', (req, res) => {
+  const record = router.db.get('pengajuan').find({ id: Number(req.params.id) }).value()
+  if (!record) return res.status(404).json({ message: 'Pengajuan tidak ditemukan' })
+  if (record.status !== 'pending') return res.status(400).json({ message: 'Hanya pengajuan pending yang bisa dihapus' })
+  router.db.get('pengajuan').remove({ id: Number(req.params.id) }).write()
+  res.status(200).json({ message: 'Dihapus' })
+})
+
+server.patch('/users/:id', (req, res, next) => {
+  const body = req.body
+  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+    return res.status(400).json({ message: 'Format email tidak valid' })
+  }
+  if (body.nama && body.nama.length > 100) {
+    return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
+  }
+  if (body.jabatan && body.jabatan.length > 100) {
+    return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
+  }
+  next()
+})
+
+server.patch('/pengajuan/:id', (req, res, next) => {
+  const record = router.db.get('pengajuan').find({ id: Number(req.params.id) }).value()
+  if (!record) return res.status(404).json({ message: 'Pengajuan tidak ditemukan' })
+  if (req.body.status && record.status !== 'pending') {
+    return res.status(400).json({ message: 'Pengajuan sudah diproses sebelumnya' })
+  }
+  if (req.body.alasan && req.body.alasan.length > 500) {
+    return res.status(400).json({ message: 'Alasan maksimal 500 karakter' })
+  }
+  next()
+})
+
 server.use(router)
 
 const PORT = process.env.PORT || 3001

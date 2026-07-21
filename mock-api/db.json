@@ -35,10 +35,109 @@
       "phone": "081234567892",
       "alamat": "Jl. Gatot Subroto No. 3, Jakarta",
       "createdAt": "2026-01-01T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "email": "romus",
+      "password": "password",
+      "nama": "ROMUSO",
+      "jabatan": "nganggur",
+      "role": "karyawan",
+      "foto": "",
+      "phone": "",
+      "alamat": "",
+      "createdAt": "2026-07-21T08:30:37.995Z"
     }
   ],
   "absensi": [
-    
+    {
+      "id": 1,
+      "userId": 2,
+      "tanggal": "2026-07-13",
+      "checkIn": "2026-07-13T08:00:00Z",
+      "checkOut": "2026-07-13T17:00:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-13T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "tanggal": "2026-07-14",
+      "checkIn": "2026-07-14T08:15:00Z",
+      "checkOut": "2026-07-14T17:00:00Z",
+      "status": "terlambat",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-14T08:15:00Z"
+    },
+    {
+      "id": 3,
+      "userId": 3,
+      "tanggal": "2026-07-13",
+      "checkIn": "2026-07-13T07:55:00Z",
+      "checkOut": "2026-07-13T16:30:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-13T07:55:00Z"
+    },
+    {
+      "id": 4,
+      "userId": 3,
+      "tanggal": "2026-07-14",
+      "checkIn": "2026-07-14T08:00:00Z",
+      "checkOut": null,
+      "status": "hadir",
+      "faceVerified": false,
+      "keterangan": "",
+      "createdAt": "2026-07-14T08:00:00Z"
+    },
+    {
+      "id": 5,
+      "userId": 2,
+      "tanggal": "2026-07-15",
+      "checkIn": "2026-07-15T08:00:00Z",
+      "checkOut": "2026-07-15T17:00:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-15T08:00:00Z"
+    },
+    {
+      "id": 6,
+      "userId": 2,
+      "tanggal": "2026-07-16",
+      "checkIn": "2026-07-16T08:00:00Z",
+      "checkOut": "2026-07-16T17:00:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-16T08:00:00Z"
+    },
+    {
+      "id": 7,
+      "userId": 2,
+      "tanggal": "2026-07-17",
+      "checkIn": "2026-07-17T08:00:00Z",
+      "checkOut": "2026-07-17T17:00:00Z",
+      "status": "hadir",
+      "faceVerified": true,
+      "keterangan": "",
+      "createdAt": "2026-07-17T08:00:00Z"
+    },
+    {
+      "userId": 4,
+      "tanggal": "2026-07-21",
+      "checkIn": "2026-07-21T06:46:26.266Z",
+      "status": "pulang_cepat",
+      "faceVerified": false,
+      "keterangan": "",
+      "createdAt": "2026-07-21T06:46:26.266Z",
+      "id": 8,
+      "checkOut": "2026-07-21T06:47:07.159Z"
+    }
   ],
   "pengajuan": [
     {
@@ -48,8 +147,8 @@
       "tanggalMulai": "2026-07-25",
       "tanggalSelesai": "2026-07-27",
       "alasan": "Acara keluarga",
-      "status": "pending",
-      "catatan": "",
+      "status": "approved",
+      "catatan": "Keluarga ya, oke lah kalau begitu",
       "createdAt": "2026-07-18T10:00:00Z"
     },
     {
@@ -69,8 +168,8 @@
       "tanggalSelesai": "2026-07-30",
       "alasan": "Ngantuk Berattt boss",
       "userId": 4,
-      "status": "pending",
-      "catatan": "",
+      "status": "rejected",
+      "catatan": "Ngantuk ya ngopi , kocak\n",
       "createdAt": "2026-07-21T07:40:22.591Z",
       "id": 3
     }
