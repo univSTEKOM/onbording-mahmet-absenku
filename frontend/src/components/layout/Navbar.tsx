@@ -10,6 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import { LogOut, User, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -44,17 +45,19 @@ export function Navbar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span>{user?.nama}</span>
-                <span className="text-xs text-muted-foreground">{user?.jabatan}</span>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/profil')}>
-              <User className="mr-2 h-4 w-4" /> Profil
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <div className="flex flex-col">
+                  <span>{user?.nama}</span>
+                  <span className="text-xs text-muted-foreground">{user?.jabatan}</span>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/profil')}>
+                <User className="mr-2 h-4 w-4" /> Profil
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </DropdownMenuGroup>
             <DropdownMenuItem onClick={logout}>
               <LogOut className="mr-2 h-4 w-4" /> Logout
             </DropdownMenuItem>
