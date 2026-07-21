@@ -90,7 +90,7 @@ export default function HrdKaryawanPage() {
         await updateUserMutation.mutateAsync({ id: editTarget.id, data: form as Partial<User> })
         toast.success('Karyawan berhasil diupdate')
       } else {
-        await api.post('/api/auth/register', { ...form, password: 'password', role: form.role })
+        await api.post('/api/register', { ...form, password: 'password', name: form.nama, role: form.role })
         toast.success('Karyawan berhasil ditambahkan (password: password)')
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })

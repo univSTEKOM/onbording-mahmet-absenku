@@ -24,7 +24,11 @@ server.post('/api/register', async (req, res) => {
   req.on('data', (chunk) => { body += chunk })
   req.on('end', async () => {
     try {
-      const { email, password, nama, jabatan, phone } = JSON.parse(body)
+      const parsed = JSON.parse(body)
+      const { email, password, phone } = parsed
+      const nama = parsed.nama || parsed.name || ''
+      const jabatan = parsed.jabatan || ''
+      const role = parsed.role || 'karyawan'
       if (!email || !password || !nama) {
         return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
       }
@@ -34,7 +38,7 @@ server.post('/api/register', async (req, res) => {
           email,
           password,
           name: nama,
-          role: 'karyawan',
+          role,
           jabatan: jabatan || '',
           phone: phone || '',
           alamat: '',
@@ -53,7 +57,7 @@ server.post('/api/register', async (req, res) => {
         email,
         nama,
         jabatan: jabatan || '',
-        role: 'karyawan',
+        role,
         foto: '',
         phone: phone || '',
         alamat: '',
