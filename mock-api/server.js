@@ -1,13 +1,18 @@
-const fs = require('fs')
-const path = require('path')
 const jsonServer = require('json-server')
 const multer = require('multer')
 
 const upload = multer()
 const server = jsonServer.create()
-const dbPath = path.join(__dirname, 'db.json')
-const router = jsonServer.router(dbPath)
+const router = jsonServer.router('db.json')
 const middlewares = jsonServer.defaults()
+
+server.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+  if (req.method === 'OPTIONS') return res.sendStatus(204)
+  next()
+})
 
 server.use(upload.none())
 server.use(jsonServer.bodyParser)
@@ -15,10 +20,10 @@ server.use(middlewares)
 
 server.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body
-  const db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'))
-  const user = db.users.find(
-    (u) => u.email === email && u.password === password
-  )
+  const user = router.db
+    .get('users')
+    .find({ email, password })
+    .value()
 
   if (!user) {
     return res.status(401).json({ message: 'Email atau password salah' })
@@ -33,14 +38,14 @@ server.post('/api/auth/login', (req, res) => {
 
 server.post('/api/auth/register', (req, res) => {
   const { email, password, nama, jabatan, phone } = req.body
-  const db = JSON.parse(fs.readFileSync(dbPath, 'utf-8'))
+  const users = router.db.get('users').value()
 
-  if (db.users.find((u) => u.email === email)) {
+  if (users.find((u) => u.email === email)) {
     return res.status(400).json({ message: 'Email sudah terdaftar' })
   }
 
   const newUser = {
-    id: db.users.length > 0 ? Math.max(...db.users.map((u) => u.id)) + 1 : 1,
+    id: users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1,
     email,
     password,
     nama,
@@ -52,8 +57,7 @@ server.post('/api/auth/register', (req, res) => {
     createdAt: new Date().toISOString(),
   }
 
-  db.users.push(newUser)
-  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2))
+  router.db.get('users').push(newUser).write()
 
   const { password: _, ...userWithoutPassword } = newUser
   res.status(201).json({

@@ -1,73 +1,204 @@
-# Frontend Trial Project
-
 # Trial Onboarding — Frontend Client (Sistem Absensi Karyawan)
 
-## Apa Ini
+Frontend client untuk sistem absensi karyawan dengan dua role (Karyawan & HRD), fitur check-in/out, riwayat, pengajuan izin/cuti, dashboard, dan verifikasi wajah.
 
-Tahap pertama project trial onboarding dev baru. Fokus tunggal: **membangun frontend client** untuk sistem absensi karyawan. Client bersifat agnostic — dev bebas memakai stack yang dikuasai.
+## Tech Stack
 
-Template internal (Nest + TanStack) **belum digunakan** di tahap ini. Itu dijelaskan setelah flow client selesai dan bisa didemonstrasikan utuh.
+| Layer | Teknologi |
+|---|---|
+| Framework | React 19 + TypeScript |
+| Bundler | Vite |
+| Styling | Tailwind CSS v4 |
+| Component Library | shadcn/ui |
+| Data Fetching | TanStack Query |
+| Routing | React Router v7 |
+| HTTP Client | Axios |
+| Mock API | json-server (localhost:3001) |
+| Face Recognition | face-api.js |
 
-## Tujuan Tahap Ini
+## Environment Variables
 
-Dev menghasilkan frontend absensi yang berjalan penuh (semua alur inti berfungsi) menggunakan mock API lokal dan siap didemonstrasikan end-to-end.
+Buat file `.env` di `frontend/.env`:
 
-## Tema
+```env
+BACKEND_URL=http://localhost:3001
+```
 
-Sistem absensi karyawan : mencakup CRUD, relasi data, dua role (karyawan vs HRD), dan satu fitur face recognition.
+## Cara Menjalankan
 
-## Aturan Main
+### 1. Mock API
 
-* **Stack bebas** — pilih yang dikuasai. Yang dinilai: hasil & kualitas alur, bukan pilihan tools.
-* **Mock API lokal** — pakai `json-server`. Data persist di `db.json`, jadi CRUD bisa dites beneran.
-* **Rancang shape API sendiri** — struktur endpoint & data didesain dev.
-* **Auth di-fake dulu** — login sungguhan menyusul di tahap template.
+```bash
+cd mock-api
+npm install
+npm start
+```
 
-## Contoh Project Akhir
+API berjalan di `http://localhost:3001`
 
-##### User Admin
+### 2. Frontend
 
-https://api-onboarding.ocdev.web.id
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-email : [andika@stekom.ac.id](mailto:andika@stekom.ac.id)
+Aplikasi berjalan di `http://localhost:5173`
 
-password : password
+## Akun Demo
 
-##### User Karyawan
+### Admin
 
-https://onboarding.ocdev.web.id
+| Field | Value |
+|---|---|
+| Email | andika@stekom.ac.id |
+| Password | password |
 
-email : [andika@stekom.ac.id](mailto:andika@stekom.ac.id)
+### Karyawan
 
-password: password
+| Field | Value |
+|---|---|
+| Email | rudi@stekom.ac.id |
+| Password | password |
 
-## Ruang Lingkup Fitur
+| Email | siti@stekom.ac.id |
+| Password | password |
 
-| Fitur                          | Cakupan                                                                 |
-| ------------------------------ | ----------------------------------------------------------------------- |
-| Pendaftaran akun & manage info | Register, edit profil, kelola data akun                                 |
-| Proses absensi                 | Check-in / check-out                                                    |
-| History kehadiran              | Riwayat per karyawan, filter & sort                                     |
-| Pengajuan izin / cuti          | Ajukan, status pending/approved/rejected                                |
-| Dashboard personal             | Ringkasan kehadiran diri sendiri                                        |
-| Dashboard HRD                  | Overview seluruh karyawan                                               |
-| Face Recognition               | Verifikasi wajah saat absen — **bonus/extend**, jangan blokir alur inti |
+## Fitur
 
-Boleh di-extend selama koheren dengan tema.
+### Role: Karyawan
 
-## Definisi Selesai
+| Fitur | Status | Keterangan |
+|---|---|---|
+| Registrasi Akun | ✅ | Daftar akun baru |
+| Login | ✅ | Autentikasi fake |
+| Edit Profil | ✅ | Upload foto, validasi field |
+| Check-in / Check-out | ✅ | Absensi harian dengan timestamp |
+| Verifikasi Wajah | ✅ | face-api.js, simpan descriptor |
+| Riwayat Kehadiran | ✅ | Filter status, sort, pagination, export CSV |
+| Pengajuan Izin/Cuti | ✅ | Ajukan, lihat status, hapus |
+| Dashboard Personal | ✅ | Statistik hari/minggu/bulan, aktivitas terbaru |
 
-Tahap client dianggap selesai bila:
+### Role: Admin (HRD)
 
-* Semua fitur inti (akun, absensi, history, izin/cuti, dua dashboard) berjalan lawan mock.
-* CRUD terbukti persist (create lalu tampil di list/history).
-* Alur bisa didemonstrasikan utuh dari sudut pandang karyawan dan HRD.
+| Fitur | Status | Keterangan |
+|---|---|---|
+| Dashboard HRD | ✅ | 4 stat card, tabel karyawan |
+| Approve / Reject Pengajuan | ✅ | Modal konfirmasi dengan catatan |
+| Cari Karyawan | ✅ | Filter by nama/jabatan |
+| Export Data Karyawan | ✅ | CSV download |
 
-Setelah titik ini terpenuhi → lanjut ke penjelasan template Nest + TanStack.
+## API Endpoints
+
+### Auth
+
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| POST | /api/auth/login | Login, return user + token |
+| POST | /api/auth/register | Register akun baru (role: karyawan) |
+
+### Users
+
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| GET | /users | List semua user |
+| GET | /users/:id | Detail user |
+| PATCH | /users/:id | Update user (profil, foto) |
+
+### Absensi
+
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| GET | /absensi | List absensi (support `_sort`, `_order`, `_page`, `_limit`, `userId`, `tanggal`) |
+| GET | /absensi/:id | Detail absensi |
+| POST | /absensi | Check-in |
+| PATCH | /absensi/:id | Check-out |
+
+### Pengajuan
+
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| GET | /pengajuan | List pengajuan (support `userId`, `status`) |
+| GET | /pengajuan/:id | Detail pengajuan |
+| POST | /pengajuan | Buat pengajuan baru |
+| PATCH | /pengajuan/:id | Update status (approve/reject) |
+| DELETE | /pengajuan/:id | Hapus pengajuan (pending only) |
+
+## Database Schema
+
+### `users`
+
+| Field | Type | Contoh |
+|---|---|---|
+| id | number | 1 |
+| email | string | andika@stekom.ac.id |
+| password | string | password |
+| nama | string | Andika |
+| jabatan | string | Manager HRD |
+| role | "admin" \| "karyawan" | admin |
+| foto | string | face descriptor JSON atau URL |
+| phone | string | 081234567890 |
+| alamat | string | Jl. Merdeka No. 1 |
+| createdAt | string (ISO) | 2026-01-01T00:00:00Z |
+
+### `absensi`
+
+| Field | Type | Contoh |
+|---|---|---|
+| id | number | 1 |
+| userId | number | 2 |
+| tanggal | string (date) | 2026-07-20 |
+| checkIn | string (ISO) \| null | 2026-07-20T08:00:00Z |
+| checkOut | string (ISO) \| null | 2026-07-20T17:00:00Z |
+| status | "hadir" \| "terlambat" \| "izin" \| "sakit" \| "cuti" | hadir |
+| faceVerified | boolean | false |
+| keterangan | string | |
+| createdAt | string (ISO) | 2026-07-20T08:00:00Z |
+
+### `pengajuan`
+
+| Field | Type | Contoh |
+|---|---|---|
+| id | number | 1 |
+| userId | number | 2 |
+| jenis | "cuti" \| "izin" \| "sakit" | cuti |
+| tanggalMulai | string (date) | 2026-07-25 |
+| tanggalSelesai | string (date) | 2026-07-27 |
+| alasan | string | Acara keluarga |
+| status | "pending" \| "approved" \| "rejected" | pending |
+| catatan | string | Disetujui |
+| createdAt | string (ISO) | 2026-07-18T10:00:00Z |
+
+## Struktur Folder
+
+```
+on-boarding-trials/
+├── frontend/                  # React + Vite app
+│   ├── src/
+│   │   ├── api/               # Axios service layer
+│   │   ├── components/
+│   │   │   ├── ui/            # shadcn/ui components
+│   │   │   ├── layout/        # Sidebar, MainLayout, AuthLayout
+│   │   │   └── shared/        # Reusable: StatsCard, Pagination, etc.
+│   │   ├── contexts/          # AuthContext
+│   │   ├── hooks/             # TanStack Query hooks
+│   │   ├── lib/               # Utils, export, faceDetection
+│   │   ├── pages/             # Page components
+│   │   └── types/             # TypeScript interfaces
+│   ├── public/models/         # face-api.js model files
+│   └── .env                   # BACKEND_URL
+├── mock-api/                  # json-server
+│   ├── db.json                # Seed data
+│   └── server.js              # Custom auth routes + CORS
+└── docs/                      # Dokumentasi
+```
 
 ## Catatan Teknis
 
-* Base URL API ditaruh di satu tempat (mis. env) agar tahap integrasi nanti minim rework.
-* Jaga konsistensi shape data sejak awal — ini yang menentukan mulusnya integrasi ke API asli.
-* Face Recognition disarankan berbasis browser (mis. face-api.js) agar tetap gratis dan tidak memblokir.
-
+1. **Base URL di satu tempat** — `BACKEND_URL` di `.env`. Untuk integrasi ke API asli, cukup ganti nilai ini.
+2. **Shape data konsisten** — Gunakan TypeScript interfaces di `src/types/index.ts` sebagai single source of truth.
+3. **CORS** — Server sudah dilengkapi CORS middleware manual untuk handle semua origin.
+4. **Pagination** — json-server native via `_page` & `_limit`. Total count dari header `x-total-count`.
+5. **Face Recognition** — Menggunakan `tinyFaceDetector` (189KB, 3-5x lebih cepat dari SSD). Model di-load dari `/public/models/`. Fallback manual tetap tersedia.
+6. **Auth** — Masih fake (tanpa JWT sungguhan). User dikirim dalam response login, disimpan di localStorage.
