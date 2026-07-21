@@ -15,6 +15,7 @@ import PengajuanFormPage from '@/pages/PengajuanFormPage'
 import ProfilPage from '@/pages/ProfilPage'
 import HrdRiwayatPage from '@/pages/HrdRiwayatPage'
 import HrdKaryawanPage from '@/pages/HrdKaryawanPage'
+import HrdPengajuanPage from '@/pages/HrdPengajuanPage'
 import MainLayout from '@/components/layout/MainLayout'
 import AuthLayout from '@/components/layout/AuthLayout'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
@@ -42,6 +43,7 @@ function App() {
               <Route element={<AdminRoute />}>
                 <Route path="/hrd/dashboard" element={<HrdDashboardPage />} />
                 <Route path="/hrd/riwayat" element={<HrdRiwayatPage />} />
+                <Route path="/hrd/pengajuan" element={<HrdPengajuanPage />} />
                 <Route path="/hrd/karyawan" element={<HrdKaryawanPage />} />
               </Route>
             </Route>

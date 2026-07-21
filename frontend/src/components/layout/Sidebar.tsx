@@ -4,7 +4,6 @@ import {
   Fingerprint,
   History,
   FileText,
-  PlusCircle,
   User,
   Users,
 } from 'lucide-react'
@@ -17,12 +16,12 @@ const karyawanMenu = [
   { label: 'Absensi', path: '/absensi', icon: Fingerprint },
   { label: 'Riwayat', path: '/absensi/riwayat', icon: History },
   { label: 'Pengajuan', path: '/pengajuan', icon: FileText },
-  { label: 'Ajukan Baru', path: '/pengajuan/baru', icon: PlusCircle },
 ]
 
 const adminMenu = [
   { label: 'Dashboard HRD', path: '/hrd/dashboard', icon: Users },
   { label: 'Riwayat', path: '/hrd/riwayat', icon: History },
+  { label: 'Pengajuan', path: '/hrd/pengajuan', icon: FileText },
   { label: 'Kelola Karyawan', path: '/hrd/karyawan', icon: User },
 ]
 
