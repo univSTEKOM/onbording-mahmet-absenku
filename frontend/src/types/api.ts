@@ -1,7 +1,6 @@
 export interface ApiResponse<T> {
   data: T
   message?: string
-  token?: string
 }
 
 export interface ApiError {
@@ -29,13 +28,8 @@ export interface RegisterRequest {
   phone?: string
 }
 
-export interface LoginResponse {
-  user: import('./index').User
-  token: string
-}
-
 export interface CheckInData {
-  userId: number
+  userId: string
   tanggal: string
   checkIn: string
 }
@@ -45,7 +39,7 @@ export interface CheckOutData {
 }
 
 export interface PengajuanFormData {
-  userId: number
+  userId: string
   jenis: string
   tanggalMulai: string
   tanggalSelesai: string

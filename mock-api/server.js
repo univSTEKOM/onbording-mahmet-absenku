@@ -1,3 +1,9 @@
+import cors from 'cors'
+import { createRequire } from 'module'
+import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
+import { auth } from './auth.js'
+
+const require = createRequire(import.meta.url)
 const jsonServer = require('json-server')
 const multer = require('multer')
 
@@ -6,65 +12,77 @@ const server = jsonServer.create()
 const router = jsonServer.router('db.json')
 const middlewares = jsonServer.defaults()
 
-server.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
-  if (req.method === 'OPTIONS') return res.sendStatus(204)
-  next()
+server.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}))
+
+server.all('/api/auth/*', toNodeHandler(auth))
+
+server.post('/api/register', async (req, res) => {
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', async () => {
+    try {
+      const { email, password, nama, jabatan, phone } = JSON.parse(body)
+      if (!email || !password || !nama) {
+        return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
+      }
+
+      const response = await auth.api.signUpEmail({
+        body: {
+          email,
+          password,
+          name: nama,
+          role: 'karyawan',
+          jabatan: jabatan || '',
+          phone: phone || '',
+          alamat: '',
+        },
+        asResponse: true,
+      })
+
+      if (response.status !== 200) {
+        const err = await response.json()
+        return res.status(400).json({ message: err.message || 'Gagal mendaftar' })
+      }
+
+      const data = await response.json()
+      const profile = {
+        id: data.user.id,
+        email,
+        nama,
+        jabatan: jabatan || '',
+        role: 'karyawan',
+        foto: '',
+        phone: phone || '',
+        alamat: '',
+        createdAt: new Date().toISOString(),
+      }
+      router.db.get('users').push(profile).write()
+      res.status(201).json({ user: { ...data.user, ...profile } })
+    } catch (e) {
+      res.status(400).json({ message: e.message || 'Gagal mendaftar' })
+    }
+  })
+})
+
+server.get('/api/me', async (req, res) => {
+  const session = await auth.api.getSession({
+    headers: fromNodeHeaders(req.headers),
+  })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+
+  const profile = router.db.get('users').find({ id: session.user.id }).value()
+  res.json({
+    ...session,
+    user: { ...session.user, ...profile },
+  })
 })
 
 server.use(upload.none())
 server.use(jsonServer.bodyParser)
 server.use(middlewares)
-
-server.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body
-  const user = router.db
-    .get('users')
-    .find({ email, password })
-    .value()
-
-  if (!user) {
-    return res.status(401).json({ message: 'Email atau password salah' })
-  }
-
-  const { password: _, ...userWithoutPassword } = user
-  res.json({
-    user: userWithoutPassword,
-    token: 'fake-jwt-' + Date.now(),
-  })
-})
-
-server.post('/api/auth/register', (req, res) => {
-  const { email, password, nama, jabatan, phone } = req.body
-  const users = router.db.get('users').value()
-
-  if (users.find((u) => u.email === email)) {
-    return res.status(400).json({ message: 'Email sudah terdaftar' })
-  }
-
-  const newUser = {
-    id: users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1,
-    email,
-    password,
-    nama,
-    jabatan: jabatan || '',
-    role: 'karyawan',
-    foto: '',
-    phone: phone || '',
-    alamat: '',
-    createdAt: new Date().toISOString(),
-  }
-
-  router.db.get('users').push(newUser).write()
-
-  const { password: _, ...userWithoutPassword } = newUser
-  res.status(201).json({
-    user: userWithoutPassword,
-    token: 'fake-jwt-' + Date.now(),
-  })
-})
 
 function toMinutes(time) {
   const [h, m] = time.split(':').map(Number)
@@ -83,27 +101,20 @@ const CHECK_OUT_MIN = '16:00'
 server.post('/absensi', (req, res, next) => {
   const time = nowTime()
   const mins = toMinutes(time)
-
   if (mins < toMinutes(CHECK_IN_START)) {
-    return res.status(400).json({
-      message: `Belum waktunya absen. Absensi dibuka pukul ${CHECK_IN_START}.`,
-    })
+    return res.status(400).json({ message: `Belum waktunya absen. Absensi dibuka pukul ${CHECK_IN_START}.` })
   }
-
   req.body.status = mins <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'
   next()
 })
 
 server.patch('/absensi/:id', (req, res, next) => {
   if (!req.body.checkOut) return next()
-
   const time = nowTime()
   const mins = toMinutes(time)
-
   if (mins < toMinutes(CHECK_OUT_MIN)) {
     req.body.status = 'pulang_cepat'
   }
-
   next()
 })
 
@@ -142,7 +153,7 @@ server.patch('/pengajuan/:id', (req, res, next) => {
 })
 
 server.get('/api/dashboard/recent', (req, res) => {
-  const userId = req.query.userId ? Number(req.query.userId) : null
+  const userId = req.query.userId ? req.query.userId : null
   let absensi = router.db.get('absensi').value()
   if (userId) absensi = absensi.filter((a) => a.userId === userId)
   const uniqueDates = [...new Set(absensi.map((a) => a.tanggal))].sort()

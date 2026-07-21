@@ -1,70 +1,43 @@
 {
   "users": [
     {
-      "id": 1,
+      "id": "1Cug4jZjxl3NIN6E6pKYuRUMzoCzCxAN",
       "email": "andika@stekom.ac.id",
-      "password": "password",
       "nama": "Andika",
       "jabatan": "Manager HRD",
       "role": "admin",
       "foto": "",
       "phone": "081234567890",
       "alamat": "Jl. Merdeka No. 1, Jakarta",
-      "createdAt": "2026-01-01T00:00:00Z"
+      "createdAt": "2026-07-21T09:00:14.433Z"
     },
     {
-      "id": 2,
+      "id": "0opOEfQllEi1Hqzn5anTNdOZIDnPXhZ6",
       "email": "rudi@stekom.ac.id",
-      "password": "password",
       "nama": "Rudi Hartono",
       "jabatan": "Staff IT",
       "role": "karyawan",
       "foto": "",
       "phone": "081234567891",
       "alamat": "Jl. Sudirman No. 2, Jakarta",
-      "createdAt": "2026-01-01T00:00:00Z"
+      "createdAt": "2026-07-21T09:00:14.433Z"
     },
     {
-      "id": 3,
+      "id": "oRIzZz79UW7sr0eFupIzhWoQug85JeL0",
       "email": "siti@stekom.ac.id",
-      "password": "password",
       "nama": "Siti Nurhaliza",
       "jabatan": "Staff Keuangan",
       "role": "karyawan",
       "foto": "",
       "phone": "081234567892",
       "alamat": "Jl. Gatot Subroto No. 3, Jakarta",
-      "createdAt": "2026-01-01T00:00:00Z"
-    },
-    {
-      "id": 4,
-      "email": "romus",
-      "password": "password",
-      "nama": "ROMUSO",
-      "jabatan": "nganggur",
-      "role": "karyawan",
-      "foto": "",
-      "phone": "",
-      "alamat": "",
-      "createdAt": "2026-07-21T08:30:37.995Z"
-    },
-    {
-      "id": 5,
-      "email": "lkasjdf@gmaill.com",
-      "password": "password",
-      "nama": "alksdfja",
-      "jabatan": "lkajsdf",
-      "role": "karyawan",
-      "foto": "",
-      "phone": "",
-      "alamat": "",
-      "createdAt": "2026-07-21T08:43:59.305Z"
+      "createdAt": "2026-07-21T09:00:14.433Z"
     }
   ],
   "absensi": [
     {
       "id": 1,
-      "userId": 2,
+      "userId": "0opOEfQllEi1Hqzn5anTNdOZIDnPXhZ6",
       "tanggal": "2026-07-13",
       "checkIn": "2026-07-13T08:00:00Z",
       "checkOut": "2026-07-13T17:00:00Z",
@@ -75,7 +48,7 @@
     },
     {
       "id": 2,
-      "userId": 2,
+      "userId": "0opOEfQllEi1Hqzn5anTNdOZIDnPXhZ6",
       "tanggal": "2026-07-14",
       "checkIn": "2026-07-14T08:15:00Z",
       "checkOut": "2026-07-14T17:00:00Z",
@@ -86,7 +59,7 @@
     },
     {
       "id": 3,
-      "userId": 3,
+      "userId": "oRIzZz79UW7sr0eFupIzhWoQug85JeL0",
       "tanggal": "2026-07-13",
       "checkIn": "2026-07-13T07:55:00Z",
       "checkOut": "2026-07-13T16:30:00Z",
@@ -97,7 +70,7 @@
     },
     {
       "id": 4,
-      "userId": 3,
+      "userId": "oRIzZz79UW7sr0eFupIzhWoQug85JeL0",
       "tanggal": "2026-07-14",
       "checkIn": "2026-07-14T08:00:00Z",
       "checkOut": null,
@@ -108,7 +81,7 @@
     },
     {
       "id": 5,
-      "userId": 2,
+      "userId": "0opOEfQllEi1Hqzn5anTNdOZIDnPXhZ6",
       "tanggal": "2026-07-15",
       "checkIn": "2026-07-15T08:00:00Z",
       "checkOut": "2026-07-15T17:00:00Z",
@@ -119,7 +92,7 @@
     },
     {
       "id": 6,
-      "userId": 2,
+      "userId": "0opOEfQllEi1Hqzn5anTNdOZIDnPXhZ6",
       "tanggal": "2026-07-16",
       "checkIn": "2026-07-16T08:00:00Z",
       "checkOut": "2026-07-16T17:00:00Z",
@@ -130,7 +103,7 @@
     },
     {
       "id": 7,
-      "userId": 2,
+      "userId": "0opOEfQllEi1Hqzn5anTNdOZIDnPXhZ6",
       "tanggal": "2026-07-17",
       "checkIn": "2026-07-17T08:00:00Z",
       "checkOut": "2026-07-17T17:00:00Z",
@@ -138,34 +111,12 @@
       "faceVerified": true,
       "keterangan": "",
       "createdAt": "2026-07-17T08:00:00Z"
-    },
-    {
-      "userId": 4,
-      "tanggal": "2026-07-21",
-      "checkIn": "2026-07-21T06:46:26.266Z",
-      "status": "pulang_cepat",
-      "faceVerified": false,
-      "keterangan": "",
-      "createdAt": "2026-07-21T06:46:26.266Z",
-      "id": 8,
-      "checkOut": "2026-07-21T06:47:07.159Z"
-    },
-    {
-      "userId": 5,
-      "tanggal": "2026-07-21",
-      "checkIn": "2026-07-21T08:45:03.329Z",
-      "status": "pulang_cepat",
-      "faceVerified": false,
-      "keterangan": "",
-      "createdAt": "2026-07-21T08:45:03.329Z",
-      "id": 9,
-      "checkOut": "2026-07-21T08:45:07.184Z"
     }
   ],
   "pengajuan": [
     {
       "id": 1,
-      "userId": 2,
+      "userId": "0opOEfQllEi1Hqzn5anTNdOZIDnPXhZ6",
       "jenis": "cuti",
       "tanggalMulai": "2026-07-25",
       "tanggalSelesai": "2026-07-27",
@@ -176,7 +127,7 @@
     },
     {
       "id": 2,
-      "userId": 3,
+      "userId": "oRIzZz79UW7sr0eFupIzhWoQug85JeL0",
       "jenis": "izin",
       "tanggalMulai": "2026-07-21",
       "tanggalSelesai": "2026-07-21",
@@ -184,17 +135,6 @@
       "status": "approved",
       "catatan": "Disetujui",
       "createdAt": "2026-07-17T09:00:00Z"
-    },
-    {
-      "jenis": "cuti",
-      "tanggalMulai": "2026-07-21",
-      "tanggalSelesai": "2026-07-30",
-      "alasan": "Ngantuk Berattt boss",
-      "userId": 4,
-      "status": "rejected",
-      "catatan": "Ngantuk ya ngopi , kocak\n",
-      "createdAt": "2026-07-21T07:40:22.591Z",
-      "id": 3
     }
   ]
 }

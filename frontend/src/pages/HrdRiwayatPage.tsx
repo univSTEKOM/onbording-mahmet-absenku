@@ -42,7 +42,7 @@ export default function HrdRiwayatPage() {
     _order: 'desc',
     _page: page,
     _limit: PAGE_SIZE,
-    ...(selectedUserId ? { userId: Number(selectedUserId) } : {}),
+    ...(selectedUserId ? { userId: selectedUserId } : {}),
     ...(filterStatus ? { status: filterStatus } : {}),
     ...(dateStart ? { tanggal_gte: dateStart } : {}),
     ...(dateEnd ? { tanggal_lte: dateEnd } : {}),

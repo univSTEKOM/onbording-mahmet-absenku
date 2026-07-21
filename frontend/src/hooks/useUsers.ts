@@ -14,7 +14,7 @@ export function useUpdateUser() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<User> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
       updateUser(id, data),
     onSuccess: () => {
       toast.success('Profil berhasil diperbarui')
