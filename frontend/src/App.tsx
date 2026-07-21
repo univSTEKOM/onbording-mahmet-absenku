@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { ThemeProvider } from '@/components/theme-provider'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import DashboardPage from '@/pages/DashboardPage'
@@ -20,9 +22,11 @@ import AdminRoute from '@/components/layout/AdminRoute'
 
 function App() {
   return (
-    <AuthProvider>
-      <ErrorBoundary>
-        <Routes>
+    <ThemeProvider defaultTheme="system">
+      <AuthProvider>
+        <TooltipProvider>
+          <ErrorBoundary>
+            <Routes>
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -45,8 +49,10 @@ function App() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
         <Toaster position="top-right" richColors />
-      </ErrorBoundary>
-    </AuthProvider>
+          </ErrorBoundary>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

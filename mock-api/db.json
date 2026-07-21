@@ -114,6 +114,17 @@
       "faceVerified": true,
       "keterangan": "",
       "createdAt": "2026-07-17T08:00:00Z"
+    },
+    {
+      "userId": 4,
+      "tanggal": "2026-07-21",
+      "checkIn": "2026-07-21T06:46:26.266Z",
+      "status": "pulang_cepat",
+      "faceVerified": false,
+      "keterangan": "",
+      "createdAt": "2026-07-21T06:46:26.266Z",
+      "id": 8,
+      "checkOut": "2026-07-21T06:47:07.159Z"
     }
   ],
   "pengajuan": [
