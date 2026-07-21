@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.BACKEND_URL || import.meta.env.VITE_BACKEND_URL,
+  headers: { 'Cache-Control': 'no-cache' },
 })
 
 api.interceptors.request.use((config) => {

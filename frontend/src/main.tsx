@@ -10,8 +10,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: Infinity,
-      refetchOnWindowFocus: false,
+      staleTime: 0,
+      refetchOnWindowFocus: true,
     },
     mutations: {
       onError: (error: Error) => {
