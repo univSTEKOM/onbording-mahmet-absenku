@@ -141,6 +141,63 @@ server.patch('/pengajuan/:id', (req, res, next) => {
   next()
 })
 
+server.get('/api/dashboard/recent', (req, res) => {
+  const userId = req.query.userId ? Number(req.query.userId) : null
+  let absensi = router.db.get('absensi').value()
+  if (userId) absensi = absensi.filter((a) => a.userId === userId)
+  const uniqueDates = [...new Set(absensi.map((a) => a.tanggal))].sort()
+  const last7 = uniqueDates.slice(-7)
+  const result = last7.map((tanggal) => {
+    const records = absensi.filter((a) => a.tanggal === tanggal)
+    return {
+      tanggal,
+      checkIn: records[0]?.checkIn || null,
+      checkOut: records[0]?.checkOut || null,
+      status: records[0]?.status || null,
+    }
+  })
+  res.json({ data: result })
+})
+
+server.get('/api/dashboard/hrd/week', (req, res) => {
+  const absensi = router.db.get('absensi').value()
+  const users = router.db.get('users').value()
+  const karyawan = users.filter((u) => u.role === 'karyawan')
+  const today = new Date().toISOString().split('T')[0]
+  const monthStart = new Date(); monthStart.setDate(1)
+  const monthStr = monthStart.toISOString().split('T')[0]
+
+  const uniqueDates = [...new Set(absensi.map((a) => a.tanggal))].sort()
+  const last7 = uniqueDates.slice(-7)
+  const chart = last7.map((date) => {
+    const dayAbsensi = absensi.filter((a) => a.tanggal === date)
+    return {
+      name: new Date(date).toLocaleDateString('id-ID', { weekday: 'short' }),
+      hadir: dayAbsensi.filter((a) => a.status === 'hadir').length,
+      terlambat: dayAbsensi.filter((a) => a.status === 'terlambat').length,
+      persen: Math.round((dayAbsensi.filter((a) => a.status === 'hadir' || a.status === 'terlambat').length / karyawan.length) * 100),
+    }
+  })
+
+  const todayAbsensi = absensi.filter((a) => a.tanggal === today)
+  const monthAbsensi = absensi.filter((a) => a.tanggal >= monthStr)
+  const weekAvg = chart.length > 0 ? Math.round(chart.reduce((s, d) => s + d.persen, 0) / chart.length) : 0
+
+  res.json({
+    chart,
+    summary: {
+      totalKaryawan: karyawan.length,
+      hadirHariIni: todayAbsensi.filter((a) => a.status === 'hadir').length,
+      terlambatHariIni: todayAbsensi.filter((a) => a.status === 'terlambat').length,
+      izinHariIni: todayAbsensi.filter((a) => ['izin', 'sakit', 'cuti'].includes(a.status)).length,
+      belumAbsen: karyawan.length - todayAbsensi.filter((a) => a.checkIn).length,
+      totalAbsensiBulanIni: monthAbsensi.length,
+      weekAvg,
+      bestDay: chart.length > 0 ? chart.reduce((a, b) => (a.persen > b.persen ? a : b), chart[0]) : null,
+    },
+  })
+})
+
 server.use(router)
 
 const PORT = process.env.PORT || 3001

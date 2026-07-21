@@ -47,6 +47,18 @@
       "phone": "",
       "alamat": "",
       "createdAt": "2026-07-21T08:30:37.995Z"
+    },
+    {
+      "id": 5,
+      "email": "lkasjdf@gmaill.com",
+      "password": "password",
+      "nama": "alksdfja",
+      "jabatan": "lkajsdf",
+      "role": "karyawan",
+      "foto": "",
+      "phone": "",
+      "alamat": "",
+      "createdAt": "2026-07-21T08:43:59.305Z"
     }
   ],
   "absensi": [
@@ -137,6 +149,17 @@
       "createdAt": "2026-07-21T06:46:26.266Z",
       "id": 8,
       "checkOut": "2026-07-21T06:47:07.159Z"
+    },
+    {
+      "userId": 5,
+      "tanggal": "2026-07-21",
+      "checkIn": "2026-07-21T08:45:03.329Z",
+      "status": "pulang_cepat",
+      "faceVerified": false,
+      "keterangan": "",
+      "createdAt": "2026-07-21T08:45:03.329Z",
+      "id": 9,
+      "checkOut": "2026-07-21T08:45:07.184Z"
     }
   ],
   "pengajuan": [

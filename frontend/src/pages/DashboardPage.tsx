@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth'
+import { useRecentAbsensi } from '@/hooks/useDashboard'
 import { useAbsensiList } from '@/hooks/useAbsensi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,27 +15,19 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 export default function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const today = new Date().toISOString().split('T')[0]
-
-  const { data: todayAbsensi } = useAbsensiList({ userId: user?.id, tanggal: today })
+  const { data: recentAbsensi, isLoading: chartLoading } = useRecentAbsensi()
   const { data: allAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
+  const { data: todayAbsensi } = useAbsensiList({ userId: user?.id, tanggal: new Date().toISOString().split('T')[0] })
 
-  const weekDays = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
-  const chartData = weekDays.map((day, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() - d.getDay() + i)
-    const dateStr = d.toISOString().split('T')[0]
-    const absen = allAbsensi?.filter((a) => a.tanggal === dateStr)
-    return {
-      name: day,
-      hadir: absen?.filter((a) => a.status === 'hadir').length || 0,
-      terlambat: absen?.filter((a) => a.status === 'terlambat').length || 0,
-    }
-  })
+  const chartData = (recentAbsensi || []).map((item) => ({
+    name: new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
+    hadir: item.status === 'hadir' ? 1 : 0,
+    terlambat: item.status === 'terlambat' ? 1 : 0,
+  }))
 
   const isCheckedIn = !!todayAbsensi?.[0]?.checkIn
   const isCheckedOut = !!todayAbsensi?.[0]?.checkOut
-  const recentAbsensi = allAbsensi?.slice(0, 5)
+  const recent5 = allAbsensi?.slice(0, 5)
 
   if (!user) return null
 
@@ -46,8 +39,7 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">Selamat datang kembali, <span className="font-medium text-foreground">{user.nama}</span></p>
         </div>
         <Button size="lg" className="gap-2 shadow-sm" onClick={() => navigate('/absensi')}>
-          <Fingerprint className="h-4 w-4" />
-          Absen Sekarang
+          <Fingerprint className="h-4 w-4" /> Absen Sekarang
         </Button>
       </div>
 
@@ -64,26 +56,28 @@ export default function DashboardPage() {
             <CardTitle className="text-base">Absensi 7 Hari Terakhir</CardTitle>
           </CardHeader>
           <CardContent>
-            {allAbsensi ? (
+            {chartLoading ? (
+              <Skeleton className="h-[200px] w-full rounded-lg" />
+            ) : chartData.length > 0 ? (
               <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
                     <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip />
-                    <Bar dataKey="hadir" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="terlambat" fill="hsl(48, 96%, 53%)" radius={[4, 4, 0, 0]} stackId="a" />
+                    <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border)' }} />
+                    <Bar dataKey="hadir" fill="var(--chart-1)" radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="terlambat" fill="var(--chart-2)" radius={[4, 4, 0, 0]} stackId="a" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <Skeleton className="h-[200px] w-full" />
+              <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data absensi</div>
             )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle className="text-base">Status Absensi Hari Ini</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -120,9 +114,9 @@ export default function DashboardPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          {recentAbsensi?.length ? (
+          {recent5?.length ? (
             <div className="space-y-1">
-              {recentAbsensi.map((a) => (
+              {recent5.map((a) => (
                 <div key={a.id} className="flex items-center justify-between py-2.5 border-b last:border-0">
                   <span className="text-sm">{new Date(a.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
                   <div className="flex items-center gap-3">
