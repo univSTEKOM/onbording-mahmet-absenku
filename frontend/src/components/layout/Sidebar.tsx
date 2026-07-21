@@ -11,11 +11,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet'
+import { SheetContent } from '@/components/ui/sheet'
 import { useAuth } from '@/hooks/useAuth'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
@@ -101,13 +97,10 @@ export function DesktopSidebar() {
   )
 }
 
-export function MobileSidebar({ children }: { children?: React.ReactNode }) {
+export function MobileSidebar() {
   return (
-    <Sheet>
-      <SheetTrigger>{children || <div />}</SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0">
-        <SidebarContent onNav={() => document.body.click()} />
-      </SheetContent>
-    </Sheet>
+    <SheetContent side="left" className="w-64 p-0">
+      <SidebarContent onNav={() => document.body.click()} />
+    </SheetContent>
   )
 }
