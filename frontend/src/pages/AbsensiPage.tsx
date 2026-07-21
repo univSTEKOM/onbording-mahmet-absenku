@@ -1,13 +1,17 @@
+import { useState } from 'react'
 import { useAbsensiToday, useCheckIn, useCheckOut } from '@/hooks/useAbsensi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { LoadingState } from '@/components/shared/LoadingState'
-import { LogIn, LogOut, Loader2 } from 'lucide-react'
+import { FaceVerification } from '@/components/shared/FaceVerification'
+import { Fingerprint, LogOut, Loader2 } from 'lucide-react'
 
 export default function AbsensiPage() {
   const { data: absensi, isLoading } = useAbsensiToday()
   const checkInMutation = useCheckIn()
   const checkOutMutation = useCheckOut()
+  const [showFaceVerification, setShowFaceVerification] = useState(false)
+  const [pendingCheckIn, setPendingCheckIn] = useState(false)
 
   const now = new Date()
   const today = now.toLocaleDateString('id-ID', {
@@ -61,19 +65,13 @@ export default function AbsensiPage() {
               <Button
                 size="lg"
                 className="w-full gap-2 h-14 text-base"
-                onClick={() => checkInMutation.mutate()}
+                onClick={() => setShowFaceVerification(true)}
                 disabled={checkInMutation.isPending}
               >
                 {checkInMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Memproses...
-                  </>
+                  <><Loader2 className="h-5 w-5 animate-spin" /> Memproses...</>
                 ) : (
-                  <>
-                    <LogIn className="h-5 w-5" />
-                    Check-in Sekarang
-                  </>
+                  <><Fingerprint className="h-5 w-5" /> Check-in Sekarang</>
                 )}
               </Button>
             </div>
@@ -140,6 +138,19 @@ export default function AbsensiPage() {
           )}
         </CardContent>
       </Card>
+
+      <FaceVerification
+        open={showFaceVerification}
+        onOpenChange={setShowFaceVerification}
+        onVerified={() => {
+          setShowFaceVerification(false)
+          checkInMutation.mutate()
+        }}
+        onSkip={() => {
+          setShowFaceVerification(false)
+          checkInMutation.mutate()
+        }}
+      />
     </div>
   )
 }
