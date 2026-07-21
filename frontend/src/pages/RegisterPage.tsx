@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { MIN_PHONE_LENGTH, MAX_PHONE_LENGTH } from '@/lib/constants'
 import { Loader2, UserPlus } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -29,6 +30,11 @@ export default function RegisterPage() {
     else if (form.password.length < 6) errs.password = 'Minimal 6 karakter'
     if (form.password !== form.konfirmasiPassword) errs.konfirmasiPassword = 'Password tidak cocok'
     if (!form.jabatan.trim()) errs.jabatan = 'Jabatan harus diisi'
+    if (form.phone) {
+      const digitsOnly = form.phone.replace(/\D/g, '')
+      if (digitsOnly.length < MIN_PHONE_LENGTH) errs.phone = `Minimal ${MIN_PHONE_LENGTH} angka`
+      else if (digitsOnly.length > MAX_PHONE_LENGTH) errs.phone = `Maksimal ${MAX_PHONE_LENGTH} angka`
+    }
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -94,7 +100,9 @@ export default function RegisterPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">No. Telepon <span className="text-muted-foreground">(opsional)</span></Label>
-                <Input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} />
+                <Input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange}
+                className={errors.phone ? 'border-destructive' : ''} />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : 'Daftar'}

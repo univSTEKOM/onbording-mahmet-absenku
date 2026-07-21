@@ -15,6 +15,7 @@ import {
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { pengajuanJenisLabel, pengajuanStatusBadge, pengajuanStatusLabel, pengajuanJenisBadge } from '@/lib/constants'
+import { toast } from 'sonner'
 import { Search, RefreshCw, CheckCircle2, XCircle, FileText, Clock, CheckCheck, X } from 'lucide-react'
 import type { Pengajuan, PengajuanStatus } from '@/types'
 
@@ -66,6 +67,10 @@ export default function HrdPengajuanPage() {
 
   function handleConfirm() {
     if (!selectedPengajuan || !actionType) return
+    if (actionType === 'rejected' && !catatan.trim()) {
+      toast.error('Catatan wajib diisi saat menolak pengajuan')
+      return
+    }
     updateStatus.mutate(
       { id: selectedPengajuan.id, status: actionType, catatan },
       { onSettled: () => { setSelectedPengajuan(null); setCatatan(''); setActionType(null) } }

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUpdateUser } from '@/hooks/useUsers'
 import type { User } from '@/types'
+import { MAX_NAMA_LENGTH, MAX_JABATAN_LENGTH, MAX_PHONE_LENGTH, MAX_ALAMAT_LENGTH, MIN_PHONE_LENGTH, MAX_FOTO_SIZE_MB } from '@/lib/constants'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,7 +23,15 @@ export default function ProfilPage() {
   function validate() {
     const errs: Record<string, string> = {}
     if (!form.nama.trim()) errs.nama = 'Nama harus diisi'
+    else if (form.nama.length > MAX_NAMA_LENGTH) errs.nama = `Maksimal ${MAX_NAMA_LENGTH} karakter`
     if (!form.jabatan.trim()) errs.jabatan = 'Jabatan harus diisi'
+    else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = `Maksimal ${MAX_JABATAN_LENGTH} karakter`
+    if (form.phone) {
+      const digitsOnly = form.phone.replace(/\D/g, '')
+      if (digitsOnly.length < MIN_PHONE_LENGTH) errs.phone = `Minimal ${MIN_PHONE_LENGTH} angka`
+      else if (digitsOnly.length > MAX_PHONE_LENGTH) errs.phone = `Maksimal ${MAX_PHONE_LENGTH} angka`
+    }
+    if (form.alamat && form.alamat.length > MAX_ALAMAT_LENGTH) errs.alamat = `Maksimal ${MAX_ALAMAT_LENGTH} karakter`
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -30,10 +39,14 @@ export default function ProfilPage() {
   function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!file.type.startsWith('image/')) { setErrors((p) => ({ ...p, foto: 'File harus gambar' })); return }
+    const errs: Record<string, string> = {}
+    if (!file.type.startsWith('image/')) errs.foto = 'File harus gambar'
+    else if (file.size > MAX_FOTO_SIZE_MB * 1024 * 1024) errs.foto = `Maksimal ${MAX_FOTO_SIZE_MB}MB`
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
     const reader = new FileReader()
     reader.onload = () => { setFotoPreview(reader.result as string) }
     reader.readAsDataURL(file)
+    setErrors({})
   }
 
   function handleSave(e: React.FormEvent) {
@@ -109,13 +122,16 @@ export default function ProfilPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Telepon</Label>
-                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  <Input value={form.phone} onChange={(e) => { setForm({ ...form, phone: e.target.value }); setErrors((p) => ({ ...p, phone: '' })) }}
+                    className={errors.phone ? 'border-destructive' : ''} />
+                  {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Alamat</Label>
-                <textarea className="flex min-h-[60px] w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} />
+                <textarea className={`flex min-h-[60px] w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${errors.alamat ? 'border-destructive' : 'border-input'}`}
+                  value={form.alamat} onChange={(e) => { setForm({ ...form, alamat: e.target.value }); setErrors((p) => ({ ...p, alamat: '' })) }} />
+                {errors.alamat && <p className="text-xs text-destructive">{errors.alamat}</p>}
               </div>
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>Batal</Button>

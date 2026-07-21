@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { MAX_ALASAN_LENGTH, MIN_ALASAN_LENGTH, MAX_PENGAJUAN_DURATION_DAYS } from '@/lib/constants'
 import { Loader2 } from 'lucide-react'
 
 export default function PengajuanFormPage() {
@@ -20,10 +21,23 @@ export default function PengajuanFormPage() {
   function validate() {
     const errs: Record<string, string> = {}
     if (!form.tanggalMulai) errs.tanggalMulai = 'Harus diisi'
+    else {
+      const today = new Date().toISOString().split('T')[0]
+      if (form.tanggalMulai < today) errs.tanggalMulai = 'Tidak boleh mundur (tanggal hari ini atau setelahnya)'
+    }
     if (!form.tanggalSelesai) errs.tanggalSelesai = 'Harus diisi'
-    if (form.tanggalMulai && form.tanggalSelesai && form.tanggalSelesai < form.tanggalMulai) errs.tanggalSelesai = 'Selesai harus setelah mulai'
+    if (form.tanggalMulai && form.tanggalSelesai) {
+      if (form.tanggalSelesai < form.tanggalMulai) errs.tanggalSelesai = 'Selesai harus setelah mulai'
+      else {
+        const start = new Date(form.tanggalMulai)
+        const end = new Date(form.tanggalSelesai)
+        const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+        if (days > MAX_PENGAJUAN_DURATION_DAYS) errs.tanggalSelesai = `Maksimal ${MAX_PENGAJUAN_DURATION_DAYS} hari`
+      }
+    }
     if (!form.alasan.trim()) errs.alasan = 'Alasan harus diisi'
-    else if (form.alasan.length < 10) errs.alasan = 'Minimal 10 karakter'
+    else if (form.alasan.length < MIN_ALASAN_LENGTH) errs.alasan = `Minimal ${MIN_ALASAN_LENGTH} karakter`
+    else if (form.alasan.length > MAX_ALASAN_LENGTH) errs.alasan = `Maksimal ${MAX_ALASAN_LENGTH} karakter`
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
