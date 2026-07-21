@@ -21,11 +21,8 @@ Frontend client untuk sistem absensi karyawan dengan dua role (**Karyawan** & **
 Buat file `frontend/.env`:
 
 ```env
-BACKEND_URL=http://localhost:3001      # API backend / mock server
-FRONTEND_URL=http://localhost:5173     # Frontend dev server
+VITE_API_URL=http://localhost:3001
 ```
-
-Prefix yang bisa dipakai: `BACKEND_`, `FRONTEND_`, dan `VITE_`.
 
 ## Cara Menjalankan
 
