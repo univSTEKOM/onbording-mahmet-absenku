@@ -9,11 +9,34 @@ export interface AbsensiFilters {
   status?: string
   _sort?: string
   _order?: string
+  _page?: number
+  _limit?: number
+}
+
+export interface PaginatedResult<T> {
+  data: T[]
+  total: number
+  page: number
+  totalPages: number
 }
 
 export async function getAbsensi(filters?: AbsensiFilters): Promise<Absensi[]> {
   const res = await api.get('/absensi', { params: filters })
   return res.data
+}
+
+export async function getAbsensiPaginated(
+  filters?: AbsensiFilters
+): Promise<PaginatedResult<Absensi>> {
+  const res = await api.get('/absensi', { params: filters })
+  const total = parseInt(res.headers['x-total-count'] || '0', 10)
+  const limit = filters?._limit || 10
+  return {
+    data: res.data,
+    total,
+    page: filters?._page || 1,
+    totalPages: Math.ceil(total / limit),
+  }
 }
 
 export async function getAbsensiToday(userId: number): Promise<Absensi | null> {

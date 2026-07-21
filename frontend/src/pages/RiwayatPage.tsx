@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useAbsensiList } from '@/hooks/useAbsensi'
+import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -18,7 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { LoadingState } from '@/components/shared/LoadingState'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { Pagination } from '@/components/shared/Pagination'
 import { Search } from 'lucide-react'
+import { formatDate, formatTime } from '@/lib/utils'
 import type { AbsensiStatus } from '@/types'
 
 const statusColor: Record<AbsensiStatus, string> = {
@@ -29,17 +33,35 @@ const statusColor: Record<AbsensiStatus, string> = {
   cuti: 'bg-orange-100 text-orange-800',
 }
 
+const PAGE_SIZE = 10
+
 export default function RiwayatPage() {
   const { user } = useAuth()
+  const [page, setPage] = useState(1)
   const [filterStatus, setFilterStatus] = useState('')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
-  const { data: absensi, isLoading } = useAbsensiList({
+  const { data, isLoading } = useAbsensiListPaginated({
     userId: user?.id,
     _sort: 'tanggal',
     _order: sortOrder,
+    _page: page,
+    _limit: PAGE_SIZE,
     ...(filterStatus ? { status: filterStatus } : {}),
   })
+
+  const absensi = data?.data
+  const totalPages = data?.totalPages || 1
+
+  function handleStatusChange(value: string) {
+    setFilterStatus(value === ' ' ? '' : value)
+    setPage(1)
+  }
+
+  function handleSortChange(value: string) {
+    setSortOrder(value as 'asc' | 'desc')
+    setPage(1)
+  }
 
   return (
     <div className="space-y-4">
@@ -55,7 +77,7 @@ export default function RiwayatPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Cari tanggal..." className="pl-9" />
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
+        <Select value={filterStatus} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Semua Status" />
           </SelectTrigger>
@@ -68,10 +90,7 @@ export default function RiwayatPage() {
             <SelectItem value="cuti">Cuti</SelectItem>
           </SelectContent>
         </Select>
-        <Select
-          value={sortOrder}
-          onValueChange={(v) => setSortOrder(v as 'asc' | 'desc')}
-        >
+        <Select value={sortOrder} onValueChange={handleSortChange}>
           <SelectTrigger className="w-[150px]">
             <SelectValue placeholder="Urutkan" />
           </SelectTrigger>
@@ -82,38 +101,39 @@ export default function RiwayatPage() {
         </Select>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Tanggal</TableHead>
-            <TableHead>Masuk</TableHead>
-            <TableHead>Pulang</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center">
-                Memuat...
-              </TableCell>
-            </TableRow>
-          ) : absensi?.length ? (
-            absensi.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell>{new Date(a.tanggal).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
-                <TableCell>{a.checkIn ? new Date(a.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</TableCell>
-                <TableCell>{a.checkOut ? new Date(a.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</TableCell>
-                <TableCell><Badge variant="secondary" className={statusColor[a.status]}>{a.status}</Badge></TableCell>
+      {isLoading ? (
+        <LoadingState />
+      ) : absensi?.length ? (
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tanggal</TableHead>
+                <TableHead>Masuk</TableHead>
+                <TableHead>Pulang</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center text-muted-foreground">Belum ada riwayat absensi</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            </TableHeader>
+            <TableBody>
+              {absensi.map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell>{formatDate(a.tanggal)}</TableCell>
+                  <TableCell>{formatTime(a.checkIn)}</TableCell>
+                  <TableCell>{formatTime(a.checkOut)}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className={statusColor[a.status]}>
+                      {a.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        </>
+      ) : (
+        <EmptyState message="Belum ada riwayat absensi" />
+      )}
     </div>
   )
 }
