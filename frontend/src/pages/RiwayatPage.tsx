@@ -13,18 +13,9 @@ import {
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
+import { absensiStatusBadge } from '@/lib/constants'
 import { Download, RefreshCw } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/utils'
-import type { AbsensiStatus } from '@/types'
-
-const statusBadge: Record<AbsensiStatus, string> = {
-  hadir: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  terlambat: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  pulang_cepat: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  izin: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  sakit: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  cuti: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
-}
 
 const PAGE_SIZE = 10
 
@@ -116,7 +107,7 @@ export default function RiwayatPage() {
                     <TableCell className="text-muted-foreground">{formatTime(a.checkIn)}</TableCell>
                     <TableCell className="text-muted-foreground">{formatTime(a.checkOut)}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className={`${statusBadge[a.status]} border-0`}>{a.status}</Badge>
+                      <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{a.status}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}

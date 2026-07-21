@@ -10,19 +10,7 @@ import {
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { PlusCircle, Trash2, RefreshCw } from 'lucide-react'
-import type { PengajuanJenis } from '@/types'
-
-const jenisLabel: Record<PengajuanJenis, string> = { cuti: 'Cuti', izin: 'Izin', sakit: 'Sakit' }
-
-const statusBadge: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  approved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-}
-
-const statusLabel: Record<string, string> = {
-  pending: 'Menunggu', approved: 'Disetujui', rejected: 'Ditolak',
-}
+import { pengajuanJenisLabel, pengajuanStatusBadge, pengajuanStatusLabel } from '@/lib/constants'
 
 export default function PengajuanListPage() {
   const navigate = useNavigate()
@@ -69,12 +57,12 @@ export default function PengajuanListPage() {
             <TableBody>
               {pengajuan.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium">{jenisLabel[p.jenis as PengajuanJenis] || p.jenis}</TableCell>
+                  <TableCell className="font-medium">{pengajuanJenisLabel[p.jenis] || p.jenis}</TableCell>
                   <TableCell className="text-muted-foreground">{new Date(p.tanggalMulai).toLocaleDateString('id-ID')}</TableCell>
                   <TableCell className="text-muted-foreground">{new Date(p.tanggalSelesai).toLocaleDateString('id-ID')}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{p.alasan}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className={`${statusBadge[p.status]} border-0`}>{statusLabel[p.status]}</Badge>
+                    <Badge variant="secondary" className={pengajuanStatusBadge[p.status]}>{pengajuanStatusLabel[p.status]}</Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{p.catatan || '-'}</TableCell>
                   <TableCell>

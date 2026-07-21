@@ -23,18 +23,9 @@ import { LoadingState } from '@/components/shared/LoadingState'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
+import { absensiStatusBadge } from '@/lib/constants'
 import { Download, RefreshCw } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/utils'
-import type { AbsensiStatus } from '@/types'
-
-const statusColor: Record<AbsensiStatus, string> = {
-  hadir: 'bg-green-100 text-green-800',
-  terlambat: 'bg-yellow-100 text-yellow-800',
-  pulang_cepat: 'bg-orange-100 text-orange-800',
-  izin: 'bg-blue-100 text-blue-800',
-  sakit: 'bg-purple-100 text-purple-800',
-  cuti: 'bg-orange-100 text-orange-800',
-}
 
 const PAGE_SIZE = 15
 
@@ -149,7 +140,7 @@ export default function HrdRiwayatPage() {
                     <TableCell>{formatTime(a.checkIn)}</TableCell>
                     <TableCell>{formatTime(a.checkOut)}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className={statusColor[a.status]}>{a.status}</Badge>
+                      <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{a.status}</Badge>
                     </TableCell>
                   </TableRow>
                 )
