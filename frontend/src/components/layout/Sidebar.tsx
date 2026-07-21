@@ -7,13 +7,9 @@ import {
   PlusCircle,
   User,
   Users,
-  LogOut,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { SheetContent } from '@/components/ui/sheet'
-import { useAuth } from '@/hooks/useAuth'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
 const karyawanMenu = [
@@ -22,39 +18,23 @@ const karyawanMenu = [
   { label: 'Riwayat', path: '/absensi/riwayat', icon: History },
   { label: 'Pengajuan', path: '/pengajuan', icon: FileText },
   { label: 'Ajukan Baru', path: '/pengajuan/baru', icon: PlusCircle },
-  { label: 'Profil', path: '/profil', icon: User },
 ]
 
 const adminMenu = [
   { label: 'Dashboard HRD', path: '/hrd/dashboard', icon: Users },
   { label: 'Riwayat', path: '/hrd/riwayat', icon: History },
   { label: 'Kelola Karyawan', path: '/hrd/karyawan', icon: User },
-  { label: 'Profil', path: '/profil', icon: User },
 ]
 
 function SidebarContent({ onNav }: { onNav?: () => void }) {
-  const { user, logout } = useAuth()
   const location = useLocation()
-  const menu = user?.role === 'admin' ? adminMenu : karyawanMenu
-  const initials = user?.nama
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  const isAdmin = location.pathname.startsWith('/hrd')
+  const menu = isAdmin ? adminMenu : karyawanMenu
 
   return (
     <div className="flex h-full flex-col">
       <div className="p-4 border-b">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
-            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="text-left">
-            <p className="text-sm font-medium">{user?.nama}</p>
-            <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
-          </div>
-        </div>
+        <p className="text-sm font-semibold tracking-tight">Absensi Karyawan</p>
       </div>
       <ScrollArea className="flex-1 p-3">
         <nav className="space-y-1">
@@ -80,11 +60,6 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
           })}
         </nav>
       </ScrollArea>
-      <div className="p-3 border-t">
-        <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground" onClick={logout}>
-          <LogOut className="h-4 w-4" /> Logout
-        </Button>
-      </div>
     </div>
   )
 }
