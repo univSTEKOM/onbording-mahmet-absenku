@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Camera, Loader2 } from 'lucide-react'
+import { Camera, Loader2, Save, Pencil } from 'lucide-react'
 
 export default function ProfilPage() {
   const { user, updateUser } = useAuth()
@@ -14,22 +15,12 @@ export default function ProfilPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [editing, setEditing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [form, setForm] = useState({
-    nama: user?.nama || '',
-    email: user?.email || '',
-    jabatan: user?.jabatan || '',
-    phone: user?.phone || '',
-    alamat: user?.alamat || '',
-  })
+  const [form, setForm] = useState({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
   const [fotoPreview, setFotoPreview] = useState(user?.foto || '')
-  const [fotoFile, setFotoFile] = useState<string | null>(null)
 
   function validate() {
     const errs: Record<string, string> = {}
     if (!form.nama.trim()) errs.nama = 'Nama harus diisi'
-    if (!form.email.trim()) errs.email = 'Email harus diisi'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      errs.email = 'Format email tidak valid'
     if (!form.jabatan.trim()) errs.jabatan = 'Jabatan harus diisi'
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -38,220 +29,121 @@ export default function ProfilPage() {
   function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!file.type.startsWith('image/')) {
-      setErrors((prev) => ({ ...prev, foto: 'File harus berupa gambar' }))
-      return
-    }
+    if (!file.type.startsWith('image/')) { setErrors((p) => ({ ...p, foto: 'File harus gambar' })); return }
     const reader = new FileReader()
-    reader.onload = () => {
-      const dataUrl = reader.result as string
-      setFotoPreview(dataUrl)
-      setFotoFile(dataUrl)
-    }
+    reader.onload = () => { setFotoPreview(reader.result as string) }
     reader.readAsDataURL(file)
   }
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!validate() || !user) return
-
-    const data: Record<string, string> = { ...form }
-    if (fotoFile) data.foto = fotoFile
-
+    const data = { ...form }
+    if (fotoPreview && fotoPreview.startsWith('data:')) data.foto = fotoPreview
     mutation.mutate(
       { id: user.id, data },
-      {
-        onSuccess: () => {
-          updateUser(data)
-          setEditing(false)
-          setErrors({})
-        },
-      }
+      { onSuccess: () => { updateUser(data); setEditing(false); setErrors({}) } }
     )
   }
 
   function handleCancel() {
-    setEditing(false)
-    setErrors({})
-    setForm({
-      nama: user?.nama || '',
-      email: user?.email || '',
-      jabatan: user?.jabatan || '',
-      phone: user?.phone || '',
-      alamat: user?.alamat || '',
-    })
+    setEditing(false); setErrors({})
+    setForm({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
     setFotoPreview(user?.foto || '')
-    setFotoFile(null)
   }
 
-  const initials = user?.nama
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-
+  const initials = user?.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
   if (!user) return null
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Profil</h1>
+        <p className="text-muted-foreground">Kelola data diri Anda</p>
+      </div>
+
       <Card>
-        <CardHeader className="flex flex-row items-center gap-4">
-          <div className="relative">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={fotoPreview || undefined} />
-              <AvatarFallback className="text-xl">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            {editing && (
-              <button
-                type="button"
-                className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Camera className="h-3.5 w-3.5" />
-              </button>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFotoChange}
-            />
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
+            <div className="relative">
+              <Avatar className="h-24 w-24 ring-2 ring-border">
+                <AvatarImage src={fotoPreview || undefined} />
+                <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+              </Avatar>
+              {editing && (
+                <button type="button" className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow-sm"
+                  onClick={() => fileInputRef.current?.click()}>
+                  <Camera className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
+            </div>
+            <div className="text-center sm:text-left">
+              <h2 className="text-xl font-semibold">{user.nama}</h2>
+              <p className="text-sm text-muted-foreground">{user.jabatan}</p>
+              <p className="text-xs text-muted-foreground capitalize mt-0.5">{user.role}</p>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-xl">{user.nama}</CardTitle>
-            <p className="text-sm text-muted-foreground">{user.jabatan}</p>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {errors.foto && (
-            <p className="text-sm text-destructive mb-4">{errors.foto}</p>
-          )}
+
+          <Separator className="mb-6" />
+
+          {errors.foto && <p className="text-xs text-destructive mb-4">{errors.foto}</p>}
 
           {editing ? (
             <form onSubmit={handleSave} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nama">
-                  Nama <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="nama"
-                  value={form.nama}
-                  onChange={(e) =>
-                    setForm({ ...form, nama: e.target.value })
-                  }
-                  className={errors.nama ? 'border-destructive' : ''}
-                />
-                {errors.nama && (
-                  <p className="text-xs text-destructive">{errors.nama}</p>
-                )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Nama</Label>
+                  <Input value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className={errors.nama ? 'border-destructive' : ''} />
+                  {errors.nama && <p className="text-xs text-destructive">{errors.nama}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input value={form.email} disabled />
+                </div>
+                <div className="space-y-2">
+                  <Label>Jabatan</Label>
+                  <Input value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className={errors.jabatan ? 'border-destructive' : ''} />
+                  {errors.jabatan && <p className="text-xs text-destructive">{errors.jabatan}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label>Telepon</Label>
+                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="email"
-                  value={form.email}
-                  onChange={(e) =>
-                    setForm({ ...form, email: e.target.value })
-                  }
-                  disabled
-                />
+                <Label>Alamat</Label>
+                <textarea className="flex min-h-[60px] w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="jabatan">
-                  Jabatan <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="jabatan"
-                  value={form.jabatan}
-                  onChange={(e) =>
-                    setForm({ ...form, jabatan: e.target.value })
-                  }
-                  className={errors.jabatan ? 'border-destructive' : ''}
-                />
-                {errors.jabatan && (
-                  <p className="text-xs text-destructive">
-                    {errors.jabatan}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telepon</Label>
-                <Input
-                  id="phone"
-                  value={form.phone}
-                  onChange={(e) =>
-                    setForm({ ...form, phone: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="alamat">Alamat</Label>
-                <textarea
-                  id="alamat"
-                  className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
-                  value={form.alamat}
-                  onChange={(e) =>
-                    setForm({ ...form, alamat: e.target.value })
-                  }
-                />
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={handleCancel}
-                >
-                  Batal
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1"
-                  disabled={mutation.isPending}
-                >
-                  {mutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Menyimpan...
-                    </>
-                  ) : (
-                    'Simpan'
-                  )}
+              <div className="flex gap-3 pt-2">
+                <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>Batal</Button>
+                <Button type="submit" className="flex-1 gap-2" disabled={mutation.isPending}>
+                  {mutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Menyimpan...</> : <><Save className="h-4 w-4" /> Simpan</>}
                 </Button>
               </div>
             </form>
           ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Email</p>
-                  <p className="font-medium">{user.email}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Jabatan</p>
-                  <p className="font-medium">{user.jabatan}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Telepon</p>
-                  <p className="font-medium">{user.phone || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Role</p>
-                  <p className="font-medium capitalize">{user.role}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-muted-foreground">Alamat</p>
-                  <p className="font-medium">{user.alamat || '-'}</p>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                {[
+                  { label: 'Email', value: user.email },
+                  { label: 'Jabatan', value: user.jabatan },
+                  { label: 'Telepon', value: user.phone || '-' },
+                  { label: 'Role', value: user.role },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <p className="text-muted-foreground text-xs">{item.label}</p>
+                    <p className="font-medium mt-0.5">{item.value}</p>
+                  </div>
+                ))}
+                <div className="sm:col-span-2">
+                  <p className="text-muted-foreground text-xs">Alamat</p>
+                  <p className="font-medium mt-0.5">{user.alamat || '-'}</p>
                 </div>
               </div>
-              <Button onClick={() => setEditing(true)} className="w-full">
-                Edit Profil
+              <Button onClick={() => setEditing(true)} className="w-full gap-2">
+                <Pencil className="h-4 w-4" /> Edit Profil
               </Button>
             </div>
           )}
