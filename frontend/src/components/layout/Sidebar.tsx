@@ -14,8 +14,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { useAuth } from '@/hooks/useAuth'
@@ -51,17 +49,17 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
 
   return (
     <div className="flex h-full flex-col">
-      <SheetHeader className="p-4 border-b">
+      <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>
           <div className="text-left">
-            <SheetTitle className="text-sm">{user?.nama}</SheetTitle>
+            <p className="text-sm font-medium">{user?.nama}</p>
             <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
           </div>
         </div>
-      </SheetHeader>
+      </div>
       <ScrollArea className="flex-1 p-3">
         <nav className="space-y-1">
           {menu.map((item) => {
