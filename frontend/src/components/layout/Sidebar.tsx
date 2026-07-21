@@ -27,6 +27,8 @@ const karyawanMenu = [
 
 const adminMenu = [
   { label: 'Dashboard HRD', path: '/hrd/dashboard', icon: Users },
+  { label: 'Riwayat', path: '/hrd/riwayat', icon: History },
+  { label: 'Kelola Karyawan', path: '/hrd/karyawan', icon: User },
   { label: 'Profil', path: '/profil', icon: User },
 ]
 
