@@ -93,7 +93,7 @@ export default function HrdRiwayatPage() {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Select value={selectedUserId} onValueChange={(v) => { setSelectedUserId(v); handleFilterChange() }}>
+        <Select value={selectedUserId} onValueChange={(v) => { setSelectedUserId(v || ''); handleFilterChange() }}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Semua Karyawan" />
           </SelectTrigger>
@@ -107,7 +107,7 @@ export default function HrdRiwayatPage() {
         <Input type="date" className="w-[140px]" value={dateStart} onChange={(e) => { setDateStart(e.target.value); handleFilterChange() }} />
         <span className="flex items-center text-sm text-muted-foreground">sd</span>
         <Input type="date" className="w-[140px]" value={dateEnd} onChange={(e) => { setDateEnd(e.target.value); handleFilterChange() }} />
-        <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v === ' ' ? '' : v); handleFilterChange() }}>
+        <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v === ' ' ? '' : v || ''); handleFilterChange() }}>
           <SelectTrigger className="w-[130px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>

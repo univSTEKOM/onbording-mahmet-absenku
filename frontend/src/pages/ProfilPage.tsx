@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUpdateUser } from '@/hooks/useUsers'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { User } from '@/types'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -38,8 +39,8 @@ export default function ProfilPage() {
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!validate() || !user) return
-    const data = { ...form }
-    if (fotoPreview && fotoPreview.startsWith('data:')) data.foto = fotoPreview
+    const data: Partial<User> = { ...form }
+    if (fotoPreview && fotoPreview.startsWith('data:')) { data.foto = fotoPreview }
     mutation.mutate(
       { id: user.id, data },
       { onSuccess: () => { updateUser(data); setEditing(false); setErrors({}) } }

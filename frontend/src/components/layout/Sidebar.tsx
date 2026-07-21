@@ -103,10 +103,10 @@ export function DesktopSidebar() {
   )
 }
 
-export function MobileSidebar({ children }: { children: React.ReactNode }) {
+export function MobileSidebar({ children }: { children?: React.ReactNode }) {
   return (
     <Sheet>
-      <SheetTrigger asChild>{children}</SheetTrigger>
+      <SheetTrigger>{children || <div />}</SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
         <SidebarContent onNav={() => document.body.click()} />
       </SheetContent>

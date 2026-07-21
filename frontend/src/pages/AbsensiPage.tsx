@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react'
 import { useAbsensiToday, useCheckIn, useCheckOut } from '@/hooks/useAbsensi'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { FaceVerification } from '@/components/shared/FaceVerification'
-import { canCheckIn, canCheckOut, CHECK_IN_START, CHECK_IN_END, CHECK_OUT_MIN } from '@/lib/absensiRules'
+import { canCheckIn, CHECK_IN_START, CHECK_IN_END, CHECK_OUT_MIN } from '@/lib/absensiRules'
 import {
-  Fingerprint, LogOut, Loader2, AlertTriangle, Clock,
+  Loader2, AlertTriangle, Clock,
   CheckCircle2, XCircle, ArrowRightFromLine, ArrowLeftFromLine,
 } from 'lucide-react'
 
@@ -24,7 +24,6 @@ export default function AbsensiPage() {
   const currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 
   const checkInGate = useMemo(() => canCheckIn(), [])
-  const checkOutGate = useMemo(() => canCheckOut(), [])
 
   if (isLoading) {
     return (

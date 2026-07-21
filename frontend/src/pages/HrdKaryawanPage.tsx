@@ -44,7 +44,7 @@ export default function HrdKaryawanPage() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<User | null>(null)
-  const [form, setForm] = useState({ nama: '', email: '', jabatan: '', role: 'karyawan' })
+  const [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const })
   const [formError, setFormError] = useState('')
 
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
@@ -72,17 +72,17 @@ export default function HrdKaryawanPage() {
 
   async function handleSave() {
     setFormError('')
-    if (!form.nama.trim() || !form.email.trim() || !form.jabatan.trim()) {
+    if (!form.nama?.trim() || !form.email?.trim() || !form.jabatan?.trim()) {
       setFormError('Nama, Email, dan Jabatan harus diisi')
       return
     }
 
     try {
       if (editTarget) {
-        await updateUserMutation.mutateAsync({ id: editTarget.id, data: form })
+        await updateUserMutation.mutateAsync({ id: editTarget.id, data: form as Partial<User> })
         toast.success('Karyawan berhasil diupdate')
       } else {
-        await api.post('/api/auth/register', { ...form, password: 'password' })
+        await api.post('/api/auth/register', { ...form, password: 'password', role: form.role })
         toast.success('Karyawan berhasil ditambahkan (password: password)')
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -195,7 +195,7 @@ export default function HrdKaryawanPage() {
             </div>
             <div className="space-y-2">
               <Label>Role</Label>
-              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: (v || 'karyawan') as 'admin' | 'karyawan' })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

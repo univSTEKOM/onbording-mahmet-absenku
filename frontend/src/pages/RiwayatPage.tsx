@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
-import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -14,7 +13,7 @@ import {
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
-import { Search, Download, RefreshCw } from 'lucide-react'
+import { Download, RefreshCw } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/utils'
 import type { AbsensiStatus } from '@/types'
 
@@ -45,8 +44,8 @@ export default function RiwayatPage() {
   const absensi = data?.data
   const totalPages = data?.totalPages || 1
 
-  function handleStatusChange(v: string) { setFilterStatus(v === ' ' ? '' : v); setPage(1) }
-  function handleSortChange(v: string) { setSortOrder(v as 'asc' | 'desc'); setPage(1) }
+  function handleStatusChange(v: string | null) { setFilterStatus(v === ' ' ? '' : v || ''); setPage(1) }
+  function handleSortChange(v: string | null) { setSortOrder((v || 'desc') as 'asc' | 'desc'); setPage(1) }
 
   return (
     <div className="space-y-6">

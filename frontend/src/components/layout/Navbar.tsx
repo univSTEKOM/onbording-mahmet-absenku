@@ -2,6 +2,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { SheetTrigger } from '@/components/ui/sheet'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +14,7 @@ import {
 import { LogOut, User, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-interface NavbarProps {
-  onMenuClick: () => void
-}
-
-export function Navbar({ onMenuClick }: NavbarProps) {
+export function Navbar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -31,13 +28,15 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   return (
     <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center px-4 gap-4">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
-          <Menu className="h-5 w-5" />
-        </Button>
+        <SheetTrigger className="lg:hidden">
+          <Button variant="ghost" size="icon">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
         <div className="flex-1" />
         <ThemeToggle />
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="text-xs">{initials}</AvatarFallback>
