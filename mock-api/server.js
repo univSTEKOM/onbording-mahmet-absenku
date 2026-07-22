@@ -228,8 +228,8 @@ server.patch('/users/:id', (req, res, next) => {
   if (body.alamat !== undefined && body.alamat.length > 500) {
     return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
   }
-  if (body.foto !== undefined && typeof body.foto === 'string' && body.foto.length > 500000) {
-    return res.status(400).json({ message: 'Foto terlalu besar' })
+  if (body.foto !== undefined && typeof body.foto === 'string' && body.foto.length > 5000000) {
+    return res.status(400).json({ message: 'Foto terlalu besar (maks 5MB)' })
   }
   next()
 })

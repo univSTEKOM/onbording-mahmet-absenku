@@ -1,5 +1,4 @@
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
 
 interface LogoProps {
   className?: string
@@ -8,21 +7,20 @@ interface LogoProps {
 
 export function Logo({ className = '', variant = 'full' }: LogoProps) {
   const { resolvedTheme } = useTheme()
-  const [src, setSrc] = useState('')
 
-  useEffect(() => {
-    if (variant === 'icon') {
-      setSrc('/favicon.png')
-    } else {
-      setSrc(resolvedTheme === 'dark' ? '/logo dark mode.png' : '/logo light mode.png')
-    }
-  }, [resolvedTheme, variant])
-
-  if (!src) return null
+  if (variant === 'icon') {
+    return (
+      <img
+        src="/favicon.png"
+        alt="AbsenKu"
+        className={`object-contain ${className}`}
+      />
+    )
+  }
 
   return (
     <img
-      src={src}
+      src={resolvedTheme === 'dark' ? '/logo dark mode.png' : '/logo light mode.png'}
       alt="AbsenKu"
       className={`object-contain ${className}`}
     />

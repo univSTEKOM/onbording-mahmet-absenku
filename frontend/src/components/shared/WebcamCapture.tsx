@@ -6,14 +6,13 @@ interface WebcamCaptureProps {
   onCapture: (canvas: HTMLCanvasElement) => void
   processing?: boolean
   autoStart?: boolean
-
+  onVideoReady?: (video: HTMLVideoElement) => void
 }
 
-export function WebcamCapture({ onCapture, processing, autoStart }: WebcamCaptureProps) {
+export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [active, setActive] = useState(false)
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
@@ -28,14 +27,17 @@ export function WebcamCapture({ onCapture, processing, autoStart }: WebcamCaptur
       streamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
+        videoRef.current.onloadeddata = () => {
+          setActive(true)
+          if (onVideoReady && videoRef.current) onVideoReady(videoRef.current)
+        }
       }
-      setActive(true)
     } catch {
       setError('Kamera tidak tersedia. Periksa izin kamera atau gunakan HTTPS.')
     } finally {
       setStarting(false)
     }
-  }, [])
+  }, [onVideoReady])
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -49,7 +51,6 @@ export function WebcamCapture({ onCapture, processing, autoStart }: WebcamCaptur
     if (autoStart) startCamera()
     return () => {
       stopCamera()
-      if (scanTimerRef.current) clearInterval(scanTimerRef.current)
     }
   }, [autoStart, startCamera, stopCamera])
 
@@ -99,25 +100,15 @@ export function WebcamCapture({ onCapture, processing, autoStart }: WebcamCaptur
       <div className="flex justify-center gap-3">
         {!active ? (
           <Button onClick={startCamera} disabled={starting} className="gap-2">
-            {starting ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Membuka...</>
-            ) : (
-              <><Camera className="h-4 w-4" /> Buka Kamera</>
-            )}
+            {starting ? <><Loader2 className="h-4 w-4 animate-spin" /> Membuka...</> : <><Camera className="h-4 w-4" /> Buka Kamera</>}
           </Button>
         ) : (
           <Button onClick={handleCapture} disabled={processing} className="gap-2">
-            {processing ? (
-              <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</>
-            ) : (
-              <><Camera className="h-4 w-4" /> Ambil Foto</>
-            )}
+            {processing ? <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</> : <><Camera className="h-4 w-4" /> Ambil Foto</>}
           </Button>
         )}
         {active && (
-          <Button variant="outline" onClick={stopCamera}>
-            Tutup Kamera
-          </Button>
+          <Button variant="outline" onClick={stopCamera}>Tutup Kamera</Button>
         )}
       </div>
     </div>

@@ -42,12 +42,27 @@ export function FaceVerification({
   const [modelsError, setModelsError] = useState('')
   const [status, setStatus] = useState<'idle' | 'success' | 'fail'>('idle')
   const [message, setMessage] = useState('')
-  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
+  const [cameraReady, setCameraReady] = useState(false)
   const loadingRef = useRef(false)
+  const autoScanRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
 
-  const savePhoto = useCallback((canvas: HTMLCanvasElement) => {
-    setCapturedPhoto(canvas.toDataURL('image/jpeg', 0.7))
-  }, [])
+  const saveFaceDescriptor = useCallback(async (descriptor: Float32Array) => {
+    const registered = descriptorToArray(descriptor)
+    if (!user) return
+    return new Promise<void>((resolve, reject) => {
+      updateUserMutation.mutate(
+        { id: user.id, data: { foto: JSON.stringify(registered) } },
+        {
+          onSuccess: () => {
+            updateUser({ foto: JSON.stringify(registered) })
+            resolve()
+          },
+          onError: reject,
+        }
+      )
+    })
+  }, [user, updateUser, updateUserMutation])
 
   useEffect(() => {
     if (!open || loadingRef.current || modelsLoaded) return
@@ -58,21 +73,44 @@ export function FaceVerification({
       .finally(() => { loadingRef.current = false })
   }, [open, modelsLoaded])
 
-  async function handleCapture(canvas: HTMLCanvasElement) {
+  useEffect(() => {
+    if (!cameraReady || !modelsLoaded || autoScanRef.current) return
+    autoScanRef.current = setInterval(async () => {
+      if (processing || status === 'success') return
+      if (!videoRef.current) return
+      const video = videoRef.current
+      if (video.readyState < 2) return
+
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.drawImage(video, 0, 0)
+
+      try {
+        const result = await detectFace(canvas)
+        if (result) {
+          if (autoScanRef.current) clearInterval(autoScanRef.current)
+          autoScanRef.current = null
+          await processFaceResult(result.descriptor)
+        }
+      } catch {
+        // scan continue
+      }
+    }, 1500)
+
+    return () => {
+      if (autoScanRef.current) { clearInterval(autoScanRef.current); autoScanRef.current = null }
+    }
+  }, [cameraReady, modelsLoaded, processing, status])
+
+  async function processFaceResult(descriptor: Float32Array) {
     setProcessing(true)
     setStatus('idle')
     setMessage('')
-    savePhoto(canvas)
 
     try {
-      const result = await detectFace(canvas)
-      if (!result) {
-        setStatus('fail')
-        setMessage('Wajah tidak terdeteksi. Coba lagi dengan pencahayaan yang cukup.')
-        setProcessing(false)
-        return
-      }
-
       const storedRaw = user?.foto
       let storedDescriptor: number[] | null = null
       if (storedRaw) {
@@ -83,7 +121,7 @@ export function FaceVerification({
       }
 
       if (storedDescriptor) {
-        const match = isMatch(result.descriptor, arrayToDescriptor(storedDescriptor), 0.5)
+        const match = isMatch(descriptor, arrayToDescriptor(storedDescriptor), 0.5)
         if (match) {
           setStatus('success')
           setMessage('Wajah cocok!')
@@ -93,29 +131,42 @@ export function FaceVerification({
           setMessage('Wajah tidak cocok dengan data terdaftar.')
         }
       } else {
-        const registered = descriptorToArray(result.descriptor)
-        if (!user) return
-        updateUserMutation.mutate(
-          { id: user.id, data: { foto: JSON.stringify(registered) } },
-          {
-            onSuccess: () => {
-              updateUser({ foto: JSON.stringify(registered) })
-              setStatus('success')
-              setMessage('Wajah berhasil didaftarkan!')
-              setTimeout(onVerified, 800)
-            },
-            onError: () => { setStatus('fail'); setMessage('Gagal menyimpan data wajah.') },
-          }
-        )
+        await saveFaceDescriptor(descriptor)
+        setStatus('success')
+        setMessage('Wajah berhasil didaftarkan!')
+        setTimeout(onVerified, 800)
       }
-    } catch (err) {
+    } catch {
       setStatus('fail')
-      setMessage(err instanceof Error && err.message.includes('Timeout')
-        ? 'Wajah tidak terdeteksi. Pastikan wajah terlihat jelas.'
-        : 'Gagal memproses wajah. Coba lagi.')
+      setMessage('Gagal menyimpan data wajah. Coba lagi.')
     } finally {
       setProcessing(false)
     }
+  }
+
+  async function handleManualCapture(canvas: HTMLCanvasElement) {
+    setProcessing(true)
+    setStatus('idle')
+    setMessage('')
+    try {
+      const result = await detectFace(canvas)
+      if (!result) {
+        setStatus('fail')
+        setMessage('Wajah tidak terdeteksi.')
+        setProcessing(false)
+        return
+      }
+      await processFaceResult(result.descriptor)
+    } catch {
+      setStatus('fail')
+      setMessage('Gagal memproses wajah. Coba lagi.')
+      setProcessing(false)
+    }
+  }
+
+  function handleVideoReady(video: HTMLVideoElement) {
+    videoRef.current = video
+    setCameraReady(true)
   }
 
   return (
@@ -142,13 +193,13 @@ export function FaceVerification({
             Memuat model pengenalan wajah...
           </div>
         ) : (
-          <WebcamCapture onCapture={handleCapture} processing={processing} autoStart />
+          <WebcamCapture onCapture={handleManualCapture} processing={processing} autoStart onVideoReady={handleVideoReady} />
         )}
 
-        {capturedPhoto && status !== 'idle' && (
-          <div className="mx-auto w-20 h-20 rounded-lg overflow-hidden border">
-            <img src={capturedPhoto} alt="captured" className="w-full h-full object-cover" />
-          </div>
+        {cameraReady && modelsLoaded && (
+          <p className="text-xs text-center text-muted-foreground">
+            Posisikan wajah di depan kamera. Foto akan diambil otomatis saat wajah terdeteksi.
+          </p>
         )}
 
         {status === 'success' && (
