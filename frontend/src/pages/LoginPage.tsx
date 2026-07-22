@@ -34,7 +34,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login({ email, password })
-      navigate('/status')
+      navigate('/')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email atau password salah'
       setApiError(msg)

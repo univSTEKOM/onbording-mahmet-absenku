@@ -13,9 +13,10 @@ await runMigrations()
 console.log('Migrations applied')
 
 const demoUsers = [
-  { email: "andika@stekom.ac.id", password: "password", name: "Andika", role: "admin", jabatan: "Manager HRD", phone: "081234567890", alamat: "Jl. Merdeka No. 1, Jakarta" },
-  { email: "rudi@stekom.ac.id", password: "password", name: "Rudi Hartono", role: "karyawan", jabatan: "Staff IT", phone: "081234567891", alamat: "Jl. Sudirman No. 2, Jakarta" },
-  { email: "siti@stekom.ac.id", password: "password", name: "Siti Nurhaliza", role: "karyawan", jabatan: "Staff Keuangan", phone: "081234567892", alamat: "Jl. Gatot Subroto No. 3, Jakarta" },
+  { email: "andika@stekom.ac.id", password: "password", name: "Andika", role: "admin", jabatan: "Manager HRD", phone: "081234567890", alamat: "Jl. Merdeka No. 1, Jakarta", status: "approved" },
+  { email: "rudi@stekom.ac.id", password: "password", name: "Rudi Hartono", role: "karyawan", jabatan: "Staff IT", phone: "081234567891", alamat: "Jl. Sudirman No. 2, Jakarta", status: "approved" },
+  { email: "siti@stekom.ac.id", password: "password", name: "Siti Nurhaliza", role: "karyawan", jabatan: "Staff Keuangan", phone: "081234567892", alamat: "Jl. Gatot Subroto No. 3, Jakarta", status: "approved" },
+  { email: "budi@stekom.ac.id", password: "password", name: "Budi Santoso", role: "karyawan", jabatan: "Staff Baru", phone: "081234567893", alamat: "Jl. Baru No. 1, Jakarta", status: "pending" },
 ]
 
 const createdUsers = []
@@ -28,6 +29,7 @@ for (const user of demoUsers) {
         password: user.password,
         name: user.name,
         role: user.role,
+        status: user.status,
         jabatan: user.jabatan,
         phone: user.phone,
         alamat: user.alamat,
@@ -50,13 +52,15 @@ dbJson.users = createdUsers.map((u) => ({
   nama: u.name,
   jabatan: u.jabatan,
   role: u.role,
+  status: u.status,
+  rejectionNotes: [],
   foto: '',
   phone: u.phone,
   alamat: u.alamat,
   createdAt: new Date().toISOString(),
 }))
 
-const [andika, rudi, siti] = createdUsers
+const [andika, rudi, siti, budi] = createdUsers
 
 dbJson.absensi = [
   { id: 1, userId: rudi.id, tanggal: "2026-07-13", checkIn: "2026-07-13T08:00:00Z", checkOut: "2026-07-13T17:00:00Z", status: "hadir", faceVerified: true, keterangan: "", createdAt: "2026-07-13T08:00:00Z" },
@@ -69,11 +73,9 @@ dbJson.absensi = [
 ]
 
 dbJson.pengajuan = [
-  { id: 1, userId: rudi.id, jenis: "cuti", tanggalMulai: "2026-07-25", tanggalSelesai: "2026-07-27", alasan: "Acara keluarga", status: "approved", catatan: "Keluarga ya, oke lah kalau begitu", createdAt: "2026-07-18T10:00:00Z" },
+  { id: 1, userId: rudi.id, jenis: "cuti", tanggalMulai: "2026-07-25", tanggalSelesai: "2026-07-27", alasan: "Acara keluarga", status: "approved", catatan: "Disetujui", createdAt: "2026-07-18T10:00:00Z" },
   { id: 2, userId: siti.id, jenis: "izin", tanggalMulai: "2026-07-21", tanggalSelesai: "2026-07-21", alasan: "Keperluan bank", status: "approved", catatan: "Disetujui", createdAt: "2026-07-17T09:00:00Z" },
 ]
 
 writeFileSync('./db.json', JSON.stringify(dbJson, null, 2))
-console.log('db.json updated with user IDs and demo data')
-
-process.exit(0)
+console.log('db.json updated with seed data')

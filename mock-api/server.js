@@ -22,12 +22,16 @@ async function syncSeedUsers() {
 
     for (const seed of seedUsers) {
       try {
+        try {
+          const existing = await auth.api.getSession({ headers: new Headers() })
+        } catch {}
         const result = await auth.api.signUpEmail({
           body: {
             email: seed.email,
             password: seed.password,
             name: seed.nama,
             role: seed.role || 'karyawan',
+            status: seed.status || 'approved',
             jabatan: seed.jabatan || '',
             phone: seed.phone || '',
             alamat: seed.alamat || '',
@@ -174,6 +178,7 @@ server.post('/api/register', async (req, res) => {
           password,
           name: nama,
           role: effectiveRole,
+          status: effectiveStatus,
           jabatan: jabatan || '',
           phone: phone || '',
           alamat: '',

@@ -33,7 +33,9 @@ function RoleDashboard() {
 
 function RoleRedirect() {
   const { user } = useAuth()
-  if (user?.role === 'admin') return <Navigate to="/hrd/dashboard" replace />
+  if (!user) return <Navigate to="/" replace />
+  if (user.status === 'pending' || user.status === 'rejected') return <Navigate to="/status" replace />
+  if (user.role === 'admin') return <Navigate to="/hrd/dashboard" replace />
   return <Navigate to="/dashboard" replace />
 }
 

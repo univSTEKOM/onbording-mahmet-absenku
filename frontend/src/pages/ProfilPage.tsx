@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useUpdateUser } from '@/hooks/useUsers'
 import type { User } from '@/types'
 import { MAX_NAMA_LENGTH, MAX_JABATAN_LENGTH, MAX_ALAMAT_LENGTH, MAX_FOTO_SIZE_MB } from '@/lib/constants'
 import { Card, CardContent } from '@/components/ui/card'
@@ -15,7 +14,6 @@ import { Camera, Loader2, Save, Pencil } from 'lucide-react'
 
 export default function ProfilPage() {
   const { user, updateUser } = useAuth()
-  const mutation = useUpdateUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [editing, setEditing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -57,15 +55,18 @@ export default function ProfilPage() {
     setErrors({})
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!validate() || !user) return
     const data: Partial<User> = { ...form }
     if (fotoPreview && fotoPreview.startsWith('data:')) { data.foto = fotoPreview }
-    mutation.mutate(
-      { id: user.id, data },
-      { onSuccess: () => { toast.success('Profil berhasil diperbarui'); updateUser(data); setEditing(false); setErrors({}) } }
-    )
+    try {
+      await updateUser(data)
+      setEditing(false)
+      setErrors({})
+    } catch {
+      toast.error('Gagal menyimpan profil')
+    }
   }
 
   function handleCancel() {

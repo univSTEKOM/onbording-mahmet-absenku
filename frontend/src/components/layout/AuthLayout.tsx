@@ -5,7 +5,10 @@ export default function AuthLayout() {
   const { user, isLoading } = useAuth()
 
   if (isLoading) return null
-  if (user) return <Navigate to="/dashboard" replace />
+  if (user) {
+    const isOnboarding = user.status === 'pending' || user.status === 'rejected'
+    return <Navigate to={isOnboarding ? '/status' : user.role === 'admin' ? '/hrd/dashboard' : '/dashboard'} replace />
+  }
 
   return (
     <div className="min-h-svh flex items-center justify-center bg-muted p-4">

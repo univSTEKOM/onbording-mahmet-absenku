@@ -16,7 +16,7 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
     nama: (p.nama as string) || (base.name as string) || '',
     jabatan: (p.jabatan as string) || (base.jabatan as string) || '',
     role: (p.role as User['role']) || (base.role as User['role']) || 'karyawan',
-    status: (p.status as User['status']) || (base.status as User['status']) || 'pending',
+    status: (p.status as User['status']) || (base.status as User['status']) || 'approved',
     rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) || [],
     foto: (p.foto as string) || (base.image as string) || '',
     phone: (p.phone as string) || (base.phone as string) || '',
@@ -84,7 +84,7 @@ export function useAuth() {
     if (data.alamat !== undefined) body.alamat = data.alamat
     await api.patch(`/users/${user.id}`, body)
 
-    /* Update local profile state — even if prev is null, spread works */
+    /* Update local profile state + refetch session supaya UI berubah */
     setProfile((prev) => ({
       ...prev,
       ...(data.nama !== undefined ? { nama: data.nama } : {}),
@@ -93,9 +93,10 @@ export function useAuth() {
       ...(data.alamat !== undefined ? { alamat: data.alamat } : {}),
       ...(data.foto !== undefined ? { foto: data.foto } : {}),
     }))
+    await refetch()
 
     toast.success('Profil berhasil diperbarui')
-  }, [user?.id])
+  }, [user?.id, refetch])
 
   return {
     user,

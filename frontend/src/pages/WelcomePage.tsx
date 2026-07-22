@@ -69,8 +69,18 @@ function Reveal({ children, className = '' }: { children: React.ReactNode; class
 }
 
 export default function WelcomePage() {
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, isLoading } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (isLoading) return
+    if (!user) return
+    if (user.status === 'pending' || user.status === 'rejected') {
+      navigate('/status', { replace: true })
+    } else {
+      navigate(isAdmin ? '/hrd/dashboard' : '/dashboard', { replace: true })
+    }
+  }, [user, isLoading, isAdmin, navigate])
 
   function goToDashboard() {
     navigate(isAdmin ? '/hrd/dashboard' : '/dashboard')
