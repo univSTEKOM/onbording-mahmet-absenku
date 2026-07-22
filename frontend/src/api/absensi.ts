@@ -40,8 +40,12 @@ export async function checkIn(data: CheckInData): Promise<Absensi> {
 }
 
 export async function checkOut(id: number, data?: CheckOutData): Promise<Absensi> {
-  const body: Record<string, unknown> = { checkOut: new Date().toISOString() }
-  if (data?.photos?.length) body.photos = data.photos
-  const res = await api.patch(`/absensi/${id}`, body)
+  const existing = await api.get(`/absensi/${id}`)
+  const currentPhotos = existing.data?.photos || []
+  const photos = data?.photos?.length ? [...currentPhotos, ...data.photos] : currentPhotos
+  const res = await api.patch(`/absensi/${id}`, {
+    checkOut: new Date().toISOString(),
+    photos,
+  })
   return res.data
 }

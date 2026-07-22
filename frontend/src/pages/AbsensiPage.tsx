@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { FaceVerification } from '@/components/shared/FaceVerification'
 import { canCheckIn, CHECK_IN_START, CHECK_IN_END, CHECK_OUT_MIN } from '@/lib/absensiRules'
-import { absensiStatusBadge } from '@/lib/constants'
+import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { useAuth } from '@/hooks/useAuth'
 import {
   Loader2, LogIn, LogOut, History, ChevronRight,
@@ -91,7 +91,7 @@ export default function AbsensiPage() {
               <>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Status</span>
-                  <Badge variant="secondary" className={absensiStatusBadge[absensi.status]}>{absensi.status}</Badge>
+                  <Badge variant="secondary" className={absensiStatusBadge[absensi.status]}>{absensiStatusLabel[absensi.status]}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Check In</span>
@@ -178,7 +178,7 @@ export default function AbsensiPage() {
               <History className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">Absensi terakhir:</span>
               <span className="font-medium">{new Date(lastAbsensi.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
-              <Badge variant="secondary" className={absensiStatusBadge[lastAbsensi.status]}>{lastAbsensi.status}</Badge>
+              <Badge variant="secondary" className={absensiStatusBadge[lastAbsensi.status]}>{absensiStatusLabel[lastAbsensi.status]}</Badge>
             </div>
             <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/absensi/riwayat')}>
               Riwayat <ChevronRight className="h-3 w-3" />

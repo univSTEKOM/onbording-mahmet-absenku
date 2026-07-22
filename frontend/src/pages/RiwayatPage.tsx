@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { FilterDialog, type FilterValues } from '@/components/shared/FilterDialog'
-import { absensiStatusBadge } from '@/lib/constants'
+import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { Download, RefreshCw, Filter, LogIn, LogOut, CheckCircle2, History, Clock } from 'lucide-react'
 import type { Absensi } from '@/types'
@@ -110,7 +110,7 @@ export default function RiwayatPage() {
                           <p className="text-sm font-medium">{new Date(a.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                           <p className="text-xs text-muted-foreground">{namaHari(a.tanggal)}</p>
                         </div>
-                        <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{a.status}</Badge>
+                        <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/50">
@@ -185,7 +185,7 @@ export default function RiwayatPage() {
                 </div>
                 <div className="p-3 rounded-lg bg-muted">
                   <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge variant="secondary" className={absensiStatusBadge[detail.status]}>{detail.status}</Badge>
+                  <Badge variant="secondary" className={absensiStatusBadge[detail.status]}>{absensiStatusLabel[detail.status]}</Badge>
                 </div>
               </div>
               {detail.faceVerified && (

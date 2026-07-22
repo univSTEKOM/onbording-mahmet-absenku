@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { FilterDialog, type FilterValues } from '@/components/shared/FilterDialog'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
-import { absensiStatusBadge } from '@/lib/constants'
+import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { Download, RefreshCw, Filter } from 'lucide-react'
 import { formatDate, formatTime } from '@/lib/utils'
 
@@ -110,7 +110,7 @@ export default function HrdRiwayatPage() {
                       <TableCell>{formatDate(a.tanggal)}</TableCell>
                       <TableCell className="text-muted-foreground">{formatTime(a.checkIn)}</TableCell>
                       <TableCell className="text-muted-foreground">{formatTime(a.checkOut)}</TableCell>
-                      <TableCell><Badge variant="secondary" className={absensiStatusBadge[a.status]}>{a.status}</Badge></TableCell>
+                      <TableCell><Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge></TableCell>
                     </TableRow>
                   )
                 })}

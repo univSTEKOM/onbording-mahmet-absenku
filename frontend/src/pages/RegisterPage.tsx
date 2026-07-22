@@ -49,13 +49,13 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
+    <div className="grid min-h-svh w-full lg:grid-cols-[1fr_1.8fr]">
       <div className="flex flex-col gap-4 p-6 md:p-10 overflow-y-auto">
         <div className="flex justify-center gap-2 md:justify-start">
           <Logo className="h-8" />
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
+          <div className="w-full max-w-md">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               {apiError && (
                 <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
@@ -154,7 +154,7 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
-      <div className="relative hidden bg-muted lg:block">
+      <div className="relative hidden lg:block">
         <img
           src="/login&register background.png"
           alt=""
