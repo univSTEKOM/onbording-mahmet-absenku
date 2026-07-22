@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ThemeToggle } from '@/components/ThemeToggle'
 import { Loader2, Fingerprint } from 'lucide-react'
 
 export default function LoginPage() {
@@ -42,50 +41,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-      <div className="absolute top-4 right-4"><ThemeToggle /></div>
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-            <Fingerprint className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Absensi Karyawan</h1>
-          <p className="text-sm text-muted-foreground">Masuk ke akun Anda</p>
-        </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {apiError && (
-            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
-          )}
-          <div className="grid gap-2">
-            <Label htmlFor="email">
-              Email <span className="text-destructive">*</span>
-            </Label>
-            <Input id="email" type="email" placeholder="nama@email.com" value={email}
-              onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: '' })) }}
-              className={errors.email ? 'border-destructive' : ''} />
-            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-          </div>
-          <div className="grid gap-2">
-            <div className="flex items-center">
-              <Label htmlFor="password">
-                Password <span className="text-destructive">*</span>
-              </Label>
+    <div className="flex min-h-svh">
+      <div className="flex flex-1 items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-sm">
+              <Fingerprint className="h-6 w-6 text-primary-foreground" />
             </div>
-            <Input id="password" type="password" value={password}
-              onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
-              className={errors.password ? 'border-destructive' : ''} />
-            {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+            <h1 className="text-2xl font-bold tracking-tight">Absensi Karyawan</h1>
+            <p className="text-sm text-muted-foreground">Masuk ke akun Anda</p>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : 'Masuk'}
-          </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            Belum punya akun?{' '}
-            <Link to="/register" className="text-primary hover:underline font-medium">Daftar</Link>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {apiError && (
+              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="nama@email.com" value={email}
+                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: '' })) }}
+                className={errors.email ? 'border-destructive' : ''} />
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+              </div>
+              <Input id="password" type="password" value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
+                className={errors.password ? 'border-destructive' : ''} />
+              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+            </div>
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : 'Masuk'}
+            </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Belum punya akun?{' '}
+              <Link to="/register" className="text-primary hover:underline font-medium">Daftar</Link>
+            </p>
+          </form>
+          <p className="text-center text-xs text-muted-foreground">
+            Demo: andika@stekom.ac.id / password
           </p>
-        </form>
-        <div className="text-center text-xs text-muted-foreground">
-          Demo: andika@stekom.ac.id / password
+        </div>
+      </div>
+      <div className="relative hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-background items-center justify-center p-10">
+        <div className="relative space-y-6 text-center">
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/20 backdrop-blur-sm">
+            <Fingerprint className="h-12 w-12 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold tracking-tight">Sistem Absensi Karyawan</h2>
+            <p className="text-muted-foreground max-w-sm">
+              Kelola kehadiran, izin, dan cuti karyawan dengan mudah dan efisien.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-4 pt-4">
+            {['Absensi', 'Izin/Cuti', 'Laporan'].map((item) => (
+              <div key={item} className="rounded-xl bg-background/80 backdrop-blur-sm p-4 text-center shadow-xs">
+                <p className="text-sm font-medium">{item}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
