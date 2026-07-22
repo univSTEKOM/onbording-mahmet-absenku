@@ -4,8 +4,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Loader2, UserPlus } from 'lucide-react'
-import { MIN_PASSWORD_LENGTH, MIN_PHONE_LENGTH, MAX_PHONE_LENGTH } from '@/lib/constants'
+import { validateEmail, validatePassword, validateNama, validateJabatan, validatePhone } from '@/lib/validation'
 
 export default function RegisterPage() {
   const { register } = useAuth()
@@ -24,18 +25,17 @@ export default function RegisterPage() {
 
   function validate() {
     const errs: Record<string, string> = {}
-    if (!form.nama.trim()) errs.nama = 'Nama harus diisi'
-    if (!form.email.trim()) errs.email = 'Email harus diisi'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Format email tidak valid'
-    if (!form.password) errs.password = 'Password harus diisi'
-    else if (form.password.length < MIN_PASSWORD_LENGTH) errs.password = `Minimal ${MIN_PASSWORD_LENGTH} karakter`
+    const n = validateNama(form.nama)
+    if (n) errs.nama = n
+    const e = validateEmail(form.email)
+    if (e) errs.email = e
+    const p = validatePassword(form.password)
+    if (p) errs.password = p
     if (form.password !== form.konfirmasiPassword) errs.konfirmasiPassword = 'Password tidak cocok'
-    if (!form.jabatan.trim()) errs.jabatan = 'Jabatan harus diisi'
-    if (form.phone) {
-      const digits = form.phone.replace(/\D/g, '')
-      if (digits.length < MIN_PHONE_LENGTH) errs.phone = `Minimal ${MIN_PHONE_LENGTH} angka`
-      else if (digits.length > MAX_PHONE_LENGTH) errs.phone = `Maksimal ${MAX_PHONE_LENGTH} angka`
-    }
+    const j = validateJabatan(form.jabatan)
+    if (j) errs.jabatan = j
+    const ph = validatePhone(form.phone)
+    if (ph) errs.phone = ph
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -103,12 +103,14 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" name="password" type="password" value={form.password} onChange={handleChange} className={errors.password ? 'border-destructive' : ''} />
+                <PasswordInput id="password" name="password" value={form.password} onChange={handleChange}
+                  className={errors.password ? 'border-destructive' : ''} />
                 {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="konfirmasiPassword">Konfirmasi</Label>
-                <Input id="konfirmasiPassword" name="konfirmasiPassword" type="password" value={form.konfirmasiPassword} onChange={handleChange} className={errors.konfirmasiPassword ? 'border-destructive' : ''} />
+                <PasswordInput id="konfirmasiPassword" name="konfirmasiPassword" value={form.konfirmasiPassword} onChange={handleChange}
+                  className={errors.konfirmasiPassword ? 'border-destructive' : ''} />
                 {errors.konfirmasiPassword && <p className="text-xs text-destructive">{errors.konfirmasiPassword}</p>}
               </div>
             </div>

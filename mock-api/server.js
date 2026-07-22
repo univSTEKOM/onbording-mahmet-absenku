@@ -32,6 +32,18 @@ server.post('/api/register', async (req, res) => {
       if (!email || !password || !nama) {
         return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
       }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ message: 'Format email tidak valid' })
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ message: 'Password minimal 8 karakter' })
+      }
+      if (nama.length > 100) {
+        return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
+      }
+      if (jabatan && jabatan.length > 100) {
+        return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
+      }
 
       const response = await auth.api.signUpEmail({
         body: {
@@ -108,6 +120,10 @@ server.post('/absensi', (req, res, next) => {
   if (mins < toMinutes(CHECK_IN_START)) {
     return res.status(400).json({ message: `Belum waktunya absen. Absensi dibuka pukul ${CHECK_IN_START}.` })
   }
+  const existing = router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()
+  if (existing) {
+    return res.status(400).json({ message: 'Anda sudah melakukan absensi hari ini' })
+  }
   req.body.status = mins <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'
   next()
 })
@@ -132,14 +148,27 @@ server.delete('/pengajuan/:id', (req, res) => {
 
 server.patch('/users/:id', (req, res, next) => {
   const body = req.body
-  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
-    return res.status(400).json({ message: 'Format email tidak valid' })
+  if (body.email !== undefined) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+      return res.status(400).json({ message: 'Format email tidak valid' })
+    }
   }
-  if (body.nama && body.nama.length > 100) {
-    return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
+  if (body.nama !== undefined) {
+    if (!body.nama.trim()) return res.status(400).json({ message: 'Nama tidak boleh kosong' })
+    if (body.nama.length > 100) return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
   }
-  if (body.jabatan && body.jabatan.length > 100) {
-    return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
+  if (body.jabatan !== undefined) {
+    if (!body.jabatan.trim()) return res.status(400).json({ message: 'Jabatan tidak boleh kosong' })
+    if (body.jabatan.length > 100) return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
+  }
+  if (body.phone !== undefined && body.phone) {
+    const digits = body.phone.replace(/\D/g, '')
+    if (digits.length < 10 || digits.length > 15) {
+      return res.status(400).json({ message: 'Nomor telepon harus 10-15 digit' })
+    }
+  }
+  if (body.foto !== undefined && typeof body.foto === 'string' && body.foto.length > 500000) {
+    return res.status(400).json({ message: 'Foto terlalu besar' })
   }
   next()
 })

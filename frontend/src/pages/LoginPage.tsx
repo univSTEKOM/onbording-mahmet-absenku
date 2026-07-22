@@ -4,7 +4,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Loader2, Fingerprint } from 'lucide-react'
+import { validateEmail, validatePassword } from '@/lib/validation'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -17,9 +19,10 @@ export default function LoginPage() {
 
   function validate() {
     const errs: Record<string, string> = {}
-    if (!email.trim()) errs.email = 'Email harus diisi'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Format email tidak valid'
-    if (!password) errs.password = 'Password harus diisi'
+    const e = validateEmail(email)
+    if (e) errs.email = e
+    const p = validatePassword(password)
+    if (p) errs.password = p
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -63,10 +66,8 @@ export default function LoginPage() {
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-              </div>
-              <Input id="password" type="password" value={password}
+              <Label htmlFor="password">Password</Label>
+              <PasswordInput id="password" value={password}
                 onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
                 className={errors.password ? 'border-destructive' : ''} />
               {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
