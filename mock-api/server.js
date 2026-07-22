@@ -20,44 +20,52 @@ async function syncSeedUsers() {
     const seedUsers = db.users || []
     let synced = 0
 
-    for (const user of seedUsers) {
+    for (const seed of seedUsers) {
       try {
         const result = await auth.api.signUpEmail({
           body: {
-            email: user.email,
-            password: user.password,
-            name: user.nama,
-            role: user.role || 'karyawan',
-            jabatan: user.jabatan || '',
-            phone: user.phone || '',
-            alamat: user.alamat || '',
+            email: seed.email,
+            password: seed.password,
+            name: seed.nama,
+            role: seed.role || 'karyawan',
+            jabatan: seed.jabatan || '',
+            phone: seed.phone || '',
+            alamat: seed.alamat || '',
           },
         })
-        /* push profile to json-server with the ID from better-auth */
-        const existing = router.db.get('users').find({ email: user.email }).value()
-        if (!existing) {
+        const newId = result.user.id
+        const oldProfile = router.db.get('users').find({ email: seed.email }).value()
+
+        if (oldProfile) {
+          /* update existing profile ID to match better-auth UUID */
+          router.db.get('users').chain.find({ email: seed.email }).assign({ id: newId }).write()
+          /* update absensi records for this user */
+          router.db.get('absensi').chain.filter({ userId: seed.id.toString() }).each((a) => { a.userId = newId }).value()
+          router.db.get('absensi').chain.filter({ userId: seed.id }).each((a) => { a.userId = newId }).value()
+          /* update pengajuan records */
+          router.db.get('pengajuan').chain.filter({ userId: seed.id.toString() }).each((p) => { p.userId = newId }).value()
+          router.db.get('pengajuan').chain.filter({ userId: seed.id }).each((p) => { p.userId = newId }).value()
+          router.db.write()
+        } else {
           router.db.get('users').push({
-            id: result.user.id,
-            email: user.email,
-            password: user.password,
-            nama: user.nama,
-            jabatan: user.jabatan || '',
-            role: user.role || 'karyawan',
+            id: newId,
+            email: seed.email,
+            password: seed.password,
+            nama: seed.nama,
+            jabatan: seed.jabatan || '',
+            role: seed.role || 'karyawan',
             foto: '',
-            phone: user.phone || '',
-            alamat: user.alamat || '',
+            phone: seed.phone || '',
+            alamat: seed.alamat || '',
             createdAt: new Date().toISOString(),
           }).write()
-          synced++
         }
+        synced++
       } catch (e) {
-        const existing = router.db.get('users').find({ email: user.email }).value()
-        if (!existing) {
-          /* better-auth has the user but db.json doesn't — this shouldn't happen */
-        }
+        /* user already exists in better-auth, skip */
       }
     }
-    console.log(`Sync: ${synced} new users added to db.json`)
+    console.log(`Sync: ${synced} seed users synced`)
   } catch (e) {
     console.error('Sync error:', e.message)
   }
