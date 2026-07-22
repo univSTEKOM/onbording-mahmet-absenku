@@ -41,11 +41,13 @@ function RoleRedirect() {
 }
 
 function App() {
+  console.log('[App] Rendering...')
   return (
     <ThemeProvider defaultTheme="system">
       <UserProvider>
       <TooltipProvider>
         <ErrorBoundary>
+          <div id="app-root">
           <Routes>
             <Route path="/" element={<WelcomePage />} />
             <Route element={<AuthLayout />}>
@@ -73,6 +75,7 @@ function App() {
             <Route path="*" element={<RoleRedirect />} />
           </Routes>
           <Toaster position="top-right" richColors />
+          </div>
         </ErrorBoundary>
       </TooltipProvider>
       </UserProvider>

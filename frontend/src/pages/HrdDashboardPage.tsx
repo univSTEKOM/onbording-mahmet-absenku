@@ -1,72 +1,101 @@
-import { useHrdWeek } from '@/hooks/useDashboard'
+import { useNavigate } from 'react-router-dom'
+import { useHrdWeek, useMonthAttendance } from '@/hooks/useDashboard'
+import { useUsers } from '@/hooks/useUsers'
+import { useAllPengajuan } from '@/hooks/usePengajuan'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
-import { RefreshCw, Users, CheckCircle2, XCircle, AlertTriangle, Clock, FileText, FileCheck, FileX } from 'lucide-react'
+import { AttendanceCalendar } from '@/components/AttendanceCalendar'
+import { RefreshCw, Users, CheckCircle2, AlertTriangle, Clock, ArrowRight } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
-const statusKaryawan = [
-  { key: 'hadir', label: 'Hadir', icon: CheckCircle2, color: 'text-green-600' },
-  { key: 'terlambat', label: 'Terlambat', icon: AlertTriangle, color: 'text-yellow-600' },
-  { key: 'izin', label: 'Izin/Sakit/Cuti', icon: Clock, color: 'text-blue-600' },
-  { key: 'belum', label: 'Belum Absen', icon: XCircle, color: 'text-gray-500' },
-]
+const today = new Date()
+const currentMonth = today.getMonth()
+const currentYear = today.getFullYear()
 
 export default function HrdDashboardPage() {
+  const navigate = useNavigate()
   const { data: hrdData, isLoading, refetch, isFetching } = useHrdWeek()
+  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth)
+  const { data: users } = useUsers()
+  const { data: pengajuan } = useAllPengajuan()
 
-  const summary = hrdData?.summary
+  const s = hrdData?.summary
   const chart = hrdData?.chart || []
-  const todayAbsensi = { hadir: summary?.hadirHariIni || 0, terlambat: summary?.terlambatHariIni || 0, izin: summary?.izinHariIni || 0, belum: summary?.belumAbsen || 0 }
+  const pendingPengajuan = pengajuan?.filter((p) => p.status === 'pending').length || 0
+  const pendingUsers = users?.filter((u) => u.status === 'pending').length || 0
+  const lateToday = s?.terlambatHariIni || 0
+
+  const todayAbsensi = {
+    hadir: s?.hadirHariIni || 0,
+    terlambat: s?.terlambatHariIni || 0,
+    izin: s?.izinHariIni || 0,
+    belum: s?.belumAbsen || 0,
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard HRD</h1>
-          <p className="text-muted-foreground">{new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          <p className="text-muted-foreground text-sm">
+            {today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
         </div>
         <Button variant="outline" size="sm" className="gap-2" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} /> Refresh
+          <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          Refresh
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between mb-1">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="py-5">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium text-muted-foreground">Total Karyawan</span>
               <Users className="h-4 w-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold">{isLoading ? '-' : summary?.totalKaryawan || 0}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Semua karyawan aktif</p>
+            <p className="text-3xl font-bold">{isLoading ? '-' : s?.totalKaryawan || 0}</p>
           </CardContent>
         </Card>
-        {statusKaryawan.map((s) => {
-          const val = todayAbsensi[s.key as keyof typeof todayAbsensi]
-          const pct = summary?.totalKaryawan ? Math.round((val / summary.totalKaryawan) * 100) : 0
-          const Icon = s.icon
-          return (
-            <Card key={s.key}>
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">{s.label}</span>
-                  <Icon className={`h-4 w-4 ${s.color}`} />
-                </div>
-                <p className="text-2xl font-bold">{val}</p>
-                <p className={`text-xs mt-0.5 ${s.color}`}>{pct}%</p>
-              </CardContent>
-            </Card>
-          )
-        })}
+
+        <Card>
+          <CardContent className="py-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">Hadir Hari Ini</span>
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            </div>
+            <p className="text-3xl font-bold text-green-600">{todayAbsensi.hadir}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="py-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">Terlambat</span>
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            </div>
+            <p className="text-3xl font-bold text-yellow-600">{todayAbsensi.terlambat}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="py-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">Verifikasi Tertunda</span>
+              <Clock className="h-4 w-4 text-blue-600" />
+            </div>
+            <p className="text-3xl font-bold text-blue-600">{pendingUsers}</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tren Kehadiran 7 Hari</CardTitle>
-          </CardHeader>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="font-semibold text-base">Tren Kehadiran 7 Hari</h3>
+          </div>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-[220px] w-full rounded-lg" />
@@ -88,92 +117,115 @@ export default function HrdDashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Ringkasan Kehadiran</CardTitle>
-            </CardHeader>
+            <div className="px-6 pt-6 pb-2 flex items-center justify-between">
+              <h3 className="font-semibold text-base">Ringkasan</h3>
+            </div>
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-                <span className="text-sm text-muted-foreground">Rata-rata kehadiran pekan ini</span>
-                <span className="text-sm font-semibold">{summary?.weekAvg || 0}%</span>
+                <span className="text-sm text-muted-foreground">Rata-rata kehadiran</span>
+                <span className="text-sm font-semibold">{s?.weekAvg || 0}%</span>
               </div>
               <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-                <span className="text-sm text-muted-foreground">Hari dengan kehadiran terbaik</span>
-                <span className="text-sm font-semibold">{summary?.bestDay ? `${summary.bestDay.name} (${summary.bestDay.persen}%)` : '-'}</span>
+                <span className="text-sm text-muted-foreground">Belum absen hari ini</span>
+                <span className="text-sm font-semibold">{todayAbsensi.belum}</span>
               </div>
               <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-                <span className="text-sm text-muted-foreground">Karyawan</span>
-                <span className="text-sm font-semibold">{summary?.totalKaryawan || 0} orang</span>
+                <span className="text-sm text-muted-foreground">Izin/Sakit/Cuti</span>
+                <span className="text-sm font-semibold">{todayAbsensi.izin}</span>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b last:border-0">
+                <span className="text-sm text-muted-foreground">Pengajuan pending</span>
+                <span className="text-sm font-semibold">{pendingPengajuan}</span>
               </div>
               <div className="flex items-center justify-between py-1.5">
-                <span className="text-sm text-muted-foreground">Total absensi bulan ini</span>
-                <span className="text-sm font-semibold">{summary?.totalAbsensiBulanIni || 0}</span>
+                <span className="text-sm text-muted-foreground">Verifikasi pending</span>
+                <span className="text-sm font-semibold">{pendingUsers}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/10">
-            <CardContent className="py-4 text-center">
-              <p className="text-3xl font-bold text-primary">{summary?.weekAvg || 0}%</p>
-              <p className="text-xs text-muted-foreground mt-1">Rata-rata kehadiran</p>
-            </CardContent>
-          </Card>
+          <Button variant="outline" className="w-full gap-2" onClick={() => navigate('/hrd/verifikasi')}>
+            <Clock className="h-4 w-4" /> Verifikasi Karyawan
+            {pendingUsers > 0 && <Badge className="ml-1 bg-primary">{pendingUsers}</Badge>}
+            <ArrowRight className="h-4 w-4 ml-auto" />
+          </Button>
         </div>
       </div>
 
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Ringkasan Pengajuan Bulan Ini</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-800/30">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">Total Karyawan</span>
-                  <FileText className="h-4 w-4 text-blue-600" />
-                </div>
-                <p className="text-2xl font-bold">{summary?.totalKaryawan || 0}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-yellow-50/50 dark:bg-yellow-950/20 border-yellow-200/50 dark:border-yellow-800/30">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">Hadir Hari Ini</span>
-                  <Clock className="h-4 w-4 text-yellow-600" />
-                </div>
-                <p className="text-2xl font-bold">{summary?.hadirHariIni || 0}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-green-50/50 dark:bg-green-950/20 border-green-200/50 dark:border-green-800/30">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">Terlambat</span>
-                  <FileCheck className="h-4 w-4 text-green-600" />
-                </div>
-                <p className="text-2xl font-bold">{summary?.terlambatHariIni || 0}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/30">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">Izin/Sakit/Cuti</span>
-                  <FileX className="h-4 w-4 text-red-600" />
-                </div>
-                <p className="text-2xl font-bold">{summary?.izinHariIni || 0}</p>
-              </CardContent>
-            </Card>
-          </div>
+        <CardContent className="pt-6">
+          {monthLoading ? (
+            <Skeleton className="h-[300px] w-full rounded-lg" />
+          ) : (
+            <AttendanceCalendar
+              year={currentYear}
+              month={currentMonth}
+              data={monthData?.data || []}
+              totalKaryawan={monthData?.totalKaryawan || s?.totalKaryawan || 0}
+            />
+          )}
         </CardContent>
       </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <div className="px-6 pt-6 pb-2 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-base">Verifikasi Tertunda</h3>
+              <p className="text-xs text-muted-foreground">Karyawan yang menunggu persetujuan</p>
+            </div>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-0">{pendingUsers} perlu</Badge>
+          </div>
+          <CardContent>
+            {pendingUsers > 0 ? (
+              <div className="space-y-3">
+                {users?.filter((u) => u.status === 'pending').slice(0, 5).map((u) => (
+                  <div key={u.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-sm">
+                        {u.nama?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{u.nama}</p>
+                        <p className="text-xs text-muted-foreground">{u.email}</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-0 text-[10px]">Pending</Badge>
+                  </div>
+                ))}
+                <Button variant="ghost" className="w-full text-sm gap-1" onClick={() => navigate('/hrd/verifikasi')}>
+                  Lihat semua <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-4 text-center">Tidak ada verifikasi tertunda</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="font-semibold text-base">Karyawan Terlambat Hari Ini</h3>
+          </div>
+          <CardContent>
+            {lateToday > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2 border-b">
+                  <span className="text-sm text-muted-foreground">{lateToday} karyawan terlambat hari ini</span>
+                  <span className="text-sm font-semibold text-yellow-600">{lateToday} orang</span>
+                </div>
+                <Button variant="outline" className="w-full text-sm" onClick={() => navigate('/hrd/riwayat')}>
+                  Lihat Riwayat
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground py-4 text-center">Semua karyawan hadir tepat waktu hari ini</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
-}
-
-function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('px-6 pt-6 pb-2', className)} {...props} />
-}
-function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn('text-base font-semibold leading-none tracking-tight', className)} {...props} />
 }

@@ -357,6 +357,36 @@ server.get('/api/dashboard/hrd/week', (req, res) => {
   res.json({ chart, summary: { totalKaryawan: k.length, hadirHariIni: ta.filter((x) => x.status === 'hadir').length, terlambatHariIni: ta.filter((x) => x.status === 'terlambat').length, izinHariIni: ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length, belumAbsen: k.length - ta.filter((x) => x.checkIn).length, totalAbsensiBulanIni: a.filter((x) => x.tanggal >= msStr).length, weekAvg: chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0, bestDay: chart.length ? chart.reduce((a, b) => a.persen > b.persen ? a : b) : null } })
 })
 
+server.get('/api/dashboard/month', (req, res) => {
+  const tahun = parseInt(req.query.tahun) || new Date().getFullYear()
+  const bulan = parseInt(req.query.bulan) || (new Date().getMonth() + 1)
+  const a = router.db.get('absensi').value()
+  const u = router.db.get('users').value()
+  const total = u.filter((x) => x.role === 'karyawan').length
+
+  const daysInMonth = new Date(tahun, bulan, 0).getDate()
+  const data = []
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const tgl = `${tahun}-${String(bulan).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    const dayAbsensi = a.filter((x) => x.tanggal === tgl)
+    const hadir = dayAbsensi.filter((x) => x.status === 'hadir').length
+    const terlambat = dayAbsensi.filter((x) => x.status === 'terlambat').length
+    const checkInOnly = dayAbsensi.filter((x) => x.checkIn && !x.checkOut).length
+    const izin = dayAbsensi.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
+    data.push({
+      tanggal: tgl,
+      hadir,
+      terlambat,
+      checkInOnly,
+      izin,
+      tidakHadir: total - hadir - terlambat - checkInOnly - izin,
+    })
+  }
+
+  res.json({ data, totalKaryawan: total })
+})
+
 server.use(router)
 
 const PORT = process.env.PORT || 3001

@@ -6,6 +6,11 @@ import { toast } from 'sonner'
 import './index.css'
 import App from './App.tsx'
 
+console.log('[main] Starting...')
+
+const rootEl = document.getElementById('root')
+console.log('[main] #root element:', rootEl)
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -23,12 +28,25 @@ const queryClient = new QueryClient({
   },
 })
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </StrictMode>,
-)
+try {
+  console.log('[main] Rendering App...')
+  createRoot(rootEl!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </StrictMode>,
+  )
+  console.log('[main] Render called successfully')
+} catch (err) {
+  console.error('[main] RENDER FAILED:', err)
+  if (rootEl) {
+    rootEl.innerHTML = `<div style="padding:40px;color:red;font-family:sans-serif">
+      <h2>Render Error</h2>
+      <pre style="color:red">${err instanceof Error ? err.message : String(err)}</pre>
+      <pre style="font-size:12px;color:#666">${err instanceof Error ? err.stack : ''}</pre>
+    </div>`
+  }
+}

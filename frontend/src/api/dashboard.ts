@@ -39,3 +39,22 @@ export async function getHrdWeek(): Promise<HrdWeekData> {
   const res = await api.get('/api/dashboard/hrd/week')
   return res.data
 }
+
+export interface DayAttendanceData {
+  tanggal: string
+  hadir: number
+  terlambat: number
+  checkInOnly: number
+  izin: number
+  tidakHadir: number
+}
+
+export interface MonthAttendanceData {
+  data: DayAttendanceData[]
+  totalKaryawan: number
+}
+
+export async function getMonthAttendance(tahun: number, bulan: number): Promise<MonthAttendanceData> {
+  const res = await api.get('/api/dashboard/month', { params: { tahun, bulan } })
+  return res.data
+}
