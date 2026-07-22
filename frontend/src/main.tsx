@@ -1,52 +1,54 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ThemeProvider } from '@/components/theme-provider'
+import { UserProvider } from '@/lib/user-context'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { toast } from 'sonner'
 import './index.css'
-import App from './App.tsx'
-
-console.log('[main] Starting...')
-
-const rootEl = document.getElementById('root')
-console.log('[main] #root element:', rootEl)
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 0,
-      refetchOnWindowFocus: true,
-    },
+    queries: { retry: 1, staleTime: 0, refetchOnWindowFocus: true },
     mutations: {
       onError: (error: unknown) => {
         const err = error as { response?: { data?: { message?: string } } }
-        const msg = err?.response?.data?.message || (error instanceof Error ? error.message : 'Terjadi kesalahan')
-        toast.error(msg)
+        toast.error(err?.response?.data?.message || (error instanceof Error ? error.message : 'Terjadi kesalahan'))
       },
     },
   },
 })
 
-try {
-  console.log('[main] Rendering App...')
-  createRoot(rootEl!).render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </StrictMode>,
+function RootLayout() {
+  return (
+    <ThemeProvider defaultTheme="system">
+      <UserProvider>
+        <TooltipProvider>
+          <ErrorBoundary>
+            <Outlet />
+            <Toaster position="top-right" richColors />
+          </ErrorBoundary>
+        </TooltipProvider>
+      </UserProvider>
+    </ThemeProvider>
   )
-  console.log('[main] Render called successfully')
-} catch (err) {
-  console.error('[main] RENDER FAILED:', err)
-  if (rootEl) {
-    rootEl.innerHTML = `<div style="padding:40px;color:red;font-family:sans-serif">
-      <h2>Render Error</h2>
-      <pre style="color:red">${err instanceof Error ? err.message : String(err)}</pre>
-      <pre style="font-size:12px;color:#666">${err instanceof Error ? err.stack : ''}</pre>
-    </div>`
-  }
 }
+
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { index: true, lazy: () => import("./pages/WelcomePage").then(m => ({ Component: m.default })) },
+      { path: "login", lazy: () => import("./pages/LoginPage").then(m => ({ Component: m.default })) },
+      { path: "register", lazy: () => import("./pages/RegisterPage").then(m => ({ Component: m.default })) },
+    ],
+  },
+])
+
+createRoot(document.getElementById('root')!).render(
+  <QueryClientProvider client={queryClient}>
+    <RouterProvider router={router} />
+  </QueryClientProvider>,
+)
