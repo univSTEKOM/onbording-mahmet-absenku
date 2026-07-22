@@ -163,8 +163,4 @@
   min-height: 100svh;
 }
 
-html[data-filter-open] .sidebar-inset-content {
-  filter: blur(4px);
-  pointer-events: none;
-  transition: filter 0.2s;
-}
+

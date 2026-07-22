@@ -3,22 +3,36 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
+import { FilterProvider, useFilterContext } from '@/lib/filter-context'
 
-export default function MainLayout() {
+function LayoutContent() {
+  const { isFilterOpen } = useFilterContext()
+
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="relative">
+        {isFilterOpen && (
+          <div className="absolute inset-0 z-40 backdrop-blur-sm bg-transparent pointer-events-none" />
+        )}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex-1" />
           <ThemeToggle />
         </header>
-        <main className="sidebar-inset-content flex-1 p-4 md:p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
           <Outlet />
         </main>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+export default function MainLayout() {
+  return (
+    <FilterProvider>
+      <LayoutContent />
+    </FilterProvider>
   )
 }

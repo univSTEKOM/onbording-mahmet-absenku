@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useFilterContext } from '@/lib/filter-context'
 import { Search } from 'lucide-react'
 
 export interface FilterValues {
@@ -55,6 +56,7 @@ export function FilterDialog({
   statusOptions,
   datePresets,
 }: FilterDialogProps) {
+  const { setFilterOpen } = useFilterContext()
   const [local, setLocal] = useState<FilterValues>(values)
 
   useEffect(() => {
@@ -62,13 +64,9 @@ export function FilterDialog({
   }, [open, values])
 
   useEffect(() => {
-    if (open) {
-      document.documentElement.setAttribute('data-filter-open', '')
-    } else {
-      document.documentElement.removeAttribute('data-filter-open')
-    }
-    return () => document.documentElement.removeAttribute('data-filter-open')
-  }, [open])
+    setFilterOpen(open)
+    return () => setFilterOpen(false)
+  }, [open, setFilterOpen])
 
   function handlePreset(get: () => string) {
     const from = get()
