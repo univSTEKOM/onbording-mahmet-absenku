@@ -30,7 +30,7 @@ export interface HrdWeekData {
   summary: HrdWeekSummary
 }
 
-export async function getRecentAbsensi(userId: string): Promise<RecentAbsensiItem[]> {
+export async function getRecentAbsensi(userId: number): Promise<RecentAbsensiItem[]> {
   const res = await api.get('/api/dashboard/recent', { params: { userId } })
   return res.data.data
 }

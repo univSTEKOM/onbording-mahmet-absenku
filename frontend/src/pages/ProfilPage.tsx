@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
+import { toast } from 'sonner'
 import { Camera, Loader2, Save, Pencil } from 'lucide-react'
 
 export default function ProfilPage() {
@@ -57,7 +58,7 @@ export default function ProfilPage() {
     if (fotoPreview && fotoPreview.startsWith('data:')) { data.foto = fotoPreview }
     mutation.mutate(
       { id: user.id, data },
-      { onSuccess: () => { updateUser(data); setEditing(false); setErrors({}) } }
+      { onSuccess: () => { toast.success('Profil berhasil diperbarui'); updateUser(data); setEditing(false); setErrors({}) } }
     )
   }
 

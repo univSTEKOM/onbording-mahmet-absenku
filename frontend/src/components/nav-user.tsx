@@ -30,7 +30,7 @@ export function NavUser() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger>
-            <SidebarMenuButton size="lg" className="aria-expanded:bg-muted">
+            <SidebarMenuButton className="aria-expanded:bg-muted">
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
               </Avatar>

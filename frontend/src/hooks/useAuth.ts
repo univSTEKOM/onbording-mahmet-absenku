@@ -8,7 +8,7 @@ import type { User, LoginRequest, RegisterRequest } from '@/types'
 function mapSessionUser(sessionUser: Record<string, unknown> | null | undefined): User | null {
   if (!sessionUser) return null
   return {
-    id: sessionUser.id as string,
+    id: Number(sessionUser.id),
     email: sessionUser.email as string,
     password: '',
     nama: (sessionUser.name as string) || '',

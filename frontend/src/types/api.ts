@@ -29,7 +29,7 @@ export interface RegisterRequest {
 }
 
 export interface CheckInData {
-  userId: string
+  userId: number
   tanggal: string
   checkIn: string
 }
@@ -39,7 +39,7 @@ export interface CheckOutData {
 }
 
 export interface PengajuanFormData {
-  userId: string
+  userId: number
   jenis: string
   tanggalMulai: string
   tanggalSelesai: string

@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { getUsers, updateUser } from '@/api/users'
 import type { User } from '@/types'
 
@@ -14,10 +13,9 @@ export function useUpdateUser() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
+    mutationFn: ({ id, data }: { id: number; data: Partial<User> }) =>
       updateUser(id, data),
     onSuccess: () => {
-      toast.success('Profil berhasil diperbarui')
       queryClient.invalidateQueries({ queryKey: ['users'] })
     },
   })

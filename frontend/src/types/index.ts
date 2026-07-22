@@ -7,7 +7,7 @@ export type PengajuanJenis = 'cuti' | 'izin' | 'sakit'
 export type PengajuanStatus = 'pending' | 'approved' | 'rejected'
 
 export interface User {
-  id: string
+  id: number
   email: string
   password: string
   nama: string
@@ -21,7 +21,7 @@ export interface User {
 
 export interface Absensi {
   id: number
-  userId: string
+  userId: number
   tanggal: string
   checkIn: string | null
   checkOut: string | null
@@ -33,7 +33,7 @@ export interface Absensi {
 
 export interface Pengajuan {
   id: number
-  userId: string
+  userId: number
   jenis: PengajuanJenis
   tanggalMulai: string
   tanggalSelesai: string
@@ -54,7 +54,7 @@ export interface UpdateUserData {
 }
 
 export interface AbsensiFilters {
-  userId?: string
+  userId?: number
   tanggal?: string
   tanggal_gte?: string
   tanggal_lte?: string
@@ -66,7 +66,7 @@ export interface AbsensiFilters {
 }
 
 export interface PengajuanFilters {
-  userId?: string
+  userId?: number
   status?: string
 }
 
