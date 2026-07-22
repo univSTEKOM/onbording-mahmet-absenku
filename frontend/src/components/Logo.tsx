@@ -1,26 +1,17 @@
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/components/theme-provider'
 
 interface LogoProps {
   className?: string
-  variant?: 'full' | 'icon'
 }
 
-export function Logo({ className = '', variant = 'full' }: LogoProps) {
-  const { resolvedTheme } = useTheme()
+export function Logo({ className = '' }: LogoProps) {
+  const { theme } = useTheme()
 
-  if (variant === 'icon') {
-    return (
-      <img
-        src="/favicon.png"
-        alt="AbsenKu"
-        className={`object-contain ${className}`}
-      />
-    )
-  }
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   return (
     <img
-      src={resolvedTheme === 'dark' ? '/logo dark mode.png' : '/logo light mode.png'}
+      src={isDark ? '/logo dark mode.png' : '/logo light mode.png'}
       alt="AbsenKu"
       className={`object-contain ${className}`}
     />

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
@@ -11,13 +11,18 @@ import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/constants'
 import { validateEmail, validatePassword } from '@/lib/validation'
 
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { user, login } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    navigate(user.role === 'admin' ? '/hrd/dashboard' : '/dashboard', { replace: true })
+  }, [user, navigate])
 
   function validate() {
     const errs: Record<string, string> = {}
@@ -36,7 +41,6 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login({ email, password })
-      navigate('/dashboard')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email atau password salah'
       setApiError(msg)
