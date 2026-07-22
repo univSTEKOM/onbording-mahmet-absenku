@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { ChevronsUpDownIcon, UserIcon, LogOutIcon } from 'lucide-react'
+import { ChevronsUpDown, User, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
 export function NavUser() {
@@ -29,19 +29,17 @@ export function NavUser() {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
-            }
-          >
-            <Avatar className="h-8 w-8 rounded-lg">
-              <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
-            </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{user?.nama}</span>
-              <span className="truncate text-xs text-muted-foreground">{user?.jabatan}</span>
-            </div>
-            <ChevronsUpDownIcon className="ml-auto size-4" />
+          <DropdownMenuTrigger>
+            <SidebarMenuButton size="lg" className="aria-expanded:bg-muted">
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{user?.nama}</span>
+                <span className="truncate text-xs text-muted-foreground">{user?.jabatan}</span>
+              </div>
+              <ChevronsUpDown className="ml-auto size-4" />
+            </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="min-w-56 rounded-lg"
@@ -65,12 +63,12 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => navigate('/profil')}>
-                <UserIcon className="mr-2 h-4 w-4" /> Profil
+                <User className="mr-2 h-4 w-4" /> Profil
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
-              <LogOutIcon className="mr-2 h-4 w-4" /> Logout
+              <LogOut className="mr-2 h-4 w-4" /> Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
