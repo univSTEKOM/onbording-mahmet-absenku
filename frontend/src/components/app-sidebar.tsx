@@ -7,7 +7,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { LayoutDashboard, History, FileText, Users } from 'lucide-react'
@@ -38,13 +37,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
-              <Logo variant="icon" className="size-8 shrink-0 rounded-lg" />
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">AbsenKu</span>
-                <span className="truncate text-xs text-muted-foreground">{user?.role === 'admin' ? 'HRD' : 'Karyawan'}</span>
-              </div>
-            </SidebarMenuButton>
+            <div className="flex items-center px-3 py-2">
+              <Logo className="h-7 w-auto max-w-full" />
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

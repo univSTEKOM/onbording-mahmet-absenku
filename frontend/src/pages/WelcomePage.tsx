@@ -74,7 +74,7 @@ export default function WelcomePage() {
     <div className="bg-background text-foreground selection:bg-primary/10 selection:text-primary">
 
       <nav className="sticky top-0 z-40 flex items-center justify-between w-full px-8 h-16 border-b border-border bg-background/80 backdrop-blur-xl">
-        <Logo className="h-7" />
+        <Logo className="h-9" />
         <div className="hidden md:flex items-center gap-6">
           <a href="#" className="text-primary font-semibold border-b-2 border-primary pb-1 text-xs uppercase tracking-widest">Home</a>
           <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors text-xs uppercase tracking-widest">Features</a>
