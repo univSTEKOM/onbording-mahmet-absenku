@@ -37,12 +37,9 @@ async function syncSeedUsers() {
         const oldProfile = router.db.get('users').find({ email: seed.email }).value()
 
         if (oldProfile) {
-          /* update existing profile ID to match better-auth UUID */
           router.db.get('users').chain.find({ email: seed.email }).assign({ id: newId }).write()
-          /* update absensi records for this user */
           router.db.get('absensi').chain.filter({ userId: seed.id.toString() }).each((a) => { a.userId = newId }).value()
           router.db.get('absensi').chain.filter({ userId: seed.id }).each((a) => { a.userId = newId }).value()
-          /* update pengajuan records */
           router.db.get('pengajuan').chain.filter({ userId: seed.id.toString() }).each((p) => { p.userId = newId }).value()
           router.db.get('pengajuan').chain.filter({ userId: seed.id }).each((p) => { p.userId = newId }).value()
           router.db.write()
@@ -54,6 +51,7 @@ async function syncSeedUsers() {
             nama: seed.nama,
             jabatan: seed.jabatan || '',
             role: seed.role || 'karyawan',
+            status: seed.status || 'approved',
             foto: '',
             phone: seed.phone || '',
             alamat: seed.alamat || '',
@@ -62,7 +60,7 @@ async function syncSeedUsers() {
         }
         synced++
       } catch (e) {
-        /* user already exists in better-auth, skip */
+        /* user already exists */
       }
     }
     console.log(`Sync: ${synced} seed users synced`)
@@ -129,9 +127,7 @@ server.post('/api/auth/sign-in/email', (req, res, next) => {
 
       req.body = parsed
       next()
-    } catch {
-      next()
-    }
+    } catch { next() }
   })
 })
 
@@ -147,6 +143,7 @@ server.post('/api/register', async (req, res) => {
       const nama = parsed.nama || parsed.name || ''
       const jabatan = parsed.jabatan || ''
       const role = parsed.role || 'karyawan'
+
       if (!email || !password || !nama) {
         return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
       }
@@ -163,12 +160,20 @@ server.post('/api/register', async (req, res) => {
         return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
       }
 
+      /* deteksi admin-add: cek session */
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(req.headers),
+      })
+      const isAdminAction = session?.user?.role === 'admin'
+      const effectiveRole = isAdminAction ? role : 'karyawan'
+      const effectiveStatus = isAdminAction ? 'approved' : 'pending'
+
       const response = await auth.api.signUpEmail({
         body: {
           email,
           password,
           name: nama,
-          role,
+          role: effectiveRole,
           jabatan: jabatan || '',
           phone: phone || '',
           alamat: '',
@@ -187,7 +192,9 @@ server.post('/api/register', async (req, res) => {
         email,
         nama,
         jabatan: jabatan || '',
-        role,
+        role: effectiveRole,
+        status: effectiveStatus,
+        rejectionNotes: [],
         foto: '',
         phone: phone || '',
         alamat: '',
@@ -212,6 +219,98 @@ server.get('/api/me', async (req, res) => {
     ...session,
     user: { ...session.user, ...profile },
   })
+})
+
+async function requireAdmin(headers) {
+  const session = await auth.api.getSession({ headers })
+  if (!session) return { error: { status: 401, message: 'Unauthorized' } }
+  if (session.user.role !== 'admin') return { error: { status: 403, message: 'Forbidden' } }
+  return { session }
+}
+
+server.patch('/api/users/:id/status', async (req, res) => {
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', async () => {
+    try {
+      const { error } = await requireAdmin(fromNodeHeaders(req.headers))
+      if (error) return res.status(error.status).json({ message: error.message })
+
+      const { status: newStatus, note } = JSON.parse(body)
+      if (!['approved', 'rejected'].includes(newStatus)) {
+        return res.status(400).json({ message: 'Invalid status. Gunakan approved atau rejected' })
+      }
+
+      const user = router.db.get('users').find({ id: req.params.id }).value()
+      if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
+
+      router.db.get('users').chain.find({ id: req.params.id }).assign({ status: newStatus }).write()
+
+      if (newStatus === 'rejected' && note) {
+        const notes = user.rejectionNotes || []
+        notes.push({ note, createdAt: new Date().toISOString() })
+        router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
+      }
+
+      if (newStatus === 'approved') {
+        router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: [] }).write()
+      }
+
+      res.json({ message: `Status berhasil diubah ke ${newStatus}` })
+    } catch { res.status(400).json({ message: 'Gagal memproses' }) }
+  })
+})
+
+server.post('/api/users/:id/notes', async (req, res) => {
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', async () => {
+    try {
+      const { error } = await requireAdmin(fromNodeHeaders(req.headers))
+      if (error) return res.status(error.status).json({ message: error.message })
+
+      const { note } = JSON.parse(body)
+      if (!note) return res.status(400).json({ message: 'Catatan harus diisi' })
+
+      const user = router.db.get('users').find({ id: req.params.id }).value()
+      if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
+
+      const notes = user.rejectionNotes || []
+      notes.push({ note, createdAt: new Date().toISOString() })
+      router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
+
+      res.json({ message: 'Catatan ditambahkan' })
+    } catch { res.status(400).json({ message: 'Gagal memproses' }) }
+  })
+})
+
+server.delete('/api/users/:id', async (req, res) => {
+  const { error } = await requireAdmin(fromNodeHeaders(req.headers))
+  if (error) return res.status(error.status).json({ message: error.message })
+
+  const user = router.db.get('users').find({ id: req.params.id }).value()
+  if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
+
+  router.db.get('users').remove({ id: req.params.id }).write()
+  router.db.get('absensi').remove({ userId: req.params.id }).write()
+  router.db.get('pengajuan').remove({ userId: req.params.id }).write()
+  res.json({ message: 'User dan semua data terkait berhasil dihapus' })
+})
+
+server.get('/api/users/pending', async (req, res) => {
+  const { error } = await requireAdmin(fromNodeHeaders(req.headers))
+  if (error) return res.status(error.status).json({ message: error.message })
+
+  const users = router.db.get('users').filter((u) => u.status === 'pending').value()
+  res.json(users)
+})
+
+server.get('/api/users/all', async (req, res) => {
+  const { error } = await requireAdmin(fromNodeHeaders(req.headers))
+  if (error) return res.status(error.status).json({ message: error.message })
+
+  const users = router.db.get('users').value()
+  res.json(users)
 })
 
 server.use(upload.none())
@@ -256,16 +355,16 @@ server.patch('/absensi/:id', (req, res, next) => {
   next()
 })
 
-server.delete('/pengajuan/:id', (req, res) => {
-  const record = router.db.get('pengajuan').find({ id: Number(req.params.id) }).value()
-  if (!record) return res.status(404).json({ message: 'Pengajuan tidak ditemukan' })
-  if (record.status !== 'pending') return res.status(400).json({ message: 'Hanya pengajuan pending yang bisa dihapus' })
-  router.db.get('pengajuan').remove({ id: Number(req.params.id) }).write()
-  res.status(200).json({ message: 'Dihapus' })
-})
-
 server.patch('/users/:id', (req, res, next) => {
   const body = req.body
+
+  /* 🚫 Security: jangan biarkan client set field ini */
+  delete body.status
+  delete body.rejectionNotes
+  delete body.role
+  delete body.id
+  delete body.createdAt
+
   if (body.email !== undefined) {
     if (!body.email.trim()) return res.status(400).json({ message: 'Email tidak boleh kosong' })
     if (body.email.length > 100) return res.status(400).json({ message: 'Email maksimal 100 karakter' })
@@ -287,10 +386,18 @@ server.patch('/users/:id', (req, res, next) => {
   if (body.alamat !== undefined && body.alamat.length > 500) {
     return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
   }
-  if (body.foto !== undefined && typeof body.foto === 'string' && body.foto.length > 5000000) {
-    return res.status(400).json({ message: 'Foto terlalu besar (maks 5MB)' })
+
+  /* ✅ Auto-reset: jika user rejected dan update profil → pending lagi */
+  const user = router.db.get('users').find({ id: req.params.id }).value()
+  if (user && user.status === 'rejected') {
+    router.db.get('users').chain.find({ id: req.params.id }).assign({ status: 'pending', rejectionNotes: [] }).write()
   }
+
   next()
+})
+
+server.delete('/users/:id', (req, res) => {
+  res.status(403).json({ message: 'Gunakan endpoint admin: DELETE /api/users/:id' })
 })
 
 server.patch('/pengajuan/:id', (req, res, next) => {
@@ -313,12 +420,7 @@ server.get('/api/dashboard/recent', (req, res) => {
   const last7 = uniqueDates.slice(-7)
   const result = last7.map((tanggal) => {
     const records = absensi.filter((a) => a.tanggal === tanggal)
-    return {
-      tanggal,
-      checkIn: records[0]?.checkIn || null,
-      checkOut: records[0]?.checkOut || null,
-      status: records[0]?.status || null,
-    }
+    return { tanggal, checkIn: records[0]?.checkIn || null, checkOut: records[0]?.checkOut || null, status: records[0]?.status || null }
   })
   res.json({ data: result })
 })

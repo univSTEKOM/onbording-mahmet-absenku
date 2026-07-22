@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { authClient } from '@/lib/auth-client'
 import api from '@/api/axios'
@@ -21,8 +22,18 @@ function mapSessionUser(sessionUser: Record<string, unknown> | null | undefined)
   }
 }
 
+/* Hitung session query key dari hook definition */
+function getSessionQueryKey(): readonly unknown[] {
+  const def = authClient.useSession
+  if (typeof def === 'function' && 'getQueryKey' in (def as unknown as Record<string, unknown>)) {
+    return ((def as unknown as Record<string, unknown>).getQueryKey as () => readonly unknown[])()
+  }
+  return ['session']
+}
+
 export function useAuth() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { data: session, isPending, refetch } = authClient.useSession()
 
   const user = useMemo(() => mapSessionUser(session?.user), [session])
@@ -60,9 +71,31 @@ export function useAuth() {
     if (data.phone !== undefined) body.phone = data.phone
     if (data.alamat !== undefined) body.alamat = data.alamat
     await api.patch(`/users/${user.id}`, body)
-    refetch()
+
+    /* Update TanStack Query cache langsung agar UI berubah tanpa nunggu refetch */
+    const key = getSessionQueryKey()
+    queryClient.setQueryData(key, (old: unknown) => {
+      if (!old || typeof old !== 'object') return old
+      const d = old as { data?: { user?: Record<string, unknown> } }
+      if (!d.data?.user) return old
+      return {
+        ...d,
+        data: {
+          ...d.data,
+          user: {
+            ...d.data.user,
+            ...(data.nama !== undefined ? { name: data.nama } : {}),
+            ...(data.jabatan !== undefined ? { jabatan: data.jabatan } : {}),
+            ...(data.phone !== undefined ? { phone: data.phone } : {}),
+            ...(data.alamat !== undefined ? { alamat: data.alamat } : {}),
+            ...(data.foto !== undefined ? { image: data.foto } : {}),
+          },
+        },
+      }
+    })
+
     toast.success('Profil berhasil diperbarui')
-  }, [user?.id, refetch])
+  }, [user?.id, queryClient])
 
   return {
     user,
