@@ -48,9 +48,7 @@ export function useUpdatePengajuanStatus() {
       catatan?: string
     }) => updatePengajuanStatus(id, status, catatan),
     onSuccess: (_data, variables) => {
-      toast.success(
-        `Pengajuan ${variables.status === 'approved' ? 'disetujui' : 'ditolak'}`
-      )
+      toast.success(`Pengajuan ${variables.status === 'approved' ? 'disetujui' : 'ditolak'}`)
       queryClient.invalidateQueries({ queryKey: ['pengajuan'] })
     },
   })

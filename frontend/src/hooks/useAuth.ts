@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { authClient } from '@/lib/auth-client'
+import { useUserContext } from '@/lib/user-context'
 import api from '@/api/axios'
 import type { User, LoginRequest, RegisterRequest } from '@/types'
 
@@ -16,8 +17,6 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
     nama: (p.nama as string) || (base.name as string) || '',
     jabatan: (p.jabatan as string) || (base.jabatan as string) || '',
     role: (p.role as User['role']) || (base.role as User['role']) || 'karyawan',
-    status: (p.status as User['status']) || (base.status as User['status']) || 'approved',
-    rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) || [],
     foto: (p.foto as string) || (base.image as string) || '',
     phone: (p.phone as string) || (base.phone as string) || '',
     alamat: (p.alamat as string) || (base.alamat as string) || '',
@@ -27,10 +26,9 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
 
 export function useAuth() {
   const navigate = useNavigate()
+  const { profile, setProfile, profileReady, setProfileReady } = useUserContext()
   const { data: session, isPending, refetch } = authClient.useSession()
   const sessionUserId = session?.user?.id
-  const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
-  const [profileReady, setProfileReady] = useState(() => !sessionUserId)
 
   useEffect(() => {
     if (!sessionUserId) { setProfile(null); setProfileReady(true); return }
@@ -46,7 +44,7 @@ export function useAuth() {
       if (!cancelled) setProfileReady(true)
     })
     return () => { cancelled = true }
-  }, [sessionUserId])
+  }, [sessionUserId, setProfile, setProfileReady])
 
   const user = useMemo(() => mergeUserData(session?.user, profile), [session, profile])
 
@@ -75,16 +73,15 @@ export function useAuth() {
   }, [navigate])
 
   const updateUser = useCallback(async (data: Partial<User>) => {
-    if (!user?.id) return
+    if (!sessionUserId) return
     const body: Record<string, unknown> = {}
     if (data.nama !== undefined) body.nama = data.nama
     if (data.jabatan !== undefined) body.jabatan = data.jabatan
     if (data.foto !== undefined) body.foto = data.foto
     if (data.phone !== undefined) body.phone = data.phone
     if (data.alamat !== undefined) body.alamat = data.alamat
-    await api.patch(`/users/${user.id}`, body)
+    await api.patch(`/users/${sessionUserId}`, body)
 
-    /* Update local profile state + refetch session supaya UI berubah */
     setProfile((prev) => ({
       ...prev,
       ...(data.nama !== undefined ? { nama: data.nama } : {}),
@@ -94,9 +91,8 @@ export function useAuth() {
       ...(data.foto !== undefined ? { foto: data.foto } : {}),
     }))
     await refetch()
-
     toast.success('Profil berhasil diperbarui')
-  }, [user?.id, refetch])
+  }, [sessionUserId, setProfile, refetch])
 
   return {
     user,

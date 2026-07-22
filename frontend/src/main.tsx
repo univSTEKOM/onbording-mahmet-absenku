@@ -14,8 +14,10 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: true,
     },
     mutations: {
-      onError: (error: Error) => {
-        toast.error(error.message || 'Terjadi kesalahan')
+      onError: (error: unknown) => {
+        const err = error as { response?: { data?: { message?: string } } }
+        const msg = err?.response?.data?.message || (error instanceof Error ? error.message : 'Terjadi kesalahan')
+        toast.error(msg)
       },
     },
   },

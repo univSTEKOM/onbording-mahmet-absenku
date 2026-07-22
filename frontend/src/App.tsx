@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { ThemeProvider } from '@/components/theme-provider'
+import { UserProvider } from '@/lib/user-context'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAuth } from '@/hooks/useAuth'
 import WelcomePage from '@/pages/WelcomePage'
@@ -42,6 +43,7 @@ function RoleRedirect() {
 function App() {
   return (
     <ThemeProvider defaultTheme="system">
+      <UserProvider>
       <TooltipProvider>
         <ErrorBoundary>
           <Routes>
@@ -73,6 +75,7 @@ function App() {
           <Toaster position="top-right" richColors />
         </ErrorBoundary>
       </TooltipProvider>
+      </UserProvider>
     </ThemeProvider>
   )
 }
