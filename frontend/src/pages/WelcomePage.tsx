@@ -1,241 +1,282 @@
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ThemeToggle } from '@/components/ThemeToggle'
 import {
   Fingerprint,
-  Clock,
-  FileText,
   BarChart3,
-  ShieldCheck,
-  Users,
-  ArrowRight,
-  ChevronRight,
-  Sparkles,
-  ScanFace,
   CalendarCheck,
+  Zap,
+  ShieldCheck,
+  CloudCheck,
+  BadgeCheck,
+  PlayCircle,
+  Globe,
+  AtSign,
+  Share2,
+  CheckCircle2,
 } from 'lucide-react'
 
 const features = [
   {
-    icon: ScanFace,
-    title: 'Verifikasi Wajah',
-    desc: 'Absensi berbasis face recognition untuk akurasi dan keamanan data kehadiran.',
-  },
-  {
-    icon: Clock,
-    title: 'Check-In / Out',
-    desc: 'Catat waktu masuk dan pulang secara otomatis dengan riwayat lengkap.',
-  },
-  {
-    icon: FileText,
-    title: 'Izin & Cuti',
-    desc: 'Ajukan izin, cuti, atau sakit dengan status persetujuan real-time.',
+    icon: Fingerprint,
+    title: 'Biometric Verification',
+    desc: 'Ensure identity integrity with advanced facial recognition integrations. Secure, fast, and foolproof.',
   },
   {
     icon: BarChart3,
-    title: 'Dashboard Personal',
-    desc: 'Pantau statistik kehadiran harian, mingguan, dan bulanan.',
-  },
-  {
-    icon: Users,
-    title: 'Manajemen HRD',
-    desc: 'Kelola seluruh karyawan, approve pengajuan, dan lihat rekapitulasi.',
+    title: 'Real-time Analytics',
+    desc: 'Live attendance tracking with deep-dive reports. Monitor productivity and trends as they happen across your entire organization.',
   },
   {
     icon: CalendarCheck,
-    title: 'Riwayat Lengkap',
-    desc: 'Filter, sortir, dan ekspor riwayat kehadiran ke CSV.',
+    title: 'Seamless Leave Management',
+    desc: 'Automate vacation requests, medical leaves, and approvals. One-click workflow that keeps the team moving without friction.',
   },
 ]
 
-const stats = [
-  { label: 'Karyawan Terdaftar', value: '500+' },
-  { label: 'Transaksi per Hari', value: '1.2rb+' },
-  { label: 'Perusahaan Mitra', value: '50+' },
-  { label: 'Uptime', value: '99.9%' },
+const benefits = [
+  { icon: Zap, title: 'Fast', desc: 'Zero-latency updates and rapid check-ins. Time tracking shouldn\'t take your time.' },
+  { icon: ShieldCheck, title: 'Secure', desc: 'Enterprise-grade encryption for all employee data. Privacy is our primary architecture.' },
+  { icon: CloudCheck, title: 'Reliable', desc: '99.9% uptime guaranteed. AbsenKu works when your team works, day or night.' },
 ]
+
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = '1'
+          el.style.transform = 'translateY(0)'
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+  return ref
+}
+
+function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const ref = useReveal()
+  return (
+    <div ref={ref} className={`transition-all duration-700 opacity-0 translate-y-10 ${className}`}>
+      {children}
+    </div>
+  )
+}
 
 export default function WelcomePage() {
   return (
-    <div className="relative overflow-hidden">
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-40 left-0 h-[400px] w-[400px] rounded-full bg-primary/5 blur-3xl" />
-      </div>
+    <div className="bg-background text-foreground selection:bg-primary/10 selection:text-primary">
 
-      <header className="sticky top-0 z-50 border-b border-transparent bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-xs">
-              <Fingerprint className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">AbsenKu</span>
+      <nav className="sticky top-0 z-40 flex items-center justify-between w-full px-8 h-16 border-b border-border bg-background/80 backdrop-blur-xl">
+        <span className="text-2xl font-extrabold tracking-tight text-primary font-sans">AbsenKu</span>
+        <div className="hidden md:flex items-center gap-6">
+          <a href="#" className="text-primary font-semibold border-b-2 border-primary pb-1 text-xs uppercase tracking-widest">Home</a>
+          <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors text-xs uppercase tracking-widest">Features</a>
+          <a href="#benefits" className="text-muted-foreground hover:text-foreground transition-colors text-xs uppercase tracking-widest">About</a>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link to="/login">
+            <Button variant="outline" size="sm">Masuk</Button>
           </Link>
-          <nav className="hidden items-center gap-6 md:flex">
-            <a href="#fitur" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Fitur</a>
-            <a href="#tentang" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Tentang</a>
-          </nav>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link to="/login">
-              <Button variant="ghost" size="sm">Masuk</Button>
-            </Link>
-            <Link to="/register" className="hidden sm:inline-flex">
-              <Button size="sm" className="gap-1.5">
-                Daftar <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            </Link>
-          </div>
+          <Link to="/register">
+            <Button size="sm">Get Started</Button>
+          </Link>
         </div>
-      </header>
+      </nav>
 
-      <section className="relative mx-auto max-w-6xl px-6 pt-24 pb-20 md:pt-32 md:pb-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-xs font-medium text-muted-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            Sistem absensi modern berbasis web
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
-            Absensi Karyawan
-            <br />
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Jadi Lebih Mudah</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground md:text-lg">
-            Kelola kehadiran, izin, dan cuti karyawan dalam satu platform.
-            Dilengkapi verifikasi wajah dan dashboard real-time untuk HRD.
-          </p>
-          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Link to="/register">
-              <Button size="lg" className="w-full gap-2 sm:w-auto">
-                Mulai Sekarang <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                Sudah Punya Akun
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-16 grid grid-cols-2 gap-4 md:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.label} className="rounded-2xl border bg-card/50 p-5 text-center backdrop-blur-sm transition-colors hover:bg-card/80">
-              <p className="text-2xl font-bold tracking-tight text-primary md:text-3xl">{s.value}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="fitur" className="border-t bg-muted/30">
-        <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
-          <div className="mx-auto max-w-2xl text-center">
-            <Badge variant="secondary" className="mb-4">Fitur Unggulan</Badge>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Semua yang Anda Butuhkan
-            </h2>
-            <p className="mt-3 text-muted-foreground">
-              Platform absensi lengkap untuk karyawan dan HRD dalam satu kesatuan.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((f) => {
-              const Icon = f.icon
-              return (
-                <div key={f.title} className="group rounded-2xl border bg-card p-6 transition-all hover:shadow-md hover:-translate-y-0.5">
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-semibold">{f.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section id="tentang" className="border-t">
-        <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
-          <div className="grid items-center gap-12 md:grid-cols-2">
-            <div className="relative">
-              <div className="rounded-2xl border bg-gradient-to-br from-primary/5 via-primary/10 to-background p-8 md:p-10">
-                <ShieldCheck className="mb-4 h-10 w-10 text-primary" />
-                <h3 className="text-2xl font-bold tracking-tight">Keamanan & Kenyamanan</h3>
-                <p className="mt-3 text-muted-foreground leading-relaxed">
-                  Data kehadiran Anda aman dengan autentikasi modern dan sesi terkelola.
-                  Verifikasi wajah opsional memberikan lapisan keamanan tambahan tanpa
-                  menghambat alur absensi utama.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {['Face Recognition', 'SSL Encrypted', 'Session Based', 'Role Access'].map((tag) => (
-                    <Badge key={tag} variant="secondary" className="rounded-full">{tag}</Badge>
-                  ))}
-                </div>
+      <main>
+        <section className="relative pt-24 pb-16 px-8 overflow-hidden">
+          <div className="absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+          <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
+            <Reveal>
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full mb-8">
+                <BadgeCheck className="h-4 w-4" />
+                <span className="text-xs font-semibold uppercase tracking-widest">Enterprise Ready v2.0</span>
               </div>
-            </div>
-            <div className="space-y-6">
-              <div>
-                <Badge className="mb-3">Untuk Karyawan</Badge>
-                <h4 className="text-lg font-semibold">Absensi Harian & Riwayat</h4>
-                <p className="mt-1 text-sm text-muted-foreground">Check-in/out cepat, lihat histori, ajukan izin dalam hitungan detik.</p>
-              </div>
-              <div>
-                <Badge variant="secondary" className="mb-3">Untuk HRD</Badge>
-                <h4 className="text-lg font-semibold">Dashboard & Manajemen</h4>
-                <p className="mt-1 text-sm text-muted-foreground">Pantau seluruh karyawan, kelola pengajuan, dan unduh laporan dalam format CSV.</p>
-              </div>
-              <Link to="/register">
-                <Button variant="outline" className="gap-2">
-                  Pelajari Selengkapnya <ChevronRight className="h-4 w-4" />
+            </Reveal>
+            <Reveal>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-none max-w-4xl mb-6 font-sans">
+                Master Your Time with <span className="text-primary">AbsenKu.</span>
+              </h1>
+            </Reveal>
+            <Reveal>
+              <p className="text-lg text-muted-foreground max-w-2xl mb-12">
+                Premium employee attendance and HR management system for high-performance teams. Experience the precision of modern workforce logistics.
+              </p>
+            </Reveal>
+            <Reveal>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link to="/register">
+                  <Button size="lg" className="text-base px-10 py-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all">
+                    Get Started
+                  </Button>
+                </Link>
+                <Button variant="outline" size="lg" className="text-base px-10 py-6 rounded-xl gap-2">
+                  <PlayCircle className="h-5 w-5" />
+                  Watch Demo
                 </Button>
-              </Link>
+              </div>
+            </Reveal>
+          </div>
+
+          <Reveal className="mt-20 relative max-w-6xl mx-auto">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl rounded-3xl opacity-50 pointer-events-none" />
+            <div className="relative bg-card rounded-3xl border border-border shadow-2xl overflow-hidden aspect-[16/9]">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-card to-card flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <Fingerprint className="h-16 w-16 text-primary/30 mx-auto" />
+                  <p className="text-muted-foreground/50 text-sm">Dashboard Preview</p>
+                </div>
+              </div>
+              <div className="absolute top-12 left-12 glass-card p-4 rounded-xl shadow-xl w-64 hidden sm:block">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">Clocked In</p>
+                    <p className="text-sm text-muted-foreground">09:00 AM Today</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </section>
+
+        <section id="features" className="py-24 px-8 bg-muted/30">
+          <div className="max-w-7xl mx-auto">
+            <Reveal className="text-center mb-16">
+              <h2 className="text-4xl font-bold tracking-tight mb-4 font-sans">Engineered for Precision</h2>
+              <p className="text-lg text-muted-foreground">Tools designed to empower management and delight employees.</p>
+            </Reveal>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {features.map((f) => {
+                const Icon = f.icon
+                return (
+                  <Reveal key={f.title}>
+                    <div className="group bg-card p-8 rounded-2xl border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-xl">
+                      <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                        <Icon className="h-7 w-7" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-3">{f.title}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{f.desc}</p>
+                    </div>
+                  </Reveal>
+                )
+              })}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="border-t bg-primary/5">
-        <div className="mx-auto max-w-6xl px-6 py-20 text-center md:py-28">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Siap Mencoba?
-          </h2>
-          <p className="mx-auto mt-3 max-w-md text-muted-foreground">
-            Daftar sekarang dan nikmati kemudahan mengelola absensi karyawan.
-          </p>
-          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Link to="/register">
-              <Button size="lg" className="w-full gap-2 sm:w-auto">
-                Daftar Gratis <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                Masuk
-              </Button>
-            </Link>
+        <section id="benefits" className="py-24 px-8">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
+            <Reveal className="flex-1">
+              <h2 className="text-4xl font-bold tracking-tight mb-8 leading-tight font-sans">Why High-Performance Teams Choose AbsenKu</h2>
+              <div className="space-y-8">
+                {benefits.map((b) => {
+                  const Icon = b.icon
+                  return (
+                    <div key={b.title} className="flex gap-4">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold mb-1">{b.title}</h4>
+                        <p className="text-muted-foreground">{b.desc}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Reveal>
+            <Reveal className="flex-1 w-full">
+              <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl relative bg-gradient-to-br from-primary/10 via-primary/5 to-card flex items-center justify-center">
+                <Fingerprint className="h-24 w-24 text-primary/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent pointer-events-none" />
+              </div>
+            </Reveal>
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Demo: andika@stekom.ac.id / password
-          </p>
-        </div>
-      </section>
+        </section>
 
-      <footer className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 md:flex-row">
-          <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10">
-              <Fingerprint className="h-3.5 w-3.5 text-primary" />
+        <section className="py-24 px-8">
+          <Reveal>
+            <div className="max-w-5xl mx-auto bg-primary rounded-3xl p-16 text-center text-primary-foreground relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+              <div className="relative z-10">
+                <h2 className="text-4xl font-bold tracking-tight mb-6 font-sans">Ready to transform your HR management?</h2>
+                <p className="text-lg text-primary-foreground/80 mb-10 max-w-xl mx-auto">
+                  Join 500+ enterprises who have optimized their workforce with AbsenKu. Start your 14-day free trial today.
+                </p>
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                  <Link to="/register">
+                    <Button size="lg" className="bg-white text-primary hover:bg-white/90 px-10 py-6 rounded-xl text-base font-bold">
+                      Start Free Trial
+                    </Button>
+                  </Link>
+                  <Button size="lg" variant="outline" className="border-white/30 text-primary-foreground hover:bg-white/10 px-10 py-6 rounded-xl text-base font-bold">
+                    Contact Sales
+                  </Button>
+                </div>
+              </div>
             </div>
-            <span className="font-medium text-foreground">AbsenKu</span>
-            <span className="hidden sm:inline">— Sistem Absensi Karyawan</span>
+          </Reveal>
+        </section>
+      </main>
+
+      <footer className="bg-muted/50 pt-20 pb-10 px-8 border-t border-border">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-16">
+          <div className="col-span-2">
+            <span className="text-2xl font-extrabold tracking-tight text-primary font-sans mb-6 block">AbsenKu</span>
+            <p className="text-muted-foreground max-w-xs leading-relaxed mb-6">
+              Professional employee management for the modern era. Precision, security, and clarity in every clock-in.
+            </p>
+            <div className="flex gap-4">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Globe className="h-5 w-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><AtSign className="h-5 w-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Share2 className="h-5 w-5" /></a>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} AbsenKu. All rights reserved.
-          </p>
+          <div>
+            <h5 className="text-xs font-semibold text-foreground mb-6 uppercase tracking-widest">Product</h5>
+            <ul className="space-y-4 text-sm text-muted-foreground">
+              <li><a href="#" className="hover:text-foreground transition-colors">Features</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">Integrations</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">Security</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5 className="text-xs font-semibold text-foreground mb-6 uppercase tracking-widest">Company</h5>
+            <ul className="space-y-4 text-sm text-muted-foreground">
+              <li><a href="#" className="hover:text-foreground transition-colors">About Us</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">Careers</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">Press Kit</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5 className="text-xs font-semibold text-foreground mb-6 uppercase tracking-widest">Support</h5>
+            <ul className="space-y-4 text-sm text-muted-foreground">
+              <li><a href="#" className="hover:text-foreground transition-colors">Help Center</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">API Docs</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">Status</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-muted-foreground">&copy; 2024 AbsenKu Enterprise. All rights reserved.</p>
+          <div className="flex gap-6 text-xs text-muted-foreground">
+            <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-foreground transition-colors">Cookie Policy</a>
+          </div>
         </div>
       </footer>
     </div>
