@@ -43,6 +43,10 @@ function RoleRedirect() {
 function App() {
   console.log('[App] Rendering...')
   return (
+    <>
+    <div style={{position:'fixed',top:0,left:0,zIndex:9999,background:'red',color:'white',padding:8,fontSize:14}}>
+      TEST RENDER OK
+    </div>
     <ThemeProvider defaultTheme="system">
       <UserProvider>
       <TooltipProvider>
@@ -80,6 +84,7 @@ function App() {
       </TooltipProvider>
       </UserProvider>
     </ThemeProvider>
+    </>
   )
 }
 
