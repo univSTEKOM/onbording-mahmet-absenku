@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { ThemeProvider } from '@/components/theme-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import WelcomePage from '@/pages/WelcomePage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import DashboardPage from '@/pages/DashboardPage'
@@ -26,6 +27,7 @@ function App() {
       <TooltipProvider>
         <ErrorBoundary>
           <Routes>
+            <Route path="/" element={<WelcomePage />} />
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -46,7 +48,7 @@ function App() {
                 </Route>
               </Route>
             </Route>
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Toaster position="top-right" richColors />
         </ErrorBoundary>

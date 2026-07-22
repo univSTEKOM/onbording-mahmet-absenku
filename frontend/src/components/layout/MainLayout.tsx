@@ -13,7 +13,7 @@ function LayoutContent() {
       <AppSidebar />
       <SidebarInset className="relative">
         {isFilterOpen && (
-          <div className="absolute inset-0 z-40 backdrop-blur-sm bg-transparent pointer-events-none" />
+          <div className="absolute inset-0 z-40 backdrop-blur-md bg-white/5 pointer-events-none transition-all duration-200" />
         )}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
