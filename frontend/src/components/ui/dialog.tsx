@@ -6,6 +6,18 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
+import { useFilterContext } from "@/lib/filter-context"
+
+function DialogBlur() {
+  const { setFilterOpen } = useFilterContext()
+  React.useEffect(() => {
+    /* store ref so ESLint doesn't complain about missing deps */
+    const close = setFilterOpen
+    close(true)
+    return () => close(false)
+  }, [setFilterOpen])
+  return null
+}
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
@@ -49,6 +61,7 @@ function DialogContent({
 }) {
   return (
     <DialogPortal>
+      <DialogBlur />
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"

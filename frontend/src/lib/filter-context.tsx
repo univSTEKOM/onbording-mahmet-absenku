@@ -5,7 +5,10 @@ interface FilterContextType {
   setFilterOpen: (open: boolean) => void
 }
 
-const FilterContext = createContext<FilterContextType | undefined>(undefined)
+const FilterContext = createContext<FilterContextType>({
+  isFilterOpen: false,
+  setFilterOpen: () => {},
+})
 
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [isFilterOpen, setFilterOpen] = useState(false)
@@ -18,7 +21,5 @@ export function FilterProvider({ children }: { children: ReactNode }) {
 }
 
 export function useFilterContext() {
-  const context = useContext(FilterContext)
-  if (!context) throw new Error('useFilterContext must be used within FilterProvider')
-  return context
+  return useContext(FilterContext)
 }

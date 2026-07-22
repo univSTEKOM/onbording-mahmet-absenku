@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
 import {
@@ -9,35 +10,32 @@ import {
   ShieldCheck,
   CloudCheck,
   BadgeCheck,
-  PlayCircle,
-  Globe,
-  AtSign,
-  Share2,
-  CheckCircle2,
+  ArrowRight,
+  LayoutDashboard,
 } from 'lucide-react'
 
 const features = [
   {
     icon: BarChart3,
-    title: 'Biometric Verification',
-    desc: 'Ensure identity integrity with advanced facial recognition integrations. Secure, fast, and foolproof.',
+    title: 'Verifikasi Wajah',
+    desc: 'Pastikan identitas dengan pengenalan wajah terintegrasi. Aman, cepat, dan akurat.',
   },
   {
     icon: BarChart3,
-    title: 'Real-time Analytics',
-    desc: 'Live attendance tracking with deep-dive reports. Monitor productivity and trends as they happen across your entire organization.',
+    title: 'Analitik Real-time',
+    desc: 'Pantau kehadiran secara langsung dengan laporan mendalam. Lihat tren produktivitas di seluruh organisasi.',
   },
   {
     icon: CalendarCheck,
-    title: 'Seamless Leave Management',
-    desc: 'Automate vacation requests, medical leaves, and approvals. One-click workflow that keeps the team moving without friction.',
+    title: 'Manajemen Cuti',
+    desc: 'Otomatiskan permintaan cuti, izin sakit, dan persetujuan. Alur kerja satu klik tanpa hambatan.',
   },
 ]
 
 const benefits = [
-  { icon: Zap, title: 'Fast', desc: 'Zero-latency updates and rapid check-ins. Time tracking shouldn\'t take your time.' },
-  { icon: ShieldCheck, title: 'Secure', desc: 'Enterprise-grade encryption for all employee data. Privacy is our primary architecture.' },
-  { icon: CloudCheck, title: 'Reliable', desc: '99.9% uptime guaranteed. AbsenKu works when your team works, day or night.' },
+  { icon: Zap, title: 'Cepat', desc: 'Pembaruan tanpa latensi dan check-in kilat. Absensi tidak perlu menyita waktu Anda.' },
+  { icon: ShieldCheck, title: 'Aman', desc: 'Enkripsi tingkat enterprise untuk semua data karyawan. Privasi adalah arsitektur utama kami.' },
+  { icon: CloudCheck, title: 'Handal', desc: 'Jaminan uptime 99.9%. AbsenKu bekerja saat tim Anda bekerja, siang atau malam.' },
 ]
 
 function useReveal() {
@@ -70,23 +68,32 @@ function Reveal({ children, className = '' }: { children: React.ReactNode; class
 }
 
 export default function WelcomePage() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
   return (
     <div className="bg-background text-foreground selection:bg-primary/10 selection:text-primary">
 
       <nav className="sticky top-0 z-40 flex items-center justify-between w-full px-8 h-16 border-b border-border bg-background/80 backdrop-blur-xl">
         <Logo className="h-9" />
-        <div className="hidden md:flex items-center gap-6">
-          <a href="#" className="text-primary font-semibold border-b-2 border-primary pb-1 text-xs uppercase tracking-widest">Home</a>
-          <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors text-xs uppercase tracking-widest">Features</a>
-          <a href="#benefits" className="text-muted-foreground hover:text-foreground transition-colors text-xs uppercase tracking-widest">About</a>
-        </div>
         <div className="flex items-center gap-3">
-          <Link to="/login">
-            <Button variant="outline" size="sm">Masuk</Button>
-          </Link>
-          <Link to="/register">
-            <Button size="sm">Get Started</Button>
-          </Link>
+          {user ? (
+            <Button onClick={() => navigate('/dashboard')} className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Button>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="outline" size="sm">Masuk</Button>
+              </Link>
+              <Link to="/register">
+                <Button size="sm" className="gap-1.5">
+                  Daftar <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -97,30 +104,41 @@ export default function WelcomePage() {
             <Reveal>
               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full mb-8">
                 <BadgeCheck className="h-4 w-4" />
-                <span className="text-xs font-semibold uppercase tracking-widest">Enterprise Ready v2.0</span>
+                <span className="text-xs font-semibold uppercase tracking-widest">Siap Digunakan v2.0</span>
               </div>
             </Reveal>
             <Reveal>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-none max-w-4xl mb-6 font-sans">
-                Master Your Time with <span className="text-primary">AbsenKu.</span>
+                Kelola Absensi <span className="text-primary">Lebih Mudah.</span>
               </h1>
             </Reveal>
             <Reveal>
               <p className="text-lg text-muted-foreground max-w-2xl mb-12">
-                Premium employee attendance and HR management system for high-performance teams. Experience the precision of modern workforce logistics.
+                Sistem manajemen kehadiran dan HRD premium untuk tim berkinerja tinggi. 
+                Rasakan presisi logistik tenaga kerja modern.
               </p>
             </Reveal>
             <Reveal>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/register">
-                  <Button size="lg" className="text-base px-10 py-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all">
-                    Get Started
+                {user ? (
+                  <Button onClick={() => navigate('/dashboard')} size="lg" className="text-base px-10 py-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all gap-2">
+                    <LayoutDashboard className="h-5 w-5" />
+                    Buka Dashboard
                   </Button>
-                </Link>
-                <Button variant="outline" size="lg" className="text-base px-10 py-6 rounded-xl gap-2">
-                  <PlayCircle className="h-5 w-5" />
-                  Watch Demo
-                </Button>
+                ) : (
+                  <>
+                    <Link to="/register">
+                      <Button size="lg" className="text-base px-10 py-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all">
+                        Mulai Sekarang
+                      </Button>
+                    </Link>
+                    <Link to="/login">
+                      <Button variant="outline" size="lg" className="text-base px-10 py-6 rounded-xl">
+                        Masuk
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </Reveal>
           </div>
@@ -131,18 +149,7 @@ export default function WelcomePage() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-card to-card flex items-center justify-center">
                 <div className="text-center space-y-4">
                   <Logo className="h-16 mx-auto opacity-30" />
-                  <p className="text-muted-foreground/50 text-sm">Dashboard Preview</p>
-                </div>
-              </div>
-              <div className="absolute top-12 left-12 glass-card p-4 rounded-xl shadow-xl w-64 hidden sm:block">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Clocked In</p>
-                    <p className="text-sm text-muted-foreground">09:00 AM Today</p>
-                  </div>
+                  <p className="text-muted-foreground/50 text-sm">Preview Dashboard</p>
                 </div>
               </div>
             </div>
@@ -152,8 +159,8 @@ export default function WelcomePage() {
         <section id="features" className="py-24 px-8 bg-muted/30">
           <div className="max-w-7xl mx-auto">
             <Reveal className="text-center mb-16">
-              <h2 className="text-4xl font-bold tracking-tight mb-4 font-sans">Engineered for Precision</h2>
-              <p className="text-lg text-muted-foreground">Tools designed to empower management and delight employees.</p>
+              <h2 className="text-4xl font-bold tracking-tight mb-4 font-sans">Fitur Unggulan</h2>
+              <p className="text-lg text-muted-foreground">Alat yang dirancang untuk memberdayakan manajemen dan menyenangkan karyawan.</p>
             </Reveal>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {features.map((f) => {
@@ -174,10 +181,10 @@ export default function WelcomePage() {
           </div>
         </section>
 
-        <section id="benefits" className="py-24 px-8">
+        <section className="py-24 px-8">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
             <Reveal className="flex-1">
-              <h2 className="text-4xl font-bold tracking-tight mb-8 leading-tight font-sans">Why High-Performance Teams Choose AbsenKu</h2>
+              <h2 className="text-4xl font-bold tracking-tight mb-8 leading-tight font-sans">Mengapa Memilih AbsenKu?</h2>
               <div className="space-y-8">
                 {benefits.map((b) => {
                   const Icon = b.icon
@@ -194,6 +201,15 @@ export default function WelcomePage() {
                   )
                 })}
               </div>
+              {!user && (
+                <div className="mt-8">
+                  <Link to="/register">
+                    <Button size="lg" className="gap-2">
+                      Mulai Sekarang <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </Reveal>
             <Reveal className="flex-1 w-full">
               <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl relative bg-gradient-to-br from-primary/10 via-primary/5 to-card flex items-center justify-center">
@@ -209,74 +225,49 @@ export default function WelcomePage() {
             <div className="max-w-5xl mx-auto bg-primary rounded-3xl p-16 text-center text-primary-foreground relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
               <div className="relative z-10">
-                <h2 className="text-4xl font-bold tracking-tight mb-6 font-sans">Ready to transform your HR management?</h2>
+                <h2 className="text-4xl font-bold tracking-tight mb-6 font-sans">Siap Mencoba AbsenKu?</h2>
                 <p className="text-lg text-primary-foreground/80 mb-10 max-w-xl mx-auto">
-                  Join 500+ enterprises who have optimized their workforce with AbsenKu. Start your 14-day free trial today.
+                  Bergabung dengan 500+ perusahaan yang telah mengoptimalkan tenaga kerja mereka.
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
-                  <Link to="/register">
-                    <Button size="lg" className="bg-white text-primary hover:bg-white/90 px-10 py-6 rounded-xl text-base font-bold">
-                      Start Free Trial
+                  {user ? (
+                    <Button onClick={() => navigate('/dashboard')} size="lg" className="bg-white text-primary hover:bg-white/90 px-10 py-6 rounded-xl text-base font-bold gap-2">
+                      <LayoutDashboard className="h-5 w-5" />
+                      Buka Dashboard
                     </Button>
-                  </Link>
-                  <Button size="lg" variant="outline" className="border-white/30 text-primary-foreground hover:bg-white/10 px-10 py-6 rounded-xl text-base font-bold">
-                    Contact Sales
-                  </Button>
+                  ) : (
+                    <>
+                      <Link to="/register">
+                        <Button size="lg" className="bg-white text-primary hover:bg-white/90 px-10 py-6 rounded-xl text-base font-bold">
+                          Coba Gratis
+                        </Button>
+                      </Link>
+                      <Link to="/login">
+                        <Button size="lg" variant="outline" className="border-white/30 text-primary-foreground hover:bg-white/10 px-10 py-6 rounded-xl text-base font-bold">
+                          Masuk
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
+                <p className="mt-4 text-xs text-primary-foreground/60">
+                  Demo: andika@stekom.ac.id / password
+                </p>
               </div>
             </div>
           </Reveal>
         </section>
       </main>
 
-      <footer className="bg-muted/50 pt-20 pb-10 px-8 border-t border-border">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-16">
-          <div className="col-span-2">
-            <Logo className="h-8 mb-6" />
-            <p className="text-muted-foreground max-w-xs leading-relaxed mb-6">
-              Professional employee management for the modern era. Precision, security, and clarity in every clock-in.
-            </p>
-            <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Globe className="h-5 w-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><AtSign className="h-5 w-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Share2 className="h-5 w-5" /></a>
-            </div>
+      <footer className="bg-muted/50 pt-16 pb-10 px-8 border-t border-border">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-3">
+            <Logo className="h-7" />
+            <span className="text-sm text-muted-foreground">Sistem Absensi Karyawan</span>
           </div>
-          <div>
-            <h5 className="text-xs font-semibold text-foreground mb-6 uppercase tracking-widest">Product</h5>
-            <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Integrations</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Security</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="text-xs font-semibold text-foreground mb-6 uppercase tracking-widest">Company</h5>
-            <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Press Kit</a></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="text-xs font-semibold text-foreground mb-6 uppercase tracking-widest">Support</h5>
-            <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">API Docs</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Status</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Contact</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-muted-foreground">&copy; 2024 AbsenKu Enterprise. All rights reserved.</p>
-          <div className="flex gap-6 text-xs text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-foreground transition-colors">Cookie Policy</a>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            &copy; {new Date().getFullYear()} AbsenKu. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>
