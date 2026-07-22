@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { UserProvider } from '@/lib/user-context'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAuth } from '@/hooks/useAuth'
-import WelcomePage from '@/pages/WelcomePage'
+// import WelcomePage from '@/pages/WelcomePage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import DashboardPage from '@/pages/DashboardPage'
@@ -43,17 +43,13 @@ function RoleRedirect() {
 function App() {
   console.log('[App] Rendering...')
   return (
-    <>
-    <div style={{position:'fixed',top:0,left:0,zIndex:9999,background:'red',color:'white',padding:8,fontSize:14}}>
-      TEST RENDER OK
-    </div>
     <ThemeProvider defaultTheme="system">
       <UserProvider>
       <TooltipProvider>
         <ErrorBoundary>
           <div id="app-root">
           <Routes>
-            <Route path="/" element={<WelcomePage />} />
+            <Route path="/" element={<div style={{padding:40,fontSize:24}}>✅ WELCOME PAGE RENDERED</div>} />
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -84,7 +80,6 @@ function App() {
       </TooltipProvider>
       </UserProvider>
     </ThemeProvider>
-    </>
   )
 }
 
