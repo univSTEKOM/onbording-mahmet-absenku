@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import {
   BarChart3,
   CalendarCheck,
@@ -80,7 +81,8 @@ export default function WelcomePage() {
 
       <nav className="sticky top-0 z-40 flex items-center justify-between w-full px-8 h-16 border-b border-border bg-background/80 backdrop-blur-xl">
         <Logo className="h-9" />
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
           {user ? (
             <Button onClick={goToDashboard} className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
@@ -149,13 +151,12 @@ export default function WelcomePage() {
 
           <Reveal className="mt-20 relative max-w-6xl mx-auto">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl rounded-3xl opacity-50 pointer-events-none" />
-            <div className="relative bg-card rounded-3xl border border-border shadow-2xl overflow-hidden aspect-[16/9]">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-card to-card flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <Logo className="h-16 mx-auto opacity-30" />
-                  <p className="text-muted-foreground/50 text-sm">Preview Dashboard</p>
-                </div>
-              </div>
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              <img
+                src="/dashboard-illustration.png"
+                alt="Dashboard Illustration"
+                className="w-full h-auto object-contain"
+              />
             </div>
           </Reveal>
         </section>

@@ -1,4 +1,5 @@
 import cors from 'cors'
+import fs from 'fs'
 import { createRequire } from 'module'
 import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
 import { auth } from './auth.js'
@@ -11,6 +12,35 @@ const upload = multer()
 const server = jsonServer.create()
 const router = jsonServer.router('db.json')
 const middlewares = jsonServer.defaults()
+
+async function syncSeedUsers() {
+  try {
+    const dbRaw = fs.readFileSync('./db.json', 'utf-8')
+    const db = JSON.parse(dbRaw)
+    const seedUsers = db.users || []
+
+    for (const user of seedUsers) {
+      try {
+        await auth.api.signUpEmail({
+          body: {
+            email: user.email,
+            password: user.password,
+            name: user.nama,
+            role: user.role || 'karyawan',
+            jabatan: user.jabatan || '',
+            phone: user.phone || '',
+            alamat: user.alamat || '',
+          },
+        })
+      } catch (e) {
+        /* user might already exist — ignore */
+      }
+    }
+    console.log(`Sync: ${seedUsers.length} seed users processed`)
+  } catch (e) {
+    console.error('Sync error:', e.message)
+  }
+}
 
 server.use(cors({
   origin: 'http://localhost:5173',
@@ -306,6 +336,8 @@ server.get('/api/dashboard/hrd/week', (req, res) => {
 server.use(router)
 
 const PORT = process.env.PORT || 3001
-server.listen(PORT, () => {
-  console.log(`Mock API running at http://localhost:${PORT}`)
+syncSeedUsers().then(() => {
+  server.listen(PORT, () => {
+    console.log(`Mock API running at http://localhost:${PORT}`)
+  })
 })
