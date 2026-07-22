@@ -162,3 +162,14 @@
 #root {
   min-height: 100svh;
 }
+
+html[data-filter-open] .sidebar-inset-content {
+  filter: blur(2px);
+  opacity: 0.6;
+  pointer-events: none;
+  transition: filter 0.2s, opacity 0.2s;
+}
+
+html[data-filter-open] .sidebar-inset-content > * {
+  pointer-events: none;
+}

@@ -15,7 +15,7 @@ export default function MainLayout() {
           <div className="flex-1" />
           <ThemeToggle />
         </header>
-        <main className="flex-1 p-4 md:p-6 overflow-auto">
+        <main className="sidebar-inset-content flex-1 p-4 md:p-6 overflow-auto">
           <Outlet />
         </main>
       </SidebarInset>

@@ -5,15 +5,15 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { FilterDialog, type FilterValues } from '@/components/shared/FilterDialog'
 import { pengajuanJenisLabel, pengajuanStatusBadge, pengajuanStatusLabel, pengajuanJenisBadge } from '@/lib/constants'
-import { PlusCircle, Trash2, RefreshCw, CalendarDays, Clock, CheckCircle2, XCircle, FileText, ChevronRight } from 'lucide-react'
+import { PlusCircle, Trash2, RefreshCw, CalendarDays, Clock, CheckCircle2, XCircle, FileText, ChevronRight, Filter } from 'lucide-react'
 import type { Pengajuan } from '@/types'
 
 const statusIcons = {
@@ -28,12 +28,17 @@ export default function PengajuanListPage() {
   const deleteMutation = useDeletePengajuan()
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
-  const [filter, setFilter] = useState('semua')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [filter, setFilter] = useState<FilterValues>({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })
   const skId = useId()
 
-  const filtered = filter === 'semua'
-    ? pengajuan
-    : pengajuan?.filter((p) => p.status === filter)
+  const filtered = pengajuan?.filter((p) => {
+    const matchStatus = !filter.status || p.status === filter.status
+    const matchJenis = !filter.jenis || p.jenis === filter.jenis
+    const matchDate = (!filter.dateFrom || p.tanggalMulai >= filter.dateFrom) && (!filter.dateTo || p.tanggalMulai <= filter.dateTo)
+    const matchSearch = !filter.search || p.alasan.toLowerCase().includes(filter.search.toLowerCase())
+    return matchStatus && matchJenis && matchDate && matchSearch
+  })
 
   const total = pengajuan?.length || 0
   const pending = pengajuan?.filter((p) => p.status === 'pending').length || 0
@@ -47,6 +52,8 @@ export default function PengajuanListPage() {
   function formatTanggal(date: string) {
     return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
   }
+
+  const hasActiveFilter = filter.search || filter.jenis || filter.status || filter.dateFrom || filter.dateTo
 
   return (
     <div className="space-y-6">
@@ -95,14 +102,25 @@ export default function PengajuanListPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="semua" onValueChange={setFilter}>
-        <TabsList>
-          <TabsTrigger value="semua">Semua</TabsTrigger>
-          <TabsTrigger value="pending">Pending {pending > 0 && `(${pending})`}</TabsTrigger>
-          <TabsTrigger value="approved">Disetujui</TabsTrigger>
-          <TabsTrigger value="rejected">Ditolak</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="flex items-center gap-3">
+        <Button
+          variant={hasActiveFilter ? 'default' : 'outline'}
+          size="sm"
+          className="gap-2"
+          onClick={() => setFilterOpen(true)}
+        >
+          <Filter className="h-4 w-4" />
+          Filter
+          {hasActiveFilter && <span className="ml-1 w-2 h-2 rounded-full bg-primary-foreground" />}
+        </Button>
+        {hasActiveFilter && (
+          <Button variant="ghost" size="sm" onClick={() => setFilter({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })}>
+            Hapus filter
+          </Button>
+        )}
+        <div className="flex-1" />
+        <span className="text-sm text-muted-foreground">{filtered?.length || 0} hasil</span>
+      </div>
 
       {isLoading ? (
         <div className="space-y-3">
@@ -133,9 +151,7 @@ export default function PengajuanListPage() {
                       </p>
                       <p className="text-sm leading-snug line-clamp-2">{p.alasan}</p>
                       {p.catatan && p.status !== 'pending' && (
-                        <p className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md inline-block">
-                          📋 {p.catatan}
-                        </p>
+                        <p className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md inline-block">📋 {p.catatan}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -157,10 +173,24 @@ export default function PengajuanListPage() {
         </div>
       ) : (
         <EmptyState
-          message={filter !== 'semua' ? 'Tidak ada pengajuan dengan status ini' : 'Belum ada pengajuan'}
+          message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada pengajuan'}
           icon={FileText}
         />
       )}
+
+      <FilterDialog
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        values={filter}
+        onApply={setFilter}
+        onReset={() => setFilter({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })}
+        searchPlaceholder="Cari alasan..."
+        statusOptions={[
+          { value: 'pending', label: 'Pending' },
+          { value: 'approved', label: 'Disetujui' },
+          { value: 'rejected', label: 'Ditolak' },
+        ]}
+      />
 
       <Dialog open={!!detailTarget} onOpenChange={(o) => { if (!o) setDetailTarget(null) }}>
         <DialogContent className="sm:max-w-md">
@@ -174,51 +204,24 @@ export default function PengajuanListPage() {
                 <Badge variant="secondary" className={pengajuanJenisBadge[detailTarget.jenis]}>{pengajuanJenisLabel[detailTarget.jenis]}</Badge>
                 <Badge variant="secondary" className={pengajuanStatusBadge[detailTarget.status]}>{pengajuanStatusLabel[detailTarget.status]}</Badge>
               </div>
-
               <Separator />
-
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-muted-foreground text-xs">Tanggal Mulai</p>
-                  <p className="font-medium">{formatTanggal(detailTarget.tanggalMulai)}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Tanggal Selesai</p>
-                  <p className="font-medium">{formatTanggal(detailTarget.tanggalSelesai)}</p>
-                </div>
+                <div><p className="text-muted-foreground text-xs">Tanggal Mulai</p><p className="font-medium">{formatTanggal(detailTarget.tanggalMulai)}</p></div>
+                <div><p className="text-muted-foreground text-xs">Tanggal Selesai</p><p className="font-medium">{formatTanggal(detailTarget.tanggalSelesai)}</p></div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Durasi: {durasiHari(detailTarget.tanggalMulai, detailTarget.tanggalSelesai)} hari kerja
-              </p>
-
+              <p className="text-xs text-muted-foreground">Durasi: {durasiHari(detailTarget.tanggalMulai, detailTarget.tanggalSelesai)} hari kerja</p>
               <Separator />
-
-              <div>
-                <p className="text-muted-foreground text-xs mb-1">Alasan</p>
-                <p className="text-sm">{detailTarget.alasan}</p>
-              </div>
-
+              <div><p className="text-muted-foreground text-xs mb-1">Alasan</p><p className="text-sm">{detailTarget.alasan}</p></div>
               {detailTarget.catatan && (
                 <>
                   <Separator />
-                  <div>
-                    <p className="text-muted-foreground text-xs mb-1">Catatan HRD</p>
-                    <p className="text-sm p-3 rounded-lg bg-muted">{detailTarget.catatan}</p>
-                  </div>
+                  <div><p className="text-muted-foreground text-xs mb-1">Catatan HRD</p><p className="text-sm p-3 rounded-lg bg-muted">{detailTarget.catatan}</p></div>
                 </>
               )}
-
               <Separator />
-
-              <p className="text-xs text-muted-foreground">
-                Diajukan pada {formatTanggal(detailTarget.createdAt)}
-              </p>
-
+              <p className="text-xs text-muted-foreground">Diajukan pada {formatTanggal(detailTarget.createdAt)}</p>
               {detailTarget.status === 'pending' && (
-                <Button
-                  variant="destructive" size="sm" className="w-full gap-2"
-                  onClick={() => { setDetailTarget(null); setDeleteId(detailTarget.id) }}
-                >
+                <Button variant="destructive" size="sm" className="w-full gap-2" onClick={() => { setDetailTarget(null); setDeleteId(detailTarget.id) }}>
                   <Trash2 className="h-4 w-4" /> Hapus Pengajuan
                 </Button>
               )}
