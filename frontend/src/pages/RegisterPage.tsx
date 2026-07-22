@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/ui/password-input'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { Loader2, UserPlus, CheckCircle2, XCircle } from 'lucide-react'
 import { validateEmail, validatePassword, validateNama, validateJabatan, validatePhone } from '@/lib/validation'
 
@@ -132,7 +133,13 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">No. Telepon <span className="text-muted-foreground">(opsional)</span></Label>
-              <Input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} className={errors.phone ? 'border-destructive' : ''} />
+              <PhoneInput
+                id="phone"
+                name="phone"
+                value={form.phone}
+                onChange={(v) => { setForm({ ...form, phone: v }); setErrors((p) => ({ ...p, phone: '' })) }}
+                error={errors.phone}
+              />
               {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
             <Button type="submit" className="w-full" size="lg" disabled={loading}>

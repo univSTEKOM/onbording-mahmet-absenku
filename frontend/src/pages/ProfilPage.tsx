@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { PhoneInput } from '@/components/ui/phone-input'
 import { Camera, Loader2, Save, Pencil } from 'lucide-react'
 
 export default function ProfilPage() {
@@ -122,8 +123,11 @@ export default function ProfilPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Telepon</Label>
-                  <Input value={form.phone} onChange={(e) => { setForm({ ...form, phone: e.target.value }); setErrors((p) => ({ ...p, phone: '' })) }}
-                    className={errors.phone ? 'border-destructive' : ''} />
+                  <PhoneInput
+                    value={form.phone}
+                    onChange={(v) => { setForm({ ...form, phone: v }); setErrors((p) => ({ ...p, phone: '' })) }}
+                    error={errors.phone}
+                  />
                   {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
                 </div>
               </div>
