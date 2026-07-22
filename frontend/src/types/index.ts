@@ -1,15 +1,16 @@
 export type Role = 'admin' | 'karyawan'
 
+export type UserStatus = 'pending' | 'approved' | 'rejected'
+
 export type AbsensiStatus = 'hadir' | 'terlambat' | 'pulang_cepat' | 'izin' | 'sakit' | 'cuti'
 
 export type PengajuanJenis = 'cuti' | 'izin' | 'sakit'
 
 export type PengajuanStatus = 'pending' | 'approved' | 'rejected'
 
-export interface Photo {
-  type: 'check_in' | 'check_out'
-  url: string
-  capturedAt: string
+export interface RejectionNote {
+  note: string
+  createdAt: string
 }
 
 export interface User {
@@ -19,6 +20,8 @@ export interface User {
   nama: string
   jabatan: string
   role: Role
+  status: UserStatus
+  rejectionNotes: RejectionNote[]
   foto: string
   phone: string
   alamat: string
@@ -33,7 +36,6 @@ export interface Absensi {
   checkOut: string | null
   status: AbsensiStatus
   faceVerified: boolean
-  photos: Photo[]
   keterangan: string
   createdAt: string
 }

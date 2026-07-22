@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 
 interface FilterContextType {
   isFilterOpen: boolean
@@ -13,8 +13,10 @@ const FilterContext = createContext<FilterContextType>({
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [isFilterOpen, setFilterOpen] = useState(false)
 
+  const value = useMemo(() => ({ isFilterOpen, setFilterOpen }), [isFilterOpen])
+
   return (
-    <FilterContext.Provider value={{ isFilterOpen, setFilterOpen }}>
+    <FilterContext.Provider value={value}>
       {children}
     </FilterContext.Provider>
   )

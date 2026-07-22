@@ -86,7 +86,7 @@ export default function HrdRiwayatPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}
+          {Array.from({ length: 5 }, (_, i) => ({ id: `hr-sk-${i}` })).map((item) => <Skeleton key={item.id} className="h-12 w-full rounded-lg" />)}
         </div>
       ) : filtered?.length ? (
         <>

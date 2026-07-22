@@ -14,9 +14,11 @@ import RiwayatPage from '@/pages/RiwayatPage'
 import PengajuanListPage from '@/pages/PengajuanListPage'
 import PengajuanFormPage from '@/pages/PengajuanFormPage'
 import ProfilPage from '@/pages/ProfilPage'
+import StatusAkunPage from '@/pages/StatusAkunPage'
 import HrdRiwayatPage from '@/pages/HrdRiwayatPage'
 import HrdKaryawanPage from '@/pages/HrdKaryawanPage'
 import HrdPengajuanPage from '@/pages/HrdPengajuanPage'
+import HrdVerifikasiPage from '@/pages/HrdVerifikasiPage'
 import MainLayout from '@/components/layout/MainLayout'
 import AuthLayout from '@/components/layout/AuthLayout'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
@@ -49,6 +51,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
                 <Route path="/dashboard" element={<RoleDashboard />} />
+                <Route path="/status" element={<StatusAkunPage />} />
                 <Route path="/absensi" element={<KaryawanRoute><AbsensiPage /></KaryawanRoute>} />
                 <Route path="/absensi/riwayat" element={<KaryawanRoute><RiwayatPage /></KaryawanRoute>} />
                 <Route path="/pengajuan" element={<KaryawanRoute><PengajuanListPage /></KaryawanRoute>} />
@@ -56,6 +59,7 @@ function App() {
                 <Route path="/profil" element={<ProfilPage />} />
                 <Route element={<AdminRoute />}>
                   <Route path="/hrd/dashboard" element={<HrdDashboardPage />} />
+                  <Route path="/hrd/verifikasi" element={<HrdVerifikasiPage />} />
                   <Route path="/hrd/riwayat" element={<HrdRiwayatPage />} />
                   <Route path="/hrd/pengajuan" element={<HrdPengajuanPage />} />
                   <Route path="/hrd/karyawan" element={<HrdKaryawanPage />} />

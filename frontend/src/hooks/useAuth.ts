@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -6,19 +6,23 @@ import { authClient } from '@/lib/auth-client'
 import api from '@/api/axios'
 import type { User, LoginRequest, RegisterRequest } from '@/types'
 
-function mapSessionUser(sessionUser: Record<string, unknown> | null | undefined): User | null {
-  if (!sessionUser) return null
+function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, profile: Record<string, unknown> | null): User | null {
+  if (!sessionUser && !profile) return null
+  const base = sessionUser || {} as Record<string, unknown>
+  const p = profile || {} as Record<string, unknown>
   return {
-    id: String(sessionUser.id),
-    email: sessionUser.email as string,
+    id: String(p.id || base.id),
+    email: (p.email as string) || (base.email as string) || '',
     password: '',
-    nama: (sessionUser.name as string) || '',
-    jabatan: (sessionUser.jabatan as string) || '',
-    role: (sessionUser.role as User['role']) || 'karyawan',
-    foto: (sessionUser.image as string) || '',
-    phone: (sessionUser.phone as string) || '',
-    alamat: (sessionUser.alamat as string) || '',
-    createdAt: (sessionUser.createdAt as string) || '',
+    nama: (p.nama as string) || (base.name as string) || '',
+    jabatan: (p.jabatan as string) || (base.jabatan as string) || '',
+    role: (p.role as User['role']) || (base.role as User['role']) || 'karyawan',
+    status: (p.status as User['status']) || 'approved',
+    rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) || [],
+    foto: (p.foto as string) || (base.image as string) || '',
+    phone: (p.phone as string) || (base.phone as string) || '',
+    alamat: (p.alamat as string) || (base.alamat as string) || '',
+    createdAt: (p.createdAt as string) || (base.createdAt as string) || '',
   }
 }
 
@@ -35,8 +39,34 @@ export function useAuth() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: session, isPending, refetch } = authClient.useSession()
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
+  const [profileLoading, setProfileLoading] = useState(false)
 
-  const user = useMemo(() => mapSessionUser(session?.user), [session])
+  const sessionUserId = session?.user?.id
+  useEffect(() => {
+    if (!sessionUserId) { setProfile(null); return }
+    let cancelled = false
+    setProfileLoading(true)
+    api.get('/api/me').then((r) => {
+      if (!cancelled) {
+        setProfile((r.data as Record<string, unknown>)?.user as Record<string, unknown> || null)
+      }
+    }).catch(() => {
+      if (!cancelled) setProfile(null)
+    }).finally(() => {
+      if (!cancelled) setProfileLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [sessionUserId])
+
+  const user = useMemo(() => mergeUserData(session?.user, profile), [session, profile])
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      const r = await api.get('/api/me')
+      setProfile((r.data as Record<string, unknown>)?.user as Record<string, unknown> || null)
+    } catch { setProfile(null) }
+  }, [])
 
   const login = useCallback(async (data: LoginRequest) => {
     const { data: result, error } = await authClient.signIn.email({
@@ -71,6 +101,7 @@ export function useAuth() {
     if (data.phone !== undefined) body.phone = data.phone
     if (data.alamat !== undefined) body.alamat = data.alamat
     await api.patch(`/users/${user.id}`, body)
+    refreshProfile()
 
     /* Update TanStack Query cache langsung agar UI berubah tanpa nunggu refetch */
     const key = getSessionQueryKey()
@@ -95,12 +126,12 @@ export function useAuth() {
     })
 
     toast.success('Profil berhasil diperbarui')
-  }, [user?.id, queryClient])
+  }, [user?.id, queryClient, refreshProfile])
 
   return {
     user,
     token: null,
-    isLoading: isPending,
+    isLoading: isPending || profileLoading,
     login,
     register,
     logout,

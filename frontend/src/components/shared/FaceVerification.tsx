@@ -138,7 +138,7 @@ export function FaceVerification({
     }, SCAN_INTERVAL)
 
     return () => { if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null } }
-  }, [modelsLoaded])
+  }, [modelsLoaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function processResult(descriptor: Float32Array, photoUrl?: string) {
     if (finishedRef.current) return

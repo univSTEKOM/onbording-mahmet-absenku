@@ -9,7 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { LayoutDashboard, History, FileText, Users } from 'lucide-react'
+import { LayoutDashboard, History, FileText, Users, ShieldCheck, UserCheck } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -22,15 +22,25 @@ const karyawanItems = [
 
 const adminItems = [
   { title: 'Dashboard HRD', url: '/hrd/dashboard', icon: <LayoutDashboard /> },
+  { title: 'Verifikasi', url: '/hrd/verifikasi', icon: <UserCheck /> },
   { title: 'Riwayat', url: '/hrd/riwayat', icon: <History /> },
   { title: 'Pengajuan', url: '/hrd/pengajuan', icon: <FileText /> },
   { title: 'Kelola Karyawan', url: '/hrd/karyawan', icon: <Users /> },
 ]
 
+const onboardingItems = [
+  { title: 'Status Akun', url: '/status', icon: <ShieldCheck /> },
+]
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
   const location = useLocation()
-  const items = user?.role === 'admin' ? adminItems : karyawanItems
+  const isOnboarding = user?.status === 'pending' || user?.status === 'rejected'
+  const items = isOnboarding
+    ? onboardingItems
+    : user?.role === 'admin'
+      ? adminItems
+      : karyawanItems
 
   return (
     <Sidebar variant="inset" {...props}>

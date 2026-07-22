@@ -91,7 +91,7 @@ export default function RiwayatPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
+          {Array.from({ length: 3 }, (_, i) => ({ id: `rw-sk-${i}` })).map((item) => <Skeleton key={item.id} className="h-32 w-full rounded-xl" />)}
         </div>
       ) : absensi?.length ? (
         <>
@@ -160,8 +160,8 @@ export default function RiwayatPage() {
             <div className="space-y-4">
               {detail.photos?.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
-                  {detail.photos.map((p, i) => (
-                    <div key={i}>
+                  {detail.photos.map((p) => (
+                    <div key={p.type + p.capturedAt}>
                       <p className="text-xs text-muted-foreground mb-1 capitalize">{p.type === 'check_in' ? 'Check In' : 'Check Out'}</p>
                       <div className="rounded-lg overflow-hidden border">
                         <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
