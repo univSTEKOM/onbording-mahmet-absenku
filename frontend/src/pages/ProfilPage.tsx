@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUpdateUser } from '@/hooks/useUsers'
 import type { User } from '@/types'
@@ -21,6 +21,12 @@ export default function ProfilPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [form, setForm] = useState({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
   const [fotoPreview, setFotoPreview] = useState(user?.foto || '')
+
+  useEffect(() => {
+    if (!editing) return
+    setForm({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
+    setFotoPreview(user?.foto || '')
+  }, [editing, user?.nama, user?.email, user?.jabatan, user?.phone, user?.alamat, user?.foto])
 
   function validate() {
     const errs: Record<string, string> = {}
