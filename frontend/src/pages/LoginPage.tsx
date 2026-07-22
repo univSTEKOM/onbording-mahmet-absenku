@@ -44,9 +44,6 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-svh w-full lg:grid-cols-[1fr_1.8fr]">
       <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <Logo className="h-8" />
-        </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-md">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
@@ -54,7 +51,8 @@ export default function LoginPage() {
                 <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
               )}
               <FieldGroup>
-                <div className="flex flex-col items-center gap-1 text-center">
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <Logo className="h-10" />
                   <h1 className="text-2xl font-bold">Masuk ke akun Anda</h1>
                   <p className="text-sm text-balance text-muted-foreground">
                     Masukkan email dan password untuk melanjutkan
