@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { toast } from 'sonner'
 import api from '@/api/axios'
 import type { User } from '@/types'
-import { CheckCircle2, XCircle, RefreshCw, MessageSquare, Trash2, ChevronRight } from 'lucide-react'
+import { CheckCircle2, XCircle, RefreshCw, Trash2, ChevronRight, Ban } from 'lucide-react'
 
 export default function HrdVerifikasiPage() {
   const queryClient = useQueryClient()
@@ -169,8 +169,8 @@ export default function HrdVerifikasiPage() {
                 <Button size="sm" className="gap-1.5" onClick={() => { approveMutation.mutate(detailTarget.id); setDetailTarget(null) }}>
                   <CheckCircle2 className="h-4 w-4" /> Setujui
                 </Button>
-                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => { setNoteTarget(detailTarget); setDetailTarget(null) }}>
-                  <MessageSquare className="h-4 w-4" /> Tambah Catatan
+                <Button size="sm" variant="outline" className="gap-1.5 text-destructive hover:text-destructive" onClick={() => { setRejectTarget(detailTarget); setDetailTarget(null) }}>
+                  <Ban className="h-4 w-4" /> Tolak
                 </Button>
               </div>
             </div>

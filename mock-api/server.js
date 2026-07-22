@@ -238,8 +238,11 @@ server.patch('/api/users/:id/status', async (req, res) => {
   req.on('data', (chunk) => { body += chunk })
   req.on('end', async () => {
     try {
-      const { error } = await requireAdmin(fromNodeHeaders(req.headers))
-      if (error) return res.status(error.status).json({ message: error.message })
+      const authResult = await requireAdmin(fromNodeHeaders(req.headers))
+      if (authResult.error) {
+        console.log('Status change rejected:', authResult.error.status, authResult.error.message)
+        return res.status(authResult.error.status).json({ message: authResult.error.message })
+      }
 
       const { status: newStatus, note } = JSON.parse(body)
       if (!['approved', 'rejected'].includes(newStatus)) {
@@ -261,8 +264,12 @@ server.patch('/api/users/:id/status', async (req, res) => {
         router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: [] }).write()
       }
 
+      console.log(`Status updated: ${user.email} -> ${newStatus}`)
       res.json({ message: `Status berhasil diubah ke ${newStatus}` })
-    } catch { res.status(400).json({ message: 'Gagal memproses' }) }
+    } catch (e) {
+      console.error('Status change error:', e.message)
+      res.status(400).json({ message: 'Gagal memproses: ' + e.message })
+    }
   })
 })
 
@@ -271,8 +278,8 @@ server.post('/api/users/:id/notes', async (req, res) => {
   req.on('data', (chunk) => { body += chunk })
   req.on('end', async () => {
     try {
-      const { error } = await requireAdmin(fromNodeHeaders(req.headers))
-      if (error) return res.status(error.status).json({ message: error.message })
+      const authResult = await requireAdmin(fromNodeHeaders(req.headers))
+      if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
 
       const { note } = JSON.parse(body)
       if (!note) return res.status(400).json({ message: 'Catatan harus diisi' })
@@ -284,35 +291,57 @@ server.post('/api/users/:id/notes', async (req, res) => {
       notes.push({ note, createdAt: new Date().toISOString() })
       router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
 
+      console.log(`Note added for ${user.email}: ${note}`)
       res.json({ message: 'Catatan ditambahkan' })
-    } catch { res.status(400).json({ message: 'Gagal memproses' }) }
+    } catch (e) {
+      console.error('Notes error:', e.message)
+      res.status(400).json({ message: 'Gagal memproses: ' + e.message })
+    }
   })
 })
 
 server.delete('/api/users/:id', async (req, res) => {
-  const { error } = await requireAdmin(fromNodeHeaders(req.headers))
-  if (error) return res.status(error.status).json({ message: error.message })
+  const authResult = await requireAdmin(fromNodeHeaders(req.headers))
+  if (authResult.error) {
+    console.log('Delete rejected:', authResult.error.status, authResult.error.message)
+    return res.status(authResult.error.status).json({ message: authResult.error.message })
+  }
 
   const user = router.db.get('users').find({ id: req.params.id }).value()
   if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
 
+  /* Hapus dari Better Auth — coba berbagai format API */
+  try {
+    await auth.api.deleteUser({ body: { id: req.params.id } })
+    console.log(`Deleted from Better Auth: ${user.email}`)
+  } catch (e) {
+    try {
+      await auth.api.deleteUser({ id: req.params.id })
+      console.log(`Deleted from Better Auth (2nd attempt): ${user.email}`)
+    } catch (e2) {
+      console.error('Failed to delete from Better Auth:', e2.message)
+    }
+  }
+
   router.db.get('users').remove({ id: req.params.id }).write()
   router.db.get('absensi').remove({ userId: req.params.id }).write()
   router.db.get('pengajuan').remove({ userId: req.params.id }).write()
+
+  console.log(`User fully deleted: ${user.email}`)
   res.json({ message: 'User dan semua data terkait berhasil dihapus' })
 })
 
 server.get('/api/users/pending', async (req, res) => {
-  const { error } = await requireAdmin(fromNodeHeaders(req.headers))
-  if (error) return res.status(error.status).json({ message: error.message })
+  const authResult = await requireAdmin(fromNodeHeaders(req.headers))
+  if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
 
   const users = router.db.get('users').filter((u) => u.status === 'pending').value()
   res.json(users)
 })
 
 server.get('/api/users/all', async (req, res) => {
-  const { error } = await requireAdmin(fromNodeHeaders(req.headers))
-  if (error) return res.status(error.status).json({ message: error.message })
+  const authResult = await requireAdmin(fromNodeHeaders(req.headers))
+  if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
 
   const users = router.db.get('users').value()
   res.json(users)

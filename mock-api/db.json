@@ -1,7 +1,7 @@
 {
   "users": [
     {
-      "id": "zvb2JwuNSdFP87uhqExpBTInl2g4WV9v",
+      "id": "HIapU7GOJEds8acV8FC9G3GL4x37BVdx",
       "email": "andika@stekom.ac.id",
       "nama": "Andika",
       "jabatan": "Manager HRD",
@@ -11,10 +11,10 @@
       "foto": "",
       "phone": "081234567890",
       "alamat": "Jl. Merdeka No. 1, Jakarta",
-      "createdAt": "2026-07-22T07:41:51.449Z"
+      "createdAt": "2026-07-22T07:50:06.120Z"
     },
     {
-      "id": "aIX7xX5jeeKyo42NxPNu6IAQz6VgCXCO",
+      "id": "57UUzcRYxcmCgSum5SS1Ene4ZzBZPEav",
       "email": "rudi@stekom.ac.id",
       "nama": "Rudi Hartono",
       "jabatan": "Staff IT",
@@ -24,10 +24,10 @@
       "foto": "",
       "phone": "081234567891",
       "alamat": "Jl. Sudirman No. 2, Jakarta",
-      "createdAt": "2026-07-22T07:41:51.449Z"
+      "createdAt": "2026-07-22T07:50:06.120Z"
     },
     {
-      "id": "qqa2SfroagQN6JQ5krrZNG7ihiJzHXRZ",
+      "id": "CAec7GyEQUna9MeoQ0rjsfGpqIemPumF",
       "email": "siti@stekom.ac.id",
       "nama": "Siti Nurhaliza",
       "jabatan": "Staff Keuangan",
@@ -37,13 +37,26 @@
       "foto": "",
       "phone": "081234567892",
       "alamat": "Jl. Gatot Subroto No. 3, Jakarta",
-      "createdAt": "2026-07-22T07:41:51.449Z"
+      "createdAt": "2026-07-22T07:50:06.120Z"
+    },
+    {
+      "id": "RJnWacMpByPQZhxtn45OmCd4Bxj6mesz",
+      "email": "budi@stekom.ac.id",
+      "nama": "Budi Santoso",
+      "jabatan": "Staff Baru",
+      "role": "karyawan",
+      "status": "pending",
+      "rejectionNotes": [],
+      "foto": "",
+      "phone": "081234567893",
+      "alamat": "Jl. Baru No. 1, Jakarta",
+      "createdAt": "2026-07-22T07:50:06.120Z"
     }
   ],
   "absensi": [
     {
       "id": 1,
-      "userId": "aIX7xX5jeeKyo42NxPNu6IAQz6VgCXCO",
+      "userId": "57UUzcRYxcmCgSum5SS1Ene4ZzBZPEav",
       "tanggal": "2026-07-13",
       "checkIn": "2026-07-13T08:00:00Z",
       "checkOut": "2026-07-13T17:00:00Z",
@@ -54,7 +67,7 @@
     },
     {
       "id": 2,
-      "userId": "aIX7xX5jeeKyo42NxPNu6IAQz6VgCXCO",
+      "userId": "57UUzcRYxcmCgSum5SS1Ene4ZzBZPEav",
       "tanggal": "2026-07-14",
       "checkIn": "2026-07-14T08:15:00Z",
       "checkOut": "2026-07-14T17:00:00Z",
@@ -65,7 +78,7 @@
     },
     {
       "id": 3,
-      "userId": "qqa2SfroagQN6JQ5krrZNG7ihiJzHXRZ",
+      "userId": "CAec7GyEQUna9MeoQ0rjsfGpqIemPumF",
       "tanggal": "2026-07-13",
       "checkIn": "2026-07-13T07:55:00Z",
       "checkOut": "2026-07-13T16:30:00Z",
@@ -76,7 +89,7 @@
     },
     {
       "id": 4,
-      "userId": "qqa2SfroagQN6JQ5krrZNG7ihiJzHXRZ",
+      "userId": "CAec7GyEQUna9MeoQ0rjsfGpqIemPumF",
       "tanggal": "2026-07-14",
       "checkIn": "2026-07-14T08:00:00Z",
       "checkOut": null,
@@ -87,7 +100,7 @@
     },
     {
       "id": 5,
-      "userId": "aIX7xX5jeeKyo42NxPNu6IAQz6VgCXCO",
+      "userId": "57UUzcRYxcmCgSum5SS1Ene4ZzBZPEav",
       "tanggal": "2026-07-15",
       "checkIn": "2026-07-15T08:00:00Z",
       "checkOut": "2026-07-15T17:00:00Z",
@@ -98,7 +111,7 @@
     },
     {
       "id": 6,
-      "userId": "aIX7xX5jeeKyo42NxPNu6IAQz6VgCXCO",
+      "userId": "57UUzcRYxcmCgSum5SS1Ene4ZzBZPEav",
       "tanggal": "2026-07-16",
       "checkIn": "2026-07-16T08:00:00Z",
       "checkOut": "2026-07-16T17:00:00Z",
@@ -109,7 +122,7 @@
     },
     {
       "id": 7,
-      "userId": "aIX7xX5jeeKyo42NxPNu6IAQz6VgCXCO",
+      "userId": "57UUzcRYxcmCgSum5SS1Ene4ZzBZPEav",
       "tanggal": "2026-07-17",
       "checkIn": "2026-07-17T08:00:00Z",
       "checkOut": "2026-07-17T17:00:00Z",
@@ -122,7 +135,7 @@
   "pengajuan": [
     {
       "id": 1,
-      "userId": "aIX7xX5jeeKyo42NxPNu6IAQz6VgCXCO",
+      "userId": "57UUzcRYxcmCgSum5SS1Ene4ZzBZPEav",
       "jenis": "cuti",
       "tanggalMulai": "2026-07-25",
       "tanggalSelesai": "2026-07-27",
@@ -133,7 +146,7 @@
     },
     {
       "id": 2,
-      "userId": "qqa2SfroagQN6JQ5krrZNG7ihiJzHXRZ",
+      "userId": "CAec7GyEQUna9MeoQ0rjsfGpqIemPumF",
       "jenis": "izin",
       "tanggalMulai": "2026-07-21",
       "tanggalSelesai": "2026-07-21",

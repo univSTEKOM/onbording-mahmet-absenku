@@ -17,6 +17,7 @@ export default function ProfilPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [editing, setEditing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
   const [fotoPreview, setFotoPreview] = useState(user?.foto || '')
 
@@ -60,12 +61,15 @@ export default function ProfilPage() {
     if (!validate() || !user) return
     const data: Partial<User> = { ...form }
     if (fotoPreview && fotoPreview.startsWith('data:')) { data.foto = fotoPreview }
+    setSaving(true)
     try {
       await updateUser(data)
       setEditing(false)
       setErrors({})
     } catch {
       toast.error('Gagal menyimpan profil')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -147,8 +151,8 @@ export default function ProfilPage() {
               </div>
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>Batal</Button>
-                <Button type="submit" className="flex-1 gap-2" disabled={mutation.isPending}>
-                  {mutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Menyimpan...</> : <><Save className="h-4 w-4" /> Simpan</>}
+                <Button type="submit" className="flex-1 gap-2" disabled={saving}>
+                  {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Menyimpan...</> : <><Save className="h-4 w-4" /> Simpan</>}
                 </Button>
               </div>
             </form>
