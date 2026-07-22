@@ -14,13 +14,18 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
 
   function validate() {
+    const errs: Record<string, string> = {}
     const e = validateEmail(email)
+    if (e) errs.email = e
     const p = validatePassword(password)
-    return !e && !p
+    if (p) errs.password = p
+    setErrors(errs)
+    return Object.keys(errs).length === 0
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -42,17 +47,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-svh w-full lg:grid-cols-[1fr_1.8fr]">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
+    <div className="relative min-h-svh w-full overflow-hidden">
+      <img
+        src="/login&register background.png"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-bottom dark:brightness-[0.2] dark:grayscale"
+      />
+      <div className="relative z-10 flex min-h-svh flex-col gap-4 p-6 md:p-10 lg:w-[420px] lg:bg-background/80 lg:backdrop-blur-sm">
+        <div className="flex justify-center gap-2 md:justify-start">
+          <Logo className="h-8" />
+        </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-md">
+          <div className="w-full">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               {apiError && (
                 <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
               )}
               <FieldGroup>
-                <div className="flex flex-col items-center gap-3 text-center">
-                  <Logo className="h-10" />
+                <div className="flex flex-col items-center gap-1 text-center">
                   <h1 className="text-2xl font-bold">Masuk ke akun Anda</h1>
                   <p className="text-sm text-balance text-muted-foreground">
                     Masukkan email dan password untuk melanjutkan
@@ -65,10 +77,11 @@ export default function LoginPage() {
                     type="email"
                     placeholder="m@example.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-background"
+                    onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: '' })) }}
+                    className={errors.email ? 'border-destructive bg-background' : 'bg-background'}
                     required
                   />
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
@@ -76,10 +89,11 @@ export default function LoginPage() {
                     id="password"
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-background"
+                    onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
+                    className={errors.password ? 'border-destructive bg-background' : 'bg-background'}
                     required
                   />
+                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
                 </Field>
                 <Field>
                   <Button type="submit" className="w-full" size="lg" disabled={loading}>
@@ -98,13 +112,6 @@ export default function LoginPage() {
             </form>
           </div>
         </div>
-      </div>
-      <div className="relative hidden lg:block">
-        <img
-          src="/login&register background.png"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
       </div>
     </div>
   )
