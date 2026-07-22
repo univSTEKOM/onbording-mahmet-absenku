@@ -1,36 +1,26 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { authClient } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Logo } from '@/components/Logo'
 import { Loader2 } from 'lucide-react'
-import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/constants'
 import { validateEmail, validatePassword } from '@/lib/validation'
 
 export default function LoginPage() {
-  const { user, login } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (!user) return
-    navigate(user.role === 'admin' ? '/hrd/dashboard' : '/dashboard', { replace: true })
-  }, [user, navigate])
-
   function validate() {
-    const errs: Record<string, string> = {}
     const e = validateEmail(email)
-    if (e) errs.email = e
     const p = validatePassword(password)
-    if (p) errs.password = p
-    setErrors(errs)
-    return Object.keys(errs).length === 0
+    return !e && !p
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -40,6 +30,9 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login({ email, password })
+      const session = await authClient.getSession()
+      const role = (session.data?.user as Record<string, unknown> | undefined)?.role
+      navigate(role === 'admin' ? '/hrd/dashboard' : '/dashboard')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email atau password salah'
       setApiError(msg)
@@ -49,93 +42,71 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh">
-      <div className="flex flex-1 items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            <FieldGroup>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <Logo className="h-10 mb-2" />
-                <h1 className="text-2xl font-bold">Masuk ke akun Anda</h1>
-                <p className="text-sm text-balance text-muted-foreground">
-                  Masukkan email dan password untuk melanjutkan
-                </p>
-              </div>
-
+    <div className="grid min-h-svh lg:grid-cols-2">
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        <div className="flex justify-center gap-2 md:justify-start">
+          <Logo className="h-8" />
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               {apiError && (
                 <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
               )}
-
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="nama@email.com"
-                  value={email}
-                  maxLength={MAX_EMAIL_LENGTH}
-                  onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: '' })) }}
-                  className={`bg-background ${errors.email ? 'border-destructive' : ''}`}
-                  required
-                />
-                {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  maxLength={MAX_PASSWORD_LENGTH}
-                  onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
-                  className={`bg-background ${errors.password ? 'border-destructive' : ''}`}
-                  required
-                />
-                {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
-              </Field>
-
-              <Field>
-                <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                  {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : 'Masuk'}
-                </Button>
-              </Field>
-
-              <Field>
-                <p className="text-center text-sm text-muted-foreground">
-                  Belum punya akun?{' '}
-                  <Link to="/register" className="underline underline-offset-4 hover:text-foreground">
-                    Daftar
-                  </Link>
-                </p>
-              </Field>
-            </FieldGroup>
-          </form>
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            Demo: andika@stekom.ac.id / password
-          </p>
-        </div>
-      </div>
-      <div className="relative hidden lg:flex lg:w-1/2 overflow-hidden">
-        <img src="/login&register background.png" alt="" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="relative z-10 flex items-center justify-center w-full p-10">
-          <div className="text-center space-y-6 bg-background/40 backdrop-blur-sm p-8 rounded-2xl">
-            <Logo className="h-16 mx-auto" />
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold tracking-tight">Sistem Absensi Karyawan</h2>
-              <p className="text-muted-foreground max-w-sm">
-                Kelola kehadiran, izin, dan cuti karyawan dengan mudah dan efisien.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-4 pt-4">
-              {['Absensi', 'Izin/Cuti', 'Laporan'].map((item) => (
-                <div key={item} className="rounded-xl bg-background/80 backdrop-blur-sm p-4 text-center shadow-xs">
-                  <p className="text-sm font-medium">{item}</p>
+              <FieldGroup>
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <h1 className="text-2xl font-bold">Masuk ke akun Anda</h1>
+                  <p className="text-sm text-balance text-muted-foreground">
+                    Masukkan email dan password untuk melanjutkan
+                  </p>
                 </div>
-              ))}
-            </div>
+                <Field>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-background"
+                    required
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-background"
+                    required
+                  />
+                </Field>
+                <Field>
+                  <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                    {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : 'Masuk'}
+                  </Button>
+                </Field>
+                <Field>
+                  <FieldDescription className="text-center">
+                    Belum punya akun?{' '}
+                    <Link to="/register" className="underline underline-offset-4 hover:text-foreground">
+                      Daftar
+                    </Link>
+                  </FieldDescription>
+                </Field>
+              </FieldGroup>
+            </form>
           </div>
         </div>
+      </div>
+      <div className="relative hidden bg-muted lg:block">
+        <img
+          src="/login&register background.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+        />
       </div>
     </div>
   )

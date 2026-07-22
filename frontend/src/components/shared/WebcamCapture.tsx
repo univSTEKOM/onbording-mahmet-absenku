@@ -1,21 +1,25 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Camera, CameraOff, Loader2 } from 'lucide-react'
+import { Camera, Loader2 } from 'lucide-react'
 
 interface WebcamCaptureProps {
   onCapture: (canvas: HTMLCanvasElement) => void
   processing?: boolean
   autoStart?: boolean
   onVideoReady?: (video: HTMLVideoElement) => void
+  active?: boolean
 }
 
-export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }: WebcamCaptureProps) {
+export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, active: externalActive }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const [active, setActive] = useState(false)
+  const autoStartedRef = useRef(false)
+  const [internalActive, setInternalActive] = useState(false)
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
+
+  const isActive = externalActive !== undefined ? externalActive && internalActive : internalActive
 
   const startCamera = useCallback(async () => {
     setError('')
@@ -24,7 +28,7 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: 'user' },
       })
-      setActive(true)
+      setInternalActive(true)
       streamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
@@ -44,19 +48,16 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }
       streamRef.current.getTracks().forEach((t) => t.stop())
       streamRef.current = null
     }
-    setActive(false)
+    setInternalActive(false)
   }, [])
 
-  const autoStarted = useRef(false)
   useEffect(() => {
-    if (autoStart && !autoStarted.current) {
-      autoStarted.current = true
+    if (autoStart && !autoStartedRef.current) {
+      autoStartedRef.current = true
       startCamera()
     }
-    return () => { stopCamera(); autoStarted.current = false }
-    /* only run on mount/unmount */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart])
+    return () => { stopCamera(); autoStartedRef.current = false }
+  }, [autoStart, startCamera, stopCamera])
 
   function handleCapture() {
     if (!videoRef.current || !canvasRef.current) return
@@ -70,6 +71,8 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }
     onCapture(canvas)
   }
 
+  if (!isActive && !starting) return null
+
   return (
     <div className="space-y-4">
       <div className="relative mx-auto max-w-sm rounded-lg overflow-hidden bg-muted">
@@ -78,7 +81,7 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }
             <Loader2 className="h-6 w-6 animate-spin mr-2" />
             Mengakses kamera...
           </div>
-        ) : active ? (
+        ) : internalActive ? (
           <video
             ref={videoRef}
             autoPlay
@@ -86,32 +89,26 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }
             muted
             className="w-full aspect-[4/3] object-cover"
           />
-        ) : (
-          <div className="flex flex-col items-center justify-center aspect-[4/3] text-muted-foreground gap-2">
-            <CameraOff className="h-8 w-8" />
-            <span className="text-sm">Kamera tidak aktif</span>
-          </div>
-        )}
+        ) : null}
         <canvas ref={canvasRef} className="hidden" />
       </div>
 
       {error && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center">
-          {error}
-        </div>
+        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center">{error}</div>
       )}
 
       <div className="flex justify-center gap-3">
-        {!active ? (
+        {!internalActive && !starting && (
           <Button onClick={startCamera} disabled={starting} className="gap-2">
             {starting ? <><Loader2 className="h-4 w-4 animate-spin" /> Membuka...</> : <><Camera className="h-4 w-4" /> Buka Kamera</>}
           </Button>
-        ) : (
+        )}
+        {internalActive && (
           <Button onClick={handleCapture} disabled={processing} className="gap-2">
             {processing ? <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</> : <><Camera className="h-4 w-4" /> Ambil Foto</>}
           </Button>
         )}
-        {active && (
+        {internalActive && (
           <Button variant="outline" onClick={stopCamera}>Tutup Kamera</Button>
         )}
       </div>

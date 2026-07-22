@@ -30,6 +30,7 @@ interface FaceVerificationProps {
 
 const STABLE_FRAMES = 3
 const SCAN_INTERVAL = 1200
+const SAVE_TIMEOUT = 15000
 
 export function FaceVerification({
   open,
@@ -46,49 +47,57 @@ export function FaceVerification({
   const [status, setStatus] = useState<'idle' | 'success' | 'fail'>('idle')
   const [message, setMessage] = useState('')
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
-  const photoRef = useRef<string | null>(null)
 
   const loadingRef = useRef(false)
   const scanRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const stableCountRef = useRef(0)
+  const stableRef = useRef(0)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const finishedRef = useRef(false)
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const saveDescriptor = useCallback(async (descriptor: Float32Array) => {
     const arr = descriptorToArray(descriptor)
     if (!user) return
     return new Promise<void>((resolve, reject) => {
+      saveTimeoutRef.current = setTimeout(() => reject(new Error('Timeout')), SAVE_TIMEOUT)
       updateUserMutation.mutate(
         { id: user.id, data: { foto: JSON.stringify(arr) } },
-        { onSuccess: () => { updateUser({ foto: JSON.stringify(arr) }); resolve() }, onError: reject }
+        {
+          onSuccess: () => {
+            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+            updateUser({ foto: JSON.stringify(arr) })
+            resolve()
+          },
+          onError: (err) => {
+            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+            reject(err)
+          },
+        }
       )
     })
   }, [user, updateUser, updateUserMutation])
 
-  /* Load models once */
   useEffect(() => {
     if (!open || loadingRef.current || modelsLoaded) return
     loadingRef.current = true
     finishedRef.current = false
+    stableRef.current = 0
+    setCapturedPhoto(null)
+    setStatus('idle')
+    setMessage('')
     loadModels()
       .then(() => { setModelsLoaded(true); setModelsError('') })
       .catch(() => { setModelsError('Gagal memuat model. Periksa koneksi Internet.') })
       .finally(() => { loadingRef.current = false })
   }, [open, modelsLoaded])
 
-  /* Stop scan when dialog closes */
   useEffect(() => {
     if (!open) {
       if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
-      stableCountRef.current = 0
-      setCapturedPhoto(null)
-      setStatus('idle')
-      setMessage('')
-      finishedRef.current = false
+      if (saveTimeoutRef.current) { clearTimeout(saveTimeoutRef.current); saveTimeoutRef.current = null }
     }
   }, [open])
 
-  /* Auto-scan loop — only runs when camera is ready + models loaded + not finished */
   useEffect(() => {
     if (!modelsLoaded || !videoRef.current || finishedRef.current || scanRef.current) return
 
@@ -105,32 +114,27 @@ export function FaceVerification({
       try {
         const result = await detectFace(canvas, 3000)
         if (result) {
-          stableCountRef.current++
-          if (stableCountRef.current >= STABLE_FRAMES) {
-            /* Face is stable — capture now */
+          stableRef.current++
+          if (stableRef.current >= STABLE_FRAMES) {
             if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
+            setProcessing(true)
             const photoUrl = canvas.toDataURL('image/jpeg', 0.7)
-            photoRef.current = photoUrl
             setCapturedPhoto(photoUrl)
-            await processResult(result.descriptor)
+            await processResult(result.descriptor, photoUrl)
+            setProcessing(false)
           }
         } else {
-          stableCountRef.current = 0
+          stableRef.current = 0
         }
-      } catch {
-        /* timeout, keep scanning */
-      }
+      } catch { /* continue scanning */ }
     }, SCAN_INTERVAL)
 
-    return () => {
-      if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
-    }
+    return () => { if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null } }
   }, [modelsLoaded])
 
-  async function processResult(descriptor: Float32Array) {
+  async function processResult(descriptor: Float32Array, photoUrl?: string) {
     if (finishedRef.current) return
     finishedRef.current = true
-    setProcessing(true)
     setStatus('idle')
     setMessage('')
 
@@ -143,31 +147,41 @@ export function FaceVerification({
 
       if (stored) {
         const match = isMatch(descriptor, arrayToDescriptor(stored))
-        if (match) { setStatus('success'); setMessage('Wajah cocok!'); setTimeout(() => onVerified(photoRef.current ?? undefined), 800) }
-        else { setStatus('fail'); setMessage('Wajah tidak cocok dengan data terdaftar.') }
+        if (match) {
+          setStatus('success')
+          setMessage('Wajah cocok!')
+          setTimeout(() => onVerified(photoUrl), 800)
+        } else {
+          setStatus('fail')
+          setMessage('Wajah tidak cocok dengan data terdaftar.')
+        }
       } else {
         await saveDescriptor(descriptor)
-        setStatus('success'); setMessage('Wajah berhasil didaftarkan!'); setTimeout(() => onVerified(photoRef.current ?? undefined), 800)
+        setStatus('success')
+        setMessage('Wajah berhasil didaftarkan!')
+        setTimeout(() => onVerified(photoUrl), 800)
       }
     } catch {
-      setStatus('fail'); setMessage('Gagal menyimpan data wajah.')
-    } finally {
-      setProcessing(false)
+      finishedRef.current = false
+      setStatus('fail')
+      setMessage('Gagal menyimpan data wajah. Coba lagi.')
+      setCapturedPhoto(null)
     }
   }
 
   async function handleManualCapture(canvas: HTMLCanvasElement) {
     if (finishedRef.current) return
-    finishedRef.current = true
-    setProcessing(true); setStatus('idle'); setMessage('')
     const photoUrl = canvas.toDataURL('image/jpeg', 0.7)
-    photoRef.current = photoUrl
     setCapturedPhoto(photoUrl)
+    setProcessing(true)
+    setStatus('idle')
+    setMessage('')
     try {
       const result = await detectFace(canvas)
-      if (!result) { setStatus('fail'); setMessage('Wajah tidak terdeteksi.'); setProcessing(false); return }
-      await processResult(result.descriptor)
-    } catch { setStatus('fail'); setMessage('Gagal memproses wajah.'); setProcessing(false) }
+      if (!result) { setStatus('fail'); setMessage('Wajah tidak terdeteksi.'); setCapturedPhoto(null); setProcessing(false); return }
+      await processResult(result.descriptor, photoUrl)
+    } catch { setStatus('fail'); setMessage('Gagal memproses wajah.'); setCapturedPhoto(null) }
+    setProcessing(false)
   }
 
   const handleVideoReady = useCallback((video: HTMLVideoElement) => {
@@ -176,10 +190,14 @@ export function FaceVerification({
 
   function handleRetry() {
     finishedRef.current = false
+    stableRef.current = 0
     setStatus('idle')
     setMessage('')
     setCapturedPhoto(null)
   }
+
+  const cameraActive = modelsLoaded && !finishedRef.current && status === 'idle'
+  const showCaptured = capturedPhoto && (status === 'success' || status === 'idle' || processing)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -204,35 +222,30 @@ export function FaceVerification({
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
             Memuat model pengenalan wajah...
           </div>
-        ) : (
-          <WebcamCapture onCapture={handleManualCapture} processing={processing} autoStart onVideoReady={handleVideoReady} />
-        )}
-
-        {capturedPhoto && (
-          <div className="mx-auto w-20 h-20 rounded-lg overflow-hidden border">
-            <img src={capturedPhoto} alt="captured" className="w-full h-full object-cover" />
+        ) : showCaptured ? (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <div className="w-40 h-40 rounded-xl overflow-hidden border-2 border-muted shadow-sm">
+              <img src={capturedPhoto!} alt="captured" className="w-full h-full object-cover" />
+            </div>
+            {processing && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Memverifikasi...</p>}
           </div>
-        )}
+        ) : cameraActive ? (
+          <WebcamCapture onCapture={handleManualCapture} processing={processing} autoStart onVideoReady={handleVideoReady} active />
+        ) : status === 'idle' ? (
+          <WebcamCapture onCapture={handleManualCapture} processing={processing} autoStart onVideoReady={handleVideoReady} />
+        ) : null}
 
-        {modelsLoaded && !finishedRef.current && (
-          <p className="text-xs text-center text-muted-foreground">
-            Posisikan wajah di depan kamera. Foto akan diambil otomatis.
-          </p>
+        {status === 'idle' && cameraActive && (
+          <p className="text-xs text-center text-muted-foreground">Posisikan wajah di depan kamera. Foto akan diambil otomatis.</p>
         )}
 
         {status === 'success' && (
-          <div className="flex items-center gap-2 justify-center text-green-600">
-            <CheckCircle2 className="h-5 w-5" />
-            <span className="font-medium">{message}</span>
-          </div>
+          <div className="flex items-center gap-2 justify-center text-green-600"><CheckCircle2 className="h-5 w-5" /><span className="font-medium">{message}</span></div>
         )}
 
         {status === 'fail' && (
           <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center gap-2 justify-center text-destructive">
-              <XCircle className="h-5 w-5" />
-              <span className="text-sm">{message}</span>
-            </div>
+            <div className="flex items-center gap-2 justify-center text-destructive"><XCircle className="h-5 w-5" /><span className="text-sm">{message}</span></div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleRetry}>Coba Lagi</Button>
               <Button variant="ghost" size="sm" onClick={onSkip}>Lewati</Button>
@@ -240,7 +253,7 @@ export function FaceVerification({
           </div>
         )}
 
-        {status !== 'success' && status !== 'fail' && !processing && (
+        {status === 'idle' && !processing && !cameraActive && !showCaptured && (
           <div className="flex justify-center">
             <Button variant="ghost" onClick={onSkip}>Lewati verifikasi</Button>
           </div>

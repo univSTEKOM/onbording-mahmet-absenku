@@ -217,9 +217,8 @@ export default function WelcomePage() {
               )}
             </Reveal>
             <Reveal className="flex-1 w-full">
-              <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl relative bg-gradient-to-br from-primary/10 via-primary/5 to-card flex items-center justify-center">
-                <Logo className="h-24 opacity-20" />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent pointer-events-none" />
+              <div className="rounded-3xl overflow-hidden shadow-2xl">
+                <img src="/why-choose-me-illustration.png" alt="Why Choose AbsenKu" className="w-full h-auto object-contain" />
               </div>
             </Reveal>
           </div>
