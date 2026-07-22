@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/Logo'
 import {
-  Fingerprint,
   BarChart3,
   CalendarCheck,
   Zap,
@@ -18,7 +18,7 @@ import {
 
 const features = [
   {
-    icon: Fingerprint,
+    icon: BarChart3,
     title: 'Biometric Verification',
     desc: 'Ensure identity integrity with advanced facial recognition integrations. Secure, fast, and foolproof.',
   },
@@ -74,7 +74,7 @@ export default function WelcomePage() {
     <div className="bg-background text-foreground selection:bg-primary/10 selection:text-primary">
 
       <nav className="sticky top-0 z-40 flex items-center justify-between w-full px-8 h-16 border-b border-border bg-background/80 backdrop-blur-xl">
-        <span className="text-2xl font-extrabold tracking-tight text-primary font-sans">AbsenKu</span>
+        <Logo className="h-7" />
         <div className="hidden md:flex items-center gap-6">
           <a href="#" className="text-primary font-semibold border-b-2 border-primary pb-1 text-xs uppercase tracking-widest">Home</a>
           <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors text-xs uppercase tracking-widest">Features</a>
@@ -130,7 +130,7 @@ export default function WelcomePage() {
             <div className="relative bg-card rounded-3xl border border-border shadow-2xl overflow-hidden aspect-[16/9]">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-card to-card flex items-center justify-center">
                 <div className="text-center space-y-4">
-                  <Fingerprint className="h-16 w-16 text-primary/30 mx-auto" />
+                  <Logo className="h-16 mx-auto opacity-30" />
                   <p className="text-muted-foreground/50 text-sm">Dashboard Preview</p>
                 </div>
               </div>
@@ -197,7 +197,7 @@ export default function WelcomePage() {
             </Reveal>
             <Reveal className="flex-1 w-full">
               <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl relative bg-gradient-to-br from-primary/10 via-primary/5 to-card flex items-center justify-center">
-                <Fingerprint className="h-24 w-24 text-primary/20" />
+                <Logo className="h-24 opacity-20" />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent pointer-events-none" />
               </div>
             </Reveal>
@@ -232,7 +232,7 @@ export default function WelcomePage() {
       <footer className="bg-muted/50 pt-20 pb-10 px-8 border-t border-border">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-16">
           <div className="col-span-2">
-            <span className="text-2xl font-extrabold tracking-tight text-primary font-sans mb-6 block">AbsenKu</span>
+            <Logo className="h-8 mb-6" />
             <p className="text-muted-foreground max-w-xs leading-relaxed mb-6">
               Professional employee management for the modern era. Precision, security, and clarity in every clock-in.
             </p>

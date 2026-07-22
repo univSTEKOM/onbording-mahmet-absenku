@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,7 @@ interface FaceVerificationProps {
   onOpenChange: (open: boolean) => void
   onVerified: () => void
   onSkip: () => void
+  mode?: 'in' | 'out'
 }
 
 export function FaceVerification({
@@ -32,6 +33,7 @@ export function FaceVerification({
   onOpenChange,
   onVerified,
   onSkip,
+  mode = 'in',
 }: FaceVerificationProps) {
   const { user, updateUser } = useAuth()
   const updateUserMutation = useUpdateUser()
@@ -40,33 +42,30 @@ export function FaceVerification({
   const [modelsError, setModelsError] = useState('')
   const [status, setStatus] = useState<'idle' | 'success' | 'fail'>('idle')
   const [message, setMessage] = useState('')
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
   const loadingRef = useRef(false)
+
+  const savePhoto = useCallback((canvas: HTMLCanvasElement) => {
+    setCapturedPhoto(canvas.toDataURL('image/jpeg', 0.7))
+  }, [])
 
   useEffect(() => {
     if (!open || loadingRef.current || modelsLoaded) return
     loadingRef.current = true
-
     loadModels()
-      .then(() => {
-        setModelsLoaded(true)
-        setModelsError('')
-      })
-      .catch(() => {
-        setModelsError('Gagal memuat model. Periksa koneksi Internet.')
-      })
-      .finally(() => {
-        loadingRef.current = false
-      })
+      .then(() => { setModelsLoaded(true); setModelsError('') })
+      .catch(() => { setModelsError('Gagal memuat model. Periksa koneksi Internet.') })
+      .finally(() => { loadingRef.current = false })
   }, [open, modelsLoaded])
 
   async function handleCapture(canvas: HTMLCanvasElement) {
     setProcessing(true)
     setStatus('idle')
     setMessage('')
+    savePhoto(canvas)
 
     try {
       const result = await detectFace(canvas)
-
       if (!result) {
         setStatus('fail')
         setMessage('Wajah tidak terdeteksi. Coba lagi dengan pencahayaan yang cukup.')
@@ -80,9 +79,7 @@ export function FaceVerification({
         try {
           const parsed = JSON.parse(storedRaw)
           if (isFaceDescriptor(parsed)) storedDescriptor = parsed
-        } catch {
-          /* ignore invalid stored data */
-        }
+        } catch { /* ignore */ }
       }
 
       if (storedDescriptor) {
@@ -107,19 +104,15 @@ export function FaceVerification({
               setMessage('Wajah berhasil didaftarkan!')
               setTimeout(onVerified, 800)
             },
-            onError: () => {
-              setStatus('fail')
-              setMessage('Gagal menyimpan data wajah.')
-            },
+            onError: () => { setStatus('fail'); setMessage('Gagal menyimpan data wajah.') },
           }
         )
       }
     } catch (err) {
       setStatus('fail')
-      const msg = err instanceof Error && err.message.includes('Timeout')
+      setMessage(err instanceof Error && err.message.includes('Timeout')
         ? 'Wajah tidak terdeteksi. Pastikan wajah terlihat jelas.'
-        : 'Gagal memproses wajah. Coba lagi.'
-      setMessage(msg)
+        : 'Gagal memproses wajah. Coba lagi.')
     } finally {
       setProcessing(false)
     }
@@ -132,7 +125,7 @@ export function FaceVerification({
           <DialogTitle>Verifikasi Wajah</DialogTitle>
           <DialogDescription>
             {user?.foto
-              ? 'Arahkan wajah ke kamera untuk verifikasi'
+              ? `Verifikasi wajah untuk ${mode === 'in' ? 'check in' : 'check out'}`
               : 'Daftarkan wajah Anda untuk absensi selanjutnya'}
           </DialogDescription>
         </DialogHeader>
@@ -141,9 +134,7 @@ export function FaceVerification({
           <div className="p-4 rounded-md bg-destructive/10 text-destructive text-sm text-center space-y-3">
             <AlertTriangle className="h-8 w-8 mx-auto" />
             <p>{modelsError}</p>
-            <Button variant="outline" size="sm" onClick={onSkip}>
-              Lewati verifikasi
-            </Button>
+            <Button variant="outline" size="sm" onClick={onSkip}>Lewati verifikasi</Button>
           </div>
         ) : !modelsLoaded ? (
           <div className="flex items-center justify-center py-8 text-muted-foreground">
@@ -152,6 +143,12 @@ export function FaceVerification({
           </div>
         ) : (
           <WebcamCapture onCapture={handleCapture} processing={processing} autoStart />
+        )}
+
+        {capturedPhoto && status !== 'idle' && (
+          <div className="mx-auto w-20 h-20 rounded-lg overflow-hidden border">
+            <img src={capturedPhoto} alt="captured" className="w-full h-full object-cover" />
+          </div>
         )}
 
         {status === 'success' && (
@@ -170,11 +167,7 @@ export function FaceVerification({
 
         {modelsLoaded && !processing && status !== 'success' && (
           <div className="flex justify-center">
-            <Button
-              variant="ghost"
-              onClick={onSkip}
-              className="text-muted-foreground"
-            >
+            <Button variant="ghost" onClick={onSkip} className="text-muted-foreground">
               Lewati verifikasi wajah
             </Button>
           </div>

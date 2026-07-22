@@ -6,12 +6,14 @@ interface WebcamCaptureProps {
   onCapture: (canvas: HTMLCanvasElement) => void
   processing?: boolean
   autoStart?: boolean
+
 }
 
 export function WebcamCapture({ onCapture, processing, autoStart }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const scanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [active, setActive] = useState(false)
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
@@ -46,11 +48,10 @@ export function WebcamCapture({ onCapture, processing, autoStart }: WebcamCaptur
   useEffect(() => {
     if (autoStart) startCamera()
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((t) => t.stop())
-      }
+      stopCamera()
+      if (scanTimerRef.current) clearInterval(scanTimerRef.current)
     }
-  }, [autoStart, startCamera])
+  }, [autoStart, startCamera, stopCamera])
 
   function handleCapture() {
     if (!videoRef.current || !canvasRef.current) return
@@ -105,18 +106,18 @@ export function WebcamCapture({ onCapture, processing, autoStart }: WebcamCaptur
             )}
           </Button>
         ) : (
-          <>
-            <Button onClick={handleCapture} disabled={processing} className="gap-2">
-              {processing ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</>
-              ) : (
-                <><Camera className="h-4 w-4" /> Ambil Foto</>
-              )}
-            </Button>
-            <Button variant="outline" onClick={stopCamera}>
-              Tutup Kamera
-            </Button>
-          </>
+          <Button onClick={handleCapture} disabled={processing} className="gap-2">
+            {processing ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</>
+            ) : (
+              <><Camera className="h-4 w-4" /> Ambil Foto</>
+            )}
+          </Button>
+        )}
+        {active && (
+          <Button variant="outline" onClick={stopCamera}>
+            Tutup Kamera
+          </Button>
         )}
       </div>
     </div>

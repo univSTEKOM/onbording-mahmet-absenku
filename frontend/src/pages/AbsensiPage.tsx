@@ -193,6 +193,7 @@ export default function AbsensiPage() {
           if (mode === 'in') checkInMutation.mutate()
           else if (absensi) checkOutMutation.mutate(absensi.id)
         }}
+        mode={mode}
       />
     </div>
   )

@@ -10,12 +10,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { Fingerprint, LayoutDashboard, History, FileText, Users } from 'lucide-react'
+import { LayoutDashboard, History, FileText, Users } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 import { useAuth } from '@/hooks/useAuth'
 
 const karyawanItems = [
   { title: 'Dashboard', url: '/dashboard', icon: <LayoutDashboard /> },
-  { title: 'Absensi', url: '/absensi', icon: <Fingerprint /> },
+  { title: 'Absensi', url: '/absensi', icon: <LayoutDashboard /> },
   { title: 'Riwayat', url: '/absensi/riwayat', icon: <History /> },
   { title: 'Pengajuan', url: '/pengajuan', icon: <FileText /> },
 ]
@@ -38,11 +39,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Fingerprint className="size-4" />
-              </div>
+              <Logo variant="icon" className="size-8 shrink-0 rounded-lg" />
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">Absensi Karyawan</span>
+                <span className="truncate font-semibold">AbsenKu</span>
                 <span className="truncate text-xs text-muted-foreground">{user?.role === 'admin' ? 'HRD' : 'Karyawan'}</span>
               </div>
             </SidebarMenuButton>

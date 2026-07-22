@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/ui/password-input'
-import { Loader2, Fingerprint } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/constants'
 import { validateEmail, validatePassword } from '@/lib/validation'
 
@@ -49,10 +50,7 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-sm space-y-6">
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-sm">
-              <Fingerprint className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">Absensi Karyawan</h1>
+            <Logo className="h-10" />
             <p className="text-sm text-muted-foreground">Masuk ke akun Anda</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -88,9 +86,7 @@ export default function LoginPage() {
       </div>
       <div className="relative hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-background items-center justify-center p-10">
         <div className="relative space-y-6 text-center">
-          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/20 backdrop-blur-sm">
-            <Fingerprint className="h-12 w-12 text-primary" />
-          </div>
+          <Logo className="h-16 mx-auto" />
           <div className="space-y-2">
             <h2 className="text-2xl font-bold tracking-tight">Sistem Absensi Karyawan</h2>
             <p className="text-muted-foreground max-w-sm">
