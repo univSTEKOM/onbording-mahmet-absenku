@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/ui/password-input'
-import { Loader2, UserPlus } from 'lucide-react'
+import { Loader2, UserPlus, CheckCircle2, XCircle } from 'lucide-react'
 import { validateEmail, validatePassword, validateNama, validateJabatan, validatePhone } from '@/lib/validation'
 
 export default function RegisterPage() {
@@ -109,8 +109,19 @@ export default function RegisterPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="konfirmasiPassword">Konfirmasi</Label>
-                <PasswordInput id="konfirmasiPassword" name="konfirmasiPassword" value={form.konfirmasiPassword} onChange={handleChange}
-                  className={errors.konfirmasiPassword ? 'border-destructive' : ''} />
+                <div className="relative">
+                  <PasswordInput id="konfirmasiPassword" name="konfirmasiPassword" value={form.konfirmasiPassword} onChange={handleChange}
+                    className={errors.konfirmasiPassword ? 'border-destructive' : ''} />
+                  {form.konfirmasiPassword && (
+                    <div className="absolute right-9 top-0 h-full flex items-center pointer-events-none">
+                      {form.konfirmasiPassword === form.password ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      )}
+                    </div>
+                  )}
+                </div>
                 {errors.konfirmasiPassword && <p className="text-xs text-destructive">{errors.konfirmasiPassword}</p>}
               </div>
             </div>

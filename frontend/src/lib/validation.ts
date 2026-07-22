@@ -16,9 +16,6 @@ export function validateEmail(email: string): string | null {
 export function validatePassword(password: string): string | null {
   if (!password) return 'Password harus diisi'
   if (password.length < MIN_PASSWORD_LENGTH) return `Minimal ${MIN_PASSWORD_LENGTH} karakter`
-  if (!/[A-Z]/.test(password)) return 'Harus mengandung huruf besar'
-  if (!/[a-z]/.test(password)) return 'Harus mengandung huruf kecil'
-  if (!/[0-9]/.test(password)) return 'Harus mengandung angka'
   return null
 }
 

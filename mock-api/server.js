@@ -17,6 +17,65 @@ server.use(cors({
   credentials: true,
 }))
 
+const loginAttempts = new Map()
+const MAX_LOGIN_ATTEMPTS = 3
+const BASE_BLOCK_DURATION = 30000
+const MAX_BLOCK_DURATION = 120000
+
+server.post('/api/auth/sign-in/email', (req, res, next) => {
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', () => {
+    try {
+      const parsed = JSON.parse(body)
+      const key = parsed.email?.toLowerCase()
+      if (!key) return next()
+
+      const now = Date.now()
+      const record = loginAttempts.get(key)
+
+      if (record && record.count >= MAX_LOGIN_ATTEMPTS) {
+        const elapsed = now - record.blockedAt
+        if (elapsed < record.duration) {
+          const remaining = Math.ceil((record.duration - elapsed) / 1000)
+          return res.status(429).json({
+            message: `Terlalu banyak percobaan. Coba lagi ${remaining} detik lagi.`,
+            remaining,
+          })
+        }
+        loginAttempts.delete(key)
+      }
+
+      const originalJson = res.json.bind(res)
+      res.json = function (data) {
+        if (data?.token || data?.user) {
+          loginAttempts.delete(key)
+        } else {
+          let attempt = loginAttempts.get(key)
+          if (!attempt) {
+            attempt = { count: 0 }
+            loginAttempts.set(key, attempt)
+          }
+          attempt.count++
+          if (attempt.count >= MAX_LOGIN_ATTEMPTS) {
+            attempt.blockedAt = now
+            attempt.duration = Math.min(
+              BASE_BLOCK_DURATION + (attempt.count - MAX_LOGIN_ATTEMPTS) * 15000,
+              MAX_BLOCK_DURATION
+            )
+          }
+        }
+        return originalJson(data)
+      }
+
+      req.body = parsed
+      next()
+    } catch {
+      next()
+    }
+  })
+})
+
 server.all('/api/auth/*', toNodeHandler(auth))
 
 server.post('/api/register', async (req, res) => {
