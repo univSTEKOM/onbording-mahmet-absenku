@@ -29,8 +29,8 @@ export function NavUser() {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger>
-            <SidebarMenuButton className="aria-expanded:bg-muted">
+          <DropdownMenuTrigger className="w-full">
+            <SidebarMenuButton className="w-full aria-expanded:bg-muted">
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
               </Avatar>

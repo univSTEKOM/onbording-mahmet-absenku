@@ -77,14 +77,22 @@ export function FaceVerification({
     })
   }, [user, updateUser, updateUserMutation])
 
+  /* Reset state setiap dialog dibuka */
   useEffect(() => {
-    if (!open || loadingRef.current || modelsLoaded) return
-    loadingRef.current = true
+    if (!open) return
     finishedRef.current = false
     stableRef.current = 0
     setCapturedPhoto(null)
     setStatus('idle')
     setMessage('')
+    if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
+    if (saveTimeoutRef.current) { clearTimeout(saveTimeoutRef.current); saveTimeoutRef.current = null }
+  }, [open])
+
+  /* Load models hanya sekali */
+  useEffect(() => {
+    if (!open || loadingRef.current || modelsLoaded) return
+    loadingRef.current = true
     loadModels()
       .then(() => { setModelsLoaded(true); setModelsError('') })
       .catch(() => { setModelsError('Gagal memuat model. Periksa koneksi Internet.') })

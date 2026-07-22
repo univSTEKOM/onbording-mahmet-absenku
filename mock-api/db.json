@@ -232,6 +232,17 @@
       "status": "approved",
       "catatan": "Disetujui",
       "createdAt": "2026-07-17T09:00:00Z"
+    },
+    {
+      "jenis": "cuti",
+      "tanggalMulai": "2026-07-22",
+      "tanggalSelesai": "2026-07-24",
+      "alasan": "Saya nak tidor",
+      "userId": "as2oBGmsvEHUrhj2AStJB2tt2LZrFtYY",
+      "status": "rejected",
+      "catatan": "TIDOR YA NANTI PAS PULANG LAH, KOCAK NI ANAK\n",
+      "createdAt": "2026-07-22T06:27:02.827Z",
+      "id": 3
     }
   ]
 }
