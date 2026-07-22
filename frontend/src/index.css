@@ -164,12 +164,7 @@
 }
 
 html[data-filter-open] .sidebar-inset-content {
-  filter: blur(2px);
-  opacity: 0.6;
+  filter: blur(4px);
   pointer-events: none;
-  transition: filter 0.2s, opacity 0.2s;
-}
-
-html[data-filter-open] .sidebar-inset-content > * {
-  pointer-events: none;
+  transition: filter 0.2s;
 }
