@@ -18,7 +18,7 @@ export async function getAbsensiPaginated(filters?: AbsensiFilters): Promise<Pag
   }
 }
 
-export async function getAbsensiToday(userId: number): Promise<Absensi | null> {
+export async function getAbsensiToday(userId: string): Promise<Absensi | null> {
   const today = new Date().toISOString().split('T')[0]
   const res = await api.get('/absensi', { params: { userId, tanggal: today } })
   return res.data[0] || null

@@ -60,23 +60,26 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-svh">
-      <div className="relative hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 via-primary/5 to-background items-center justify-center p-10">
-        <div className="relative space-y-6 text-center">
-          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/20 backdrop-blur-sm">
-            <UserPlus className="h-12 w-12 text-primary" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight">Bergabunglah</h2>
-            <p className="text-muted-foreground max-w-sm">
-              Daftarkan akun Anda dan mulai kelola kehadiran dengan mudah.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-4 pt-4">
-            {['Mudah', 'Cepat', 'Aman', 'Terpercaya'].map((item) => (
-              <div key={item} className="rounded-xl bg-background/80 backdrop-blur-sm p-4 text-center shadow-xs">
-                <p className="text-sm font-medium">{item}</p>
-              </div>
-            ))}
+      <div className="relative hidden lg:flex lg:w-1/2 overflow-hidden">
+        <img src="/login&register background.png" alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="relative z-10 flex items-center justify-center w-full p-10">
+          <div className="text-center space-y-6 bg-background/40 backdrop-blur-sm p-8 rounded-2xl">
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/20 backdrop-blur-sm">
+              <UserPlus className="h-12 w-12 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight">Bergabunglah</h2>
+              <p className="text-muted-foreground max-w-sm">
+                Daftarkan akun Anda dan mulai kelola kehadiran dengan mudah.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              {['Mudah', 'Cepat', 'Aman', 'Terpercaya'].map((item) => (
+                <div key={item} className="rounded-xl bg-background/80 backdrop-blur-sm p-4 text-center shadow-xs">
+                  <p className="text-sm font-medium">{item}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

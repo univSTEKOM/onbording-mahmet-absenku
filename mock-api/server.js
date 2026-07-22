@@ -18,10 +18,11 @@ async function syncSeedUsers() {
     const dbRaw = fs.readFileSync('./db.json', 'utf-8')
     const db = JSON.parse(dbRaw)
     const seedUsers = db.users || []
+    let synced = 0
 
     for (const user of seedUsers) {
       try {
-        await auth.api.signUpEmail({
+        const result = await auth.api.signUpEmail({
           body: {
             email: user.email,
             password: user.password,
@@ -32,11 +33,31 @@ async function syncSeedUsers() {
             alamat: user.alamat || '',
           },
         })
+        /* push profile to json-server with the ID from better-auth */
+        const existing = router.db.get('users').find({ email: user.email }).value()
+        if (!existing) {
+          router.db.get('users').push({
+            id: result.user.id,
+            email: user.email,
+            password: user.password,
+            nama: user.nama,
+            jabatan: user.jabatan || '',
+            role: user.role || 'karyawan',
+            foto: '',
+            phone: user.phone || '',
+            alamat: user.alamat || '',
+            createdAt: new Date().toISOString(),
+          }).write()
+          synced++
+        }
       } catch (e) {
-        /* user might already exist — ignore */
+        const existing = router.db.get('users').find({ email: user.email }).value()
+        if (!existing) {
+          /* better-auth has the user but db.json doesn't — this shouldn't happen */
+        }
       }
     }
-    console.log(`Sync: ${seedUsers.length} seed users processed`)
+    console.log(`Sync: ${synced} new users added to db.json`)
   } catch (e) {
     console.error('Sync error:', e.message)
   }
@@ -178,7 +199,7 @@ server.get('/api/me', async (req, res) => {
   })
   if (!session) return res.status(401).json({ message: 'Unauthorized' })
 
-  const profile = router.db.get('users').find({ id: session.user.id }).value()
+  const profile = router.db.get('users').find({ email: session.user.email }).value()
   res.json({
     ...session,
     user: { ...session.user, ...profile },

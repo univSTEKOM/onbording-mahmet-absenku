@@ -32,6 +32,17 @@
       "phone": "081234567892",
       "alamat": "Jl. Gatot Subroto No. 3, Jakarta",
       "createdAt": "2026-07-21T09:00:14.433Z"
+    },
+    {
+      "id": "MmXCpySCfG83bhp7VIhztz9VBJjrqNl6",
+      "email": "sus@gmail.com",
+      "nama": "Sus ?",
+      "jabatan": "kladf",
+      "role": "karyawan",
+      "foto": "",
+      "phone": "",
+      "alamat": "",
+      "createdAt": "2026-07-22T03:52:49.100Z"
     }
   ],
   "absensi": [
