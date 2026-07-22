@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/ui/password-input'
 import { PhoneInput } from '@/components/ui/phone-input'
+import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH, MAX_JABATAN_LENGTH } from '@/lib/constants'
 import { Loader2, UserPlus, CheckCircle2, XCircle } from 'lucide-react'
 import { validateEmail, validatePassword, validateNama, validateJabatan, validatePhone } from '@/lib/validation'
 
@@ -93,25 +94,25 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="nama">Nama Lengkap</Label>
-              <Input id="nama" name="nama" value={form.nama} onChange={handleChange} className={errors.nama ? 'border-destructive' : ''} />
+              <Input id="nama" name="nama" value={form.nama} maxLength={MAX_NAMA_LENGTH} onChange={handleChange} className={errors.nama ? 'border-destructive' : ''} />
               {errors.nama && <p className="text-xs text-destructive">{errors.nama}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} className={errors.email ? 'border-destructive' : ''} />
+              <Input id="email" name="email" type="email" value={form.email} maxLength={MAX_EMAIL_LENGTH} onChange={handleChange} className={errors.email ? 'border-destructive' : ''} />
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <PasswordInput id="password" name="password" value={form.password} onChange={handleChange}
+                <PasswordInput id="password" name="password" value={form.password} maxLength={MAX_PASSWORD_LENGTH} onChange={handleChange}
                   className={errors.password ? 'border-destructive' : ''} />
                 {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="konfirmasiPassword">Konfirmasi</Label>
                 <div className="relative">
-                  <PasswordInput id="konfirmasiPassword" name="konfirmasiPassword" value={form.konfirmasiPassword} onChange={handleChange}
+                  <PasswordInput id="konfirmasiPassword" name="konfirmasiPassword" value={form.konfirmasiPassword} maxLength={MAX_PASSWORD_LENGTH} onChange={handleChange}
                     className={errors.konfirmasiPassword ? 'border-destructive' : ''} />
                   {form.konfirmasiPassword && (
                     <div className="absolute right-9 top-0 h-full flex items-center pointer-events-none">
@@ -128,7 +129,7 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="jabatan">Jabatan</Label>
-              <Input id="jabatan" name="jabatan" value={form.jabatan} onChange={handleChange} className={errors.jabatan ? 'border-destructive' : ''} />
+              <Input id="jabatan" name="jabatan" value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={handleChange} className={errors.jabatan ? 'border-destructive' : ''} />
               {errors.jabatan && <p className="text-xs text-destructive">{errors.jabatan}</p>}
             </div>
             <div className="space-y-2">

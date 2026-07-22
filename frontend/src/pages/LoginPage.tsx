@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Loader2, Fingerprint } from 'lucide-react'
+import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/constants'
 import { validateEmail, validatePassword } from '@/lib/validation'
 
 export default function LoginPage() {
@@ -60,14 +61,14 @@ export default function LoginPage() {
             )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="nama@email.com" value={email}
+              <Input id="email" type="email" placeholder="nama@email.com" value={email} maxLength={MAX_EMAIL_LENGTH}
                 onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: '' })) }}
                 className={errors.email ? 'border-destructive' : ''} />
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <PasswordInput id="password" value={password}
+              <PasswordInput id="password" value={password} maxLength={MAX_PASSWORD_LENGTH}
                 onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
                 className={errors.password ? 'border-destructive' : ''} />
               {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}

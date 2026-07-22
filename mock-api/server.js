@@ -208,9 +208,9 @@ server.delete('/pengajuan/:id', (req, res) => {
 server.patch('/users/:id', (req, res, next) => {
   const body = req.body
   if (body.email !== undefined) {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
-      return res.status(400).json({ message: 'Format email tidak valid' })
-    }
+    if (!body.email.trim()) return res.status(400).json({ message: 'Email tidak boleh kosong' })
+    if (body.email.length > 100) return res.status(400).json({ message: 'Email maksimal 100 karakter' })
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return res.status(400).json({ message: 'Format email tidak valid' })
   }
   if (body.nama !== undefined) {
     if (!body.nama.trim()) return res.status(400).json({ message: 'Nama tidak boleh kosong' })
@@ -222,9 +222,11 @@ server.patch('/users/:id', (req, res, next) => {
   }
   if (body.phone !== undefined && body.phone) {
     const digits = body.phone.replace(/\D/g, '')
-    if (digits.length < 10 || digits.length > 15) {
-      return res.status(400).json({ message: 'Nomor telepon harus 10-15 digit' })
-    }
+    if (digits.length < 10) return res.status(400).json({ message: 'Nomor telepon minimal 10 digit' })
+    if (digits.length > 15) return res.status(400).json({ message: 'Nomor telepon maksimal 15 digit' })
+  }
+  if (body.alamat !== undefined && body.alamat.length > 500) {
+    return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
   }
   if (body.foto !== undefined && typeof body.foto === 'string' && body.foto.length > 500000) {
     return res.status(400).json({ message: 'Foto terlalu besar' })

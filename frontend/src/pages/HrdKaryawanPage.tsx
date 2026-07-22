@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useUsers, useUpdateUser } from '@/hooks/useUsers'
+import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -34,7 +35,6 @@ import api from '@/api/axios'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import type { User } from '@/types'
-import { MAX_NAMA_LENGTH, MAX_JABATAN_LENGTH } from '@/lib/constants'
 
 export default function HrdKaryawanPage() {
   const { user: currentUser } = useAuth()
@@ -190,20 +190,20 @@ export default function HrdKaryawanPage() {
             {formError && <p className="text-sm text-destructive">{formError}</p>}
             <div className="space-y-2">
               <Label>Nama</Label>
-              <Input value={form.nama} onChange={(e) => { setForm({ ...form, nama: e.target.value }); setFieldErrors((p) => ({ ...p, nama: '' })) }}
+              <Input value={form.nama} maxLength={MAX_NAMA_LENGTH} onChange={(e) => { setForm({ ...form, nama: e.target.value }); setFieldErrors((p) => ({ ...p, nama: '' })) }}
                 className={fieldErrors.nama ? 'border-destructive' : ''} />
               {fieldErrors.nama && <p className="text-xs text-destructive">{fieldErrors.nama}</p>}
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input type="email" value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setFieldErrors((p) => ({ ...p, email: '' })) }}
+              <Input type="email" value={form.email} maxLength={MAX_EMAIL_LENGTH} onChange={(e) => { setForm({ ...form, email: e.target.value }); setFieldErrors((p) => ({ ...p, email: '' })) }}
                 disabled={!!editTarget} className={fieldErrors.email ? 'border-destructive' : ''} />
               {fieldErrors.email && <p className="text-xs text-destructive">{fieldErrors.email}</p>}
             </div>
             {!editTarget && <p className="text-xs text-muted-foreground">Password default: <code>password</code></p>}
             <div className="space-y-2">
               <Label>Jabatan</Label>
-              <Input value={form.jabatan} onChange={(e) => { setForm({ ...form, jabatan: e.target.value }); setFieldErrors((p) => ({ ...p, jabatan: '' })) }}
+              <Input value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={(e) => { setForm({ ...form, jabatan: e.target.value }); setFieldErrors((p) => ({ ...p, jabatan: '' })) }}
                 className={fieldErrors.jabatan ? 'border-destructive' : ''} />
               {fieldErrors.jabatan && <p className="text-xs text-destructive">{fieldErrors.jabatan}</p>}
             </div>

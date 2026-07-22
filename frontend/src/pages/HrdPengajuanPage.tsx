@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { pengajuanJenisLabel, pengajuanStatusBadge, pengajuanStatusLabel, pengajuanJenisBadge } from '@/lib/constants'
 import { toast } from 'sonner'
+import { MAX_CATATAN_LENGTH } from '@/lib/constants'
 import { Search, RefreshCw, CheckCircle2, XCircle, FileText, Clock, CheckCheck, X } from 'lucide-react'
 import type { Pengajuan, PengajuanStatus } from '@/types'
 
@@ -232,7 +233,7 @@ export default function HrdPengajuanPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Catatan</label>
             <textarea className="flex min-h-[60px] w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
-              value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan (opsional)" />
+              value={catatan} maxLength={MAX_CATATAN_LENGTH} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan (opsional)" />
           </div>
         </div>
       </ConfirmDialog>

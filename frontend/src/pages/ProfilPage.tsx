@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useUpdateUser } from '@/hooks/useUsers'
 import type { User } from '@/types'
-import { MAX_NAMA_LENGTH, MAX_JABATAN_LENGTH, MAX_PHONE_LENGTH, MAX_ALAMAT_LENGTH, MIN_PHONE_LENGTH, MAX_FOTO_SIZE_MB } from '@/lib/constants'
+import { MAX_NAMA_LENGTH, MAX_JABATAN_LENGTH, MAX_ALAMAT_LENGTH, MAX_FOTO_SIZE_MB } from '@/lib/constants'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,8 +29,8 @@ export default function ProfilPage() {
     else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = `Maksimal ${MAX_JABATAN_LENGTH} karakter`
     if (form.phone) {
       const digitsOnly = form.phone.replace(/\D/g, '')
-      if (digitsOnly.length < MIN_PHONE_LENGTH) errs.phone = `Minimal ${MIN_PHONE_LENGTH} angka`
-      else if (digitsOnly.length > MAX_PHONE_LENGTH) errs.phone = `Maksimal ${MAX_PHONE_LENGTH} angka`
+      if (digitsOnly.length < 10) errs.phone = 'Minimal 10 angka'
+      else if (digitsOnly.length > 15) errs.phone = 'Maksimal 15 angka'
     }
     if (form.alamat && form.alamat.length > MAX_ALAMAT_LENGTH) errs.alamat = `Maksimal ${MAX_ALAMAT_LENGTH} karakter`
     setErrors(errs)
@@ -109,7 +109,7 @@ export default function ProfilPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Nama</Label>
-                  <Input value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className={errors.nama ? 'border-destructive' : ''} />
+                  <Input value={form.nama} maxLength={MAX_NAMA_LENGTH} onChange={(e) => setForm({ ...form, nama: e.target.value })} className={errors.nama ? 'border-destructive' : ''} />
                   {errors.nama && <p className="text-xs text-destructive">{errors.nama}</p>}
                 </div>
                 <div className="space-y-2">
@@ -118,7 +118,7 @@ export default function ProfilPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Jabatan</Label>
-                  <Input value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className={errors.jabatan ? 'border-destructive' : ''} />
+                  <Input value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className={errors.jabatan ? 'border-destructive' : ''} />
                   {errors.jabatan && <p className="text-xs text-destructive">{errors.jabatan}</p>}
                 </div>
                 <div className="space-y-2">
@@ -134,7 +134,7 @@ export default function ProfilPage() {
               <div className="space-y-2">
                 <Label>Alamat</Label>
                 <textarea className={`flex min-h-[60px] w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${errors.alamat ? 'border-destructive' : 'border-input'}`}
-                  value={form.alamat} onChange={(e) => { setForm({ ...form, alamat: e.target.value }); setErrors((p) => ({ ...p, alamat: '' })) }} />
+                  value={form.alamat} maxLength={MAX_ALAMAT_LENGTH} onChange={(e) => { setForm({ ...form, alamat: e.target.value }); setErrors((p) => ({ ...p, alamat: '' })) }} />
                 {errors.alamat && <p className="text-xs text-destructive">{errors.alamat}</p>}
               </div>
               <div className="flex gap-3 pt-2">

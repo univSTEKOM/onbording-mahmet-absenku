@@ -103,7 +103,7 @@ export default function PengajuanFormPage() {
               <Label htmlFor="alasan">Alasan</Label>
               <textarea id="alasan"
                 className={`flex min-h-[80px] w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${errors.alasan ? 'border-destructive' : 'border-input'}`}
-                value={form.alasan} placeholder="Jelaskan alasan pengajuan..."
+                value={form.alasan} maxLength={MAX_ALASAN_LENGTH} placeholder="Jelaskan alasan pengajuan..."
                 onChange={(e) => { setForm({ ...form, alasan: e.target.value }); setErrors((p) => ({ ...p, alasan: '' })) }} />
               {errors.alasan && <p className="text-xs text-destructive">{errors.alasan}</p>}
             </div>

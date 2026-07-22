@@ -1,20 +1,22 @@
 import {
-  MIN_PASSWORD_LENGTH, MIN_PHONE_LENGTH, MAX_PHONE_LENGTH,
+  MIN_PASSWORD_LENGTH, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS,
   MAX_NAMA_LENGTH, MAX_JABATAN_LENGTH, MAX_ALASAN_LENGTH,
   MAX_ALAMAT_LENGTH, MAX_FOTO_SIZE_MB, MIN_ALASAN_LENGTH,
-  MAX_PENGAJUAN_DURATION_DAYS,
+  MAX_PENGAJUAN_DURATION_DAYS, MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH,
 } from '@/lib/constants'
 
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function validateEmail(email: string): string | null {
   if (!email.trim()) return 'Email harus diisi'
+  if (email.length > MAX_EMAIL_LENGTH) return `Maksimal ${MAX_EMAIL_LENGTH} karakter`
   if (!EMAIL_REGEX.test(email)) return 'Format email tidak valid'
   return null
 }
 
 export function validatePassword(password: string): string | null {
   if (!password) return 'Password harus diisi'
+  if (password.length > MAX_PASSWORD_LENGTH) return `Maksimal ${MAX_PASSWORD_LENGTH} karakter`
   if (password.length < MIN_PASSWORD_LENGTH) return `Minimal ${MIN_PASSWORD_LENGTH} karakter`
   return null
 }
@@ -34,8 +36,8 @@ export function validateJabatan(jabatan: string): string | null {
 export function validatePhone(phone: string): string | null {
   if (!phone) return null
   const digits = phone.replace(/\D/g, '')
-  if (digits.length < MIN_PHONE_LENGTH) return `Minimal ${MIN_PHONE_LENGTH} angka`
-  if (digits.length > MAX_PHONE_LENGTH) return `Maksimal ${MAX_PHONE_LENGTH} angka`
+  if (digits.length < MIN_PHONE_DIGITS) return `Minimal ${MIN_PHONE_DIGITS} angka`
+  if (digits.length > MAX_PHONE_DIGITS) return `Maksimal ${MAX_PHONE_DIGITS} angka`
   return null
 }
 
