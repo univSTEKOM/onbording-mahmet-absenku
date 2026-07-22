@@ -158,11 +158,16 @@ export default function RiwayatPage() {
           </DialogHeader>
           {detail && (
             <div className="space-y-4">
-              {detail.foto && (
-                <div className="flex justify-center">
-                  <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-muted">
-                    <img src={detail.foto} alt="foto absensi" className="w-full h-full object-cover" />
-                  </div>
+              {detail.photos?.length > 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  {detail.photos.map((p, i) => (
+                    <div key={i}>
+                      <p className="text-xs text-muted-foreground mb-1 capitalize">{p.type === 'check_in' ? 'Check In' : 'Check Out'}</p>
+                      <div className="rounded-lg overflow-hidden border">
+                        <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
               <div className="grid grid-cols-2 gap-3 text-sm">

@@ -56,9 +56,9 @@ export default function AbsensiPage() {
   function handleFaceVerified(photo?: string) {
     setShowFaceVerification(false)
     if (mode === 'in') {
-      checkInMutation.mutate(photo ? { foto: photo } : {})
+      checkInMutation.mutate(photo ? { photoUrl: photo } : {})
     } else if (absensi) {
-      checkOutMutation.mutate(absensi.id)
+      checkOutMutation.mutate({ id: absensi.id, photoUrl: photo })
     }
   }
 
@@ -193,8 +193,8 @@ export default function AbsensiPage() {
         onVerified={handleFaceVerified}
         onSkip={() => {
           setShowFaceVerification(false)
-          if (mode === 'in') checkInMutation.mutate()
-          else if (absensi) checkOutMutation.mutate(absensi.id)
+          if (mode === 'in') checkInMutation.mutate({})
+          else if (absensi) checkOutMutation.mutate({ id: absensi.id })
         }}
         mode={mode}
       />

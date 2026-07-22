@@ -32,25 +32,29 @@ export function useCheckIn() {
   const { user } = useAuth()
 
   return useMutation({
-    mutationFn: (extra?: { foto?: string }) =>
+    mutationFn: (extra?: { photoUrl?: string }) =>
       checkIn({
         userId: user!.id,
         tanggal: new Date().toISOString().split('T')[0],
         checkIn: new Date().toISOString(),
-        foto: extra?.foto,
+        photos: extra?.photoUrl ? [{ type: 'check_in', url: extra.photoUrl, capturedAt: new Date().toISOString() }] : [],
       }),
     onSuccess: () => {
       toast.success('Check-in berhasil')
       queryClient.invalidateQueries({ queryKey: ['absensi'] })
     },
-  }) as ReturnType<typeof useMutation> & { mutate: (extra?: { foto?: string }) => void }
+  })
 }
 
 export function useCheckOut() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: number) => checkOut(id),
+    mutationFn: (data: { id: number; photoUrl?: string }) =>
+      checkOut(data.id, {
+        checkOut: new Date().toISOString(),
+        photos: data.photoUrl ? [{ type: 'check_out', url: data.photoUrl, capturedAt: new Date().toISOString() }] : [],
+      }),
     onSuccess: () => {
       toast.success('Check-out berhasil')
       queryClient.invalidateQueries({ queryKey: ['absensi'] })

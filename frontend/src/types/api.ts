@@ -28,15 +28,18 @@ export interface RegisterRequest {
   phone?: string
 }
 
+import type { Photo } from './index'
+
 export interface CheckInData {
   userId: string
   tanggal: string
   checkIn: string
-  foto?: string
+  photos?: Photo[]
 }
 
 export interface CheckOutData {
   checkOut: string
+  photos?: Photo[]
 }
 
 export interface PengajuanFormData {
