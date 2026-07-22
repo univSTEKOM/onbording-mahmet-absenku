@@ -28,15 +28,17 @@ export function useAuth() {
   const user = useMemo(() => mapSessionUser(session?.user), [session])
 
   const login = useCallback(async (data: LoginRequest) => {
-    const { error } = await authClient.signIn.email({
+    const { data: result, error } = await authClient.signIn.email({
       email: data.email,
       password: data.password,
     })
     if (error) {
       throw { response: { data: { message: error.message || 'Email atau password salah' } } }
     }
+    await refetch()
     toast.success('Login berhasil')
-  }, [])
+    return result
+  }, [refetch])
 
   const register = useCallback(async (data: RegisterRequest) => {
     const res = await api.post('/api/register', data)

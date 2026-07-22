@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { ThemeProvider } from '@/components/theme-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { useAuth } from '@/hooks/useAuth'
 import WelcomePage from '@/pages/WelcomePage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
@@ -20,6 +21,19 @@ import MainLayout from '@/components/layout/MainLayout'
 import AuthLayout from '@/components/layout/AuthLayout'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
 import AdminRoute from '@/components/layout/AdminRoute'
+import KaryawanRoute from '@/components/layout/KaryawanRoute'
+
+function RoleDashboard() {
+  const { user } = useAuth()
+  if (user?.role === 'admin') return <HrdDashboardPage />
+  return <DashboardPage />
+}
+
+function RoleRedirect() {
+  const { user } = useAuth()
+  if (user?.role === 'admin') return <Navigate to="/hrd/dashboard" replace />
+  return <Navigate to="/dashboard" replace />
+}
 
 function App() {
   return (
@@ -34,11 +48,11 @@ function App() {
             </Route>
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/absensi" element={<AbsensiPage />} />
-                <Route path="/absensi/riwayat" element={<RiwayatPage />} />
-                <Route path="/pengajuan" element={<PengajuanListPage />} />
-                <Route path="/pengajuan/baru" element={<PengajuanFormPage />} />
+                <Route path="/dashboard" element={<RoleDashboard />} />
+                <Route path="/absensi" element={<KaryawanRoute><AbsensiPage /></KaryawanRoute>} />
+                <Route path="/absensi/riwayat" element={<KaryawanRoute><RiwayatPage /></KaryawanRoute>} />
+                <Route path="/pengajuan" element={<KaryawanRoute><PengajuanListPage /></KaryawanRoute>} />
+                <Route path="/pengajuan/baru" element={<KaryawanRoute><PengajuanFormPage /></KaryawanRoute>} />
                 <Route path="/profil" element={<ProfilPage />} />
                 <Route element={<AdminRoute />}>
                   <Route path="/hrd/dashboard" element={<HrdDashboardPage />} />
@@ -48,7 +62,7 @@ function App() {
                 </Route>
               </Route>
             </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<RoleRedirect />} />
           </Routes>
           <Toaster position="top-right" richColors />
         </ErrorBoundary>

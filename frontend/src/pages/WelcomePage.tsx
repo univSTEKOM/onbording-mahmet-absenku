@@ -68,8 +68,12 @@ function Reveal({ children, className = '' }: { children: React.ReactNode; class
 }
 
 export default function WelcomePage() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
+
+  function goToDashboard() {
+    navigate(isAdmin ? '/hrd/dashboard' : '/dashboard')
+  }
 
   return (
     <div className="bg-background text-foreground selection:bg-primary/10 selection:text-primary">
@@ -78,7 +82,7 @@ export default function WelcomePage() {
         <Logo className="h-9" />
         <div className="flex items-center gap-3">
           {user ? (
-            <Button onClick={() => navigate('/dashboard')} className="gap-2">
+            <Button onClick={goToDashboard} className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Dashboard
             </Button>
@@ -121,7 +125,7 @@ export default function WelcomePage() {
             <Reveal>
               <div className="flex flex-col sm:flex-row gap-4">
                 {user ? (
-                  <Button onClick={() => navigate('/dashboard')} size="lg" className="text-base px-10 py-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all gap-2">
+                  <Button onClick={goToDashboard} size="lg" className="text-base px-10 py-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all gap-2">
                     <LayoutDashboard className="h-5 w-5" />
                     Buka Dashboard
                   </Button>
@@ -231,7 +235,7 @@ export default function WelcomePage() {
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                   {user ? (
-                    <Button onClick={() => navigate('/dashboard')} size="lg" className="bg-white text-primary hover:bg-white/90 px-10 py-6 rounded-xl text-base font-bold gap-2">
+                    <Button onClick={goToDashboard} size="lg" className="bg-white text-primary hover:bg-white/90 px-10 py-6 rounded-xl text-base font-bold gap-2">
                       <LayoutDashboard className="h-5 w-5" />
                       Buka Dashboard
                     </Button>

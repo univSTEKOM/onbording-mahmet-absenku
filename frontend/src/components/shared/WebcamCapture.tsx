@@ -24,11 +24,11 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: 'user' },
       })
+      setActive(true)
       streamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         videoRef.current.onloadeddata = () => {
-          setActive(true)
           if (onVideoReady && videoRef.current) onVideoReady(videoRef.current)
         }
       }
