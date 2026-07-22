@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { authClient } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -35,9 +34,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login({ email, password })
-      const session = await authClient.getSession()
-      const role = (session.data?.user as Record<string, unknown> | undefined)?.role
-      navigate(role === 'admin' ? '/hrd/dashboard' : '/dashboard')
+      navigate('/status')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email atau password salah'
       setApiError(msg)

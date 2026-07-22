@@ -17,7 +17,7 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
     nama: (p.nama as string) || (base.name as string) || '',
     jabatan: (p.jabatan as string) || (base.jabatan as string) || '',
     role: (p.role as User['role']) || (base.role as User['role']) || 'karyawan',
-    status: (p.status as User['status']) || 'approved',
+    status: (p.status as User['status']) || (base.status as User['status']) || 'pending',
     rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) || [],
     foto: (p.foto as string) || (base.image as string) || '',
     phone: (p.phone as string) || (base.phone as string) || '',
@@ -39,14 +39,14 @@ export function useAuth() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: session, isPending, refetch } = authClient.useSession()
-  const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
-  const [profileLoading, setProfileLoading] = useState(false)
-
   const sessionUserId = session?.user?.id
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
+  const [profileReady, setProfileReady] = useState(() => !sessionUserId)
+
   useEffect(() => {
-    if (!sessionUserId) { setProfile(null); return }
+    if (!sessionUserId) { setProfile(null); setProfileReady(true); return }
     let cancelled = false
-    setProfileLoading(true)
+    setProfileReady(false)
     api.get('/api/me').then((r) => {
       if (!cancelled) {
         setProfile((r.data as Record<string, unknown>)?.user as Record<string, unknown> || null)
@@ -54,19 +54,12 @@ export function useAuth() {
     }).catch(() => {
       if (!cancelled) setProfile(null)
     }).finally(() => {
-      if (!cancelled) setProfileLoading(false)
+      if (!cancelled) setProfileReady(true)
     })
     return () => { cancelled = true }
   }, [sessionUserId])
 
   const user = useMemo(() => mergeUserData(session?.user, profile), [session, profile])
-
-  const refreshProfile = useCallback(async () => {
-    try {
-      const r = await api.get('/api/me')
-      setProfile((r.data as Record<string, unknown>)?.user as Record<string, unknown> || null)
-    } catch { setProfile(null) }
-  }, [])
 
   const login = useCallback(async (data: LoginRequest) => {
     const { data: result, error } = await authClient.signIn.email({
@@ -101,9 +94,21 @@ export function useAuth() {
     if (data.phone !== undefined) body.phone = data.phone
     if (data.alamat !== undefined) body.alamat = data.alamat
     await api.patch(`/users/${user.id}`, body)
-    refreshProfile()
 
-    /* Update TanStack Query cache langsung agar UI berubah tanpa nunggu refetch */
+    /* Update local profile state langsung — tanpa nunggu request ke /api/me */
+    setProfile((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        ...(data.nama !== undefined ? { nama: data.nama } : {}),
+        ...(data.jabatan !== undefined ? { jabatan: data.jabatan } : {}),
+        ...(data.phone !== undefined ? { phone: data.phone } : {}),
+        ...(data.alamat !== undefined ? { alamat: data.alamat } : {}),
+        ...(data.foto !== undefined ? { foto: data.foto } : {}),
+      }
+    })
+
+    /* Juga update session cache supaya authClient.useSession() ikut berubah */
     const key = getSessionQueryKey()
     queryClient.setQueryData(key, (old: unknown) => {
       if (!old || typeof old !== 'object') return old
@@ -126,12 +131,12 @@ export function useAuth() {
     })
 
     toast.success('Profil berhasil diperbarui')
-  }, [user?.id, queryClient, refreshProfile])
+  }, [user?.id, queryClient])
 
   return {
     user,
     token: null,
-    isLoading: isPending || profileLoading,
+    isLoading: isPending || !profileReady,
     login,
     register,
     logout,
