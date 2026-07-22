@@ -53,10 +53,13 @@ export default function AbsensiPage() {
     return <div className="space-y-4"><h1 className="text-2xl font-bold">Absensi Hari Ini</h1><LoadingState /></div>
   }
 
-  function handleFaceVerified() {
+  function handleFaceVerified(photo?: string) {
     setShowFaceVerification(false)
-    if (mode === 'in') checkInMutation.mutate()
-    else if (absensi) checkOutMutation.mutate(absensi.id)
+    if (mode === 'in') {
+      checkInMutation.mutate(photo ? { foto: photo } : {})
+    } else if (absensi) {
+      checkOutMutation.mutate(absensi.id)
+    }
   }
 
   function openFaceVerification(m: 'in' | 'out') {

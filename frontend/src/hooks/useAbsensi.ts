@@ -32,17 +32,18 @@ export function useCheckIn() {
   const { user } = useAuth()
 
   return useMutation({
-    mutationFn: () =>
+    mutationFn: (extra?: { foto?: string }) =>
       checkIn({
         userId: user!.id,
         tanggal: new Date().toISOString().split('T')[0],
         checkIn: new Date().toISOString(),
+        foto: extra?.foto,
       }),
     onSuccess: () => {
       toast.success('Check-in berhasil')
       queryClient.invalidateQueries({ queryKey: ['absensi'] })
     },
-  })
+  }) as ReturnType<typeof useMutation> & { mutate: (extra?: { foto?: string }) => void }
 }
 
 export function useCheckOut() {

@@ -47,12 +47,16 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady }
     setActive(false)
   }, [])
 
+  const autoStarted = useRef(false)
   useEffect(() => {
-    if (autoStart) startCamera()
-    return () => {
-      stopCamera()
+    if (autoStart && !autoStarted.current) {
+      autoStarted.current = true
+      startCamera()
     }
-  }, [autoStart, startCamera, stopCamera])
+    return () => { stopCamera(); autoStarted.current = false }
+    /* only run on mount/unmount */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart])
 
   function handleCapture() {
     if (!videoRef.current || !canvasRef.current) return

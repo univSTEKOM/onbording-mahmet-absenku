@@ -25,13 +25,15 @@ export async function getAbsensiToday(userId: string): Promise<Absensi | null> {
 }
 
 export async function checkIn(data: CheckInData): Promise<Absensi> {
-  const res = await api.post('/absensi', {
+  const body: Record<string, unknown> = {
     ...data,
     status: 'hadir',
     faceVerified: false,
     keterangan: '',
     createdAt: new Date().toISOString(),
-  })
+  }
+  if (data.foto) body.foto = data.foto
+  const res = await api.post('/absensi', body)
   return res.data
 }
 

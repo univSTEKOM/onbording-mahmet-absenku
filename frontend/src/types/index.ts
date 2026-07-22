@@ -27,6 +27,7 @@ export interface Absensi {
   checkOut: string | null
   status: AbsensiStatus
   faceVerified: boolean
+  foto: string | null
   keterangan: string
   createdAt: string
 }

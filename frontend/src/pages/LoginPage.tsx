@@ -3,10 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { PasswordInput } from '@/components/ui/password-input'
-import { Loader2 } from 'lucide-react'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Logo } from '@/components/Logo'
+import { Loader2 } from 'lucide-react'
 import { MAX_EMAIL_LENGTH, MAX_PASSWORD_LENGTH } from '@/lib/constants'
 import { validateEmail, validatePassword } from '@/lib/validation'
 
@@ -52,38 +51,67 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-svh">
       <div className="flex flex-1 items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm space-y-6">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <Logo className="h-10" />
-            <p className="text-sm text-muted-foreground">Masuk ke akun Anda</p>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {apiError && (
-              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="nama@email.com" value={email} maxLength={MAX_EMAIL_LENGTH}
-                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: '' })) }}
-                className={errors.email ? 'border-destructive' : ''} />
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <PasswordInput id="password" value={password} maxLength={MAX_PASSWORD_LENGTH}
-                onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
-                className={errors.password ? 'border-destructive' : ''} />
-              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-            </div>
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : 'Masuk'}
-            </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Belum punya akun?{' '}
-              <Link to="/register" className="text-primary hover:underline font-medium">Daftar</Link>
-            </p>
+        <div className="w-full max-w-sm">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <FieldGroup>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <Logo className="h-10 mb-2" />
+                <h1 className="text-2xl font-bold">Masuk ke akun Anda</h1>
+                <p className="text-sm text-balance text-muted-foreground">
+                  Masukkan email dan password untuk melanjutkan
+                </p>
+              </div>
+
+              {apiError && (
+                <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
+              )}
+
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="nama@email.com"
+                  value={email}
+                  maxLength={MAX_EMAIL_LENGTH}
+                  onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: '' })) }}
+                  className={`bg-background ${errors.email ? 'border-destructive' : ''}`}
+                  required
+                />
+                {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  maxLength={MAX_PASSWORD_LENGTH}
+                  onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
+                  className={`bg-background ${errors.password ? 'border-destructive' : ''}`}
+                  required
+                />
+                {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
+              </Field>
+
+              <Field>
+                <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                  {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : 'Masuk'}
+                </Button>
+              </Field>
+
+              <Field>
+                <p className="text-center text-sm text-muted-foreground">
+                  Belum punya akun?{' '}
+                  <Link to="/register" className="underline underline-offset-4 hover:text-foreground">
+                    Daftar
+                  </Link>
+                </p>
+              </Field>
+            </FieldGroup>
           </form>
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="mt-6 text-center text-xs text-muted-foreground">
             Demo: andika@stekom.ac.id / password
           </p>
         </div>

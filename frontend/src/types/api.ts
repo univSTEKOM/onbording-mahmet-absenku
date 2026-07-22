@@ -32,6 +32,7 @@ export interface CheckInData {
   userId: string
   tanggal: string
   checkIn: string
+  foto?: string
 }
 
 export interface CheckOutData {
