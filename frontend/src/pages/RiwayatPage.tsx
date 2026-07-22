@@ -158,7 +158,7 @@ export default function RiwayatPage() {
           </DialogHeader>
           {detail && (
             <div className="space-y-4">
-              {detail.photos?.length > 0 && (
+              {detail.photos && detail.photos.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
                   {detail.photos.map((p) => (
                     <div key={p.type + p.capturedAt}>

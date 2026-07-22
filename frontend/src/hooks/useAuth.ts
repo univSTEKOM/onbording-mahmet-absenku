@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { authClient } from '@/lib/auth-client'
+import { getAuthClient } from '@/lib/auth-client'
+const authClient = getAuthClient()
 import { useUserContext } from '@/lib/user-context'
 import api from '@/api/axios'
 import type { User, LoginRequest, RegisterRequest } from '@/types'
@@ -17,6 +18,8 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
     nama: (p.nama as string) || (base.name as string) || '',
     jabatan: (p.jabatan as string) || (base.jabatan as string) || '',
     role: (p.role as User['role']) || (base.role as User['role']) || 'karyawan',
+    status: (p.status as User['status']) || (base.status as User['status']) || 'approved',
+    rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) || [],
     foto: (p.foto as string) || (base.image as string) || '',
     phone: (p.phone as string) || (base.phone as string) || '',
     alamat: (p.alamat as string) || (base.alamat as string) || '',

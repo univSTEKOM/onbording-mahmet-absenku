@@ -8,6 +8,12 @@ export type PengajuanJenis = 'cuti' | 'izin' | 'sakit'
 
 export type PengajuanStatus = 'pending' | 'approved' | 'rejected'
 
+export interface Photo {
+  type: string
+  url: string
+  capturedAt: string
+}
+
 export interface RejectionNote {
   note: string
   createdAt: string
@@ -36,6 +42,7 @@ export interface Absensi {
   checkOut: string | null
   status: AbsensiStatus
   faceVerified: boolean
+  photos?: Photo[]
   keterangan: string
   createdAt: string
 }
