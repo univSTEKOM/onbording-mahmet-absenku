@@ -106,7 +106,7 @@ server.post('/api/auth/sign-in/email', (req, res, next) => {
 server.all('/api/auth/*', toNodeHandler(auth))
 
 /* ── Body parser for custom routes (after Better Auth) ── */
-server.use(express.json())
+server.use(express.json({ limit: '10mb' }))
 
 /* ── Helper: admin check ── */
 async function requireAdmin(headers) {
@@ -275,7 +275,6 @@ server.get('/api/users/all', async (req, res) => {
 
 /* ── json-server middleware ── */
 server.use(upload.none())
-server.use(jsonServer.bodyParser)
 server.use(middlewares)
 
 /* ── json-server custom middleware ── */
@@ -315,7 +314,7 @@ server.patch('/absensi/:id', (req, res, next) => {
   }
 })
 
-server.patch('/users/:id', (req, res, next) => {
+server.patch('/users/:id', async (req, res, next) => {
   const body = req.body
   delete body.status; delete body.rejectionNotes; delete body.role; delete body.id; delete body.createdAt
   if (body.email !== undefined) {
@@ -338,6 +337,20 @@ server.patch('/users/:id', (req, res, next) => {
   if (user && user.status === 'rejected') {
     router.db.get('users').find({ id: req.params.id }).assign({ status: 'pending', rejectionNotes: [] }).write()
   }
+
+  /* Sync ke Better Auth database */
+  const syncFields: Record<string, string | undefined> = {}
+  if (body.nama !== undefined) syncFields.name = body.nama
+  if (body.jabatan !== undefined) syncFields.jabatan = body.jabatan
+  if (body.phone !== undefined) syncFields.phone = body.phone
+  if (body.alamat !== undefined) syncFields.alamat = body.alamat
+  if (body.foto !== undefined) syncFields.foto = body.foto as string
+  if (Object.keys(syncFields).length > 0) {
+    try {
+      await db.update(usersSchema).set(syncFields).where(eq(usersSchema.id, req.params.id)).run()
+    } catch (e) { console.error('Drizzle profile sync error:', e.message) }
+  }
+
   next()
 })
 
