@@ -39,11 +39,11 @@ async function syncSeedUsers() {
         const newId = result.user.id
         const oldProfile = router.db.get('users').find({ email: seed.email }).value()
         if (oldProfile) {
-          router.db.get('users').chain.find({ email: seed.email }).assign({ id: newId }).write()
-          router.db.get('absensi').chain.filter({ userId: seed.id.toString() }).each((a) => { a.userId = newId }).value()
-          router.db.get('absensi').chain.filter({ userId: seed.id }).each((a) => { a.userId = newId }).value()
-          router.db.get('pengajuan').chain.filter({ userId: seed.id.toString() }).each((p) => { p.userId = newId }).value()
-          router.db.get('pengajuan').chain.filter({ userId: seed.id }).each((p) => { p.userId = newId }).value()
+          router.db.get('users').find({ email: seed.email }).assign({ id: newId }).write()
+          router.db.get('absensi').filter({ userId: seed.id.toString() }).each((a) => { a.userId = newId }).value()
+          router.db.get('absensi').filter({ userId: seed.id }).each((a) => { a.userId = newId }).value()
+          router.db.get('pengajuan').filter({ userId: seed.id.toString() }).each((p) => { p.userId = newId }).value()
+          router.db.get('pengajuan').filter({ userId: seed.id }).each((p) => { p.userId = newId }).value()
           router.db.write()
         } else {
           router.db.get('users').push({
@@ -192,14 +192,14 @@ server.patch('/api/users/:id/status', async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
 
     /* Update di db.json */
-    router.db.get('users').chain.find({ id: req.params.id }).assign({ status: newStatus }).write()
+    router.db.get('users').find({ id: req.params.id }).assign({ status: newStatus }).write()
     if (newStatus === 'rejected' && note) {
       const notes = user.rejectionNotes || []
       notes.push({ note, createdAt: new Date().toISOString() })
-      router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
+      router.db.get('users').find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
     }
     if (newStatus === 'approved') {
-      router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: [] }).write()
+      router.db.get('users').find({ id: req.params.id }).assign({ rejectionNotes: [] }).write()
     }
 
     /* Update di Better Auth via Drizzle */
@@ -228,7 +228,7 @@ server.post('/api/users/:id/notes', async (req, res) => {
 
     const notes = user.rejectionNotes || []
     notes.push({ note, createdAt: new Date().toISOString() })
-    router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
+    router.db.get('users').find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
     res.json({ message: 'Catatan ditambahkan' })
   } catch (e) { res.status(400).json({ message: 'Gagal: ' + e.message }) }
 })
@@ -319,7 +319,7 @@ server.patch('/users/:id', (req, res, next) => {
   if (body.alamat !== undefined && body.alamat.length > 500) return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
   const user = router.db.get('users').find({ id: req.params.id }).value()
   if (user && user.status === 'rejected') {
-    router.db.get('users').chain.find({ id: req.params.id }).assign({ status: 'pending', rejectionNotes: [] }).write()
+    router.db.get('users').find({ id: req.params.id }).assign({ status: 'pending', rejectionNotes: [] }).write()
   }
   next()
 })
