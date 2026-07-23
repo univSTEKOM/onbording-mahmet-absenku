@@ -287,15 +287,32 @@ const CHECK_IN_END = '07:45'
 const CHECK_OUT_MIN = '16:00'
 
 server.post('/absensi', (req, res, next) => {
-  const t = nowTime(); const m = toMinutes(t)
-  if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
-  if (router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()) return res.status(400).json({ message: 'Sudah absen hari ini' })
-  req.body.status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'; next()
+  try {
+    if (!req.body || !req.body.userId) {
+      console.error('[absensi] Invalid body:', req.body)
+      return res.status(400).json({ message: 'Data absensi tidak valid' })
+    }
+    const t = nowTime(); const m = toMinutes(t)
+    if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
+    if (router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()) return res.status(400).json({ message: 'Sudah absen hari ini' })
+    req.body.status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'; next()
+  } catch (e) {
+    console.error('[absensi] POST error:', e.message, e.stack)
+    res.status(500).json({ message: 'Gagal absen: ' + e.message })
+  }
 })
 
 server.patch('/absensi/:id', (req, res, next) => {
-  if (!req.body.checkOut) return next()
-  req.body.status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : undefined; next()
+  try {
+    if (!req.body || !req.params.id) {
+      return res.status(400).json({ message: 'Data tidak valid' })
+    }
+    if (!req.body.checkOut) return next()
+    req.body.status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : undefined; next()
+  } catch (e) {
+    console.error('[absensi] PATCH error:', e.message, e.stack)
+    res.status(500).json({ message: 'Gagal update absensi: ' + e.message })
+  }
 })
 
 server.patch('/users/:id', (req, res, next) => {
@@ -403,6 +420,11 @@ server.get('/api/dashboard/month', (req, res) => {
   }
 
   res.json({ data, totalKaryawan: total })
+})
+
+server.use((err, req, res, next) => {
+  console.error('[server] Unhandled error:', err?.message || err, err?.stack || '')
+  res.status(500).json({ message: 'Internal server error: ' + (err?.message || 'unknown') })
 })
 
 server.use(router)
