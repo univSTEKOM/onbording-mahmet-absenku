@@ -512,6 +512,14 @@ server.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error: ' + (err?.message || 'unknown') })
 })
 
+server.use(async (req, res, next) => {
+  if (req.path.startsWith('/api/')) return next()
+  if (req.method === 'GET' && (req.path === '/' || req.path.startsWith('/uploads/'))) return next()
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+  next()
+})
+
 server.use(router)
 
 const PORT = process.env.PORT || 3001
