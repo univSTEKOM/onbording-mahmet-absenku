@@ -237,10 +237,8 @@ export function FaceVerification({
             </div>
             {processing && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Memverifikasi...</p>}
           </div>
-        ) : cameraActive ? (
-          <WebcamCapture onCapture={handleManualCapture} processing={processing} autoStart onVideoReady={handleVideoReady} active />
         ) : status === 'idle' ? (
-          <WebcamCapture onCapture={handleManualCapture} processing={processing} autoStart onVideoReady={handleVideoReady} />
+          <WebcamCapture onCapture={handleManualCapture} processing={processing} onVideoReady={handleVideoReady} active={status === 'idle' && !finishedRef.current} />
         ) : null}
 
         {status === 'idle' && cameraActive && (

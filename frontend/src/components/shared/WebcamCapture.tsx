@@ -5,37 +5,33 @@ import { Camera, Loader2 } from 'lucide-react'
 interface WebcamCaptureProps {
   onCapture: (canvas: HTMLCanvasElement) => void
   processing?: boolean
-  autoStart?: boolean
   onVideoReady?: (video: HTMLVideoElement) => void
   active?: boolean
 }
 
-export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, active: externalActive }: WebcamCaptureProps) {
+export function WebcamCapture({ onCapture, processing, onVideoReady, active }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const autoStartedRef = useRef(false)
-  const [internalActive, setInternalActive] = useState(false)
+  const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
-
-  const isActive = externalActive !== undefined ? externalActive && internalActive : internalActive
 
   const startCamera = useCallback(async () => {
     setError('')
+    setStarting(true)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: 'user' },
       })
       streamRef.current = stream
-      setInternalActive(true)
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        videoRef.current.onloadeddata = () => {
-          if (onVideoReady && videoRef.current) onVideoReady(videoRef.current)
-        }
+      videoRef.current!.srcObject = stream
+      videoRef.current!.onloadeddata = () => {
+        if (onVideoReady && videoRef.current) onVideoReady(videoRef.current)
       }
     } catch {
       setError('Kamera tidak tersedia. Periksa izin kamera atau gunakan HTTPS.')
+    } finally {
+      setStarting(false)
     }
   }, [onVideoReady])
 
@@ -44,25 +40,17 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, 
       streamRef.current.getTracks().forEach((t) => t.stop())
       streamRef.current = null
     }
-    setInternalActive(false)
   }, [])
 
   useEffect(() => {
-    if (autoStart && !autoStartedRef.current) {
-      autoStartedRef.current = true
+    if (active && !streamRef.current) {
       startCamera()
     }
-    return () => { stopCamera(); autoStartedRef.current = false }
-  }, [autoStart, startCamera, stopCamera])
-
-  useEffect(() => {
-    if (!isActive && streamRef.current) {
+    if (!active && streamRef.current) {
       stopCamera()
     }
-    if (isActive && !streamRef.current && autoStartedRef.current) {
-      startCamera()
-    }
-  }, [isActive, startCamera, stopCamera])
+    return () => { stopCamera() }
+  }, [active, startCamera, stopCamera])
 
   function handleCapture() {
     if (!videoRef.current || !canvasRef.current) return
@@ -76,8 +64,6 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, 
     onCapture(canvas)
   }
 
-  if (!isActive && !streamRef.current) return null
-
   return (
     <div className="space-y-4">
       <div className="relative mx-auto max-w-sm rounded-lg overflow-hidden bg-muted">
@@ -86,34 +72,32 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, 
           autoPlay
           playsInline
           muted
-          className={'w-full aspect-[4/3] object-cover' + (isActive ? '' : ' hidden')}
+          className={'w-full aspect-[4/3] object-cover' + (active ? '' : ' hidden')}
         />
         <canvas ref={canvasRef} className="hidden" />
-        {!isActive && (
+        {!active && (
           <div className="flex items-center justify-center aspect-[4/3] text-muted-foreground">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            Mengakses kamera...
+            {starting ? (
+              <><Loader2 className="h-6 w-6 animate-spin mr-2" /> Mengakses kamera...</>
+            ) : error ? (
+              <p className="text-sm text-destructive px-4 text-center">{error}</p>
+            ) : (
+              <p className="text-sm">Kamera siap</p>
+            )}
           </div>
         )}
       </div>
 
-      {error && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm text-center">{error}</div>
-      )}
-
       <div className="flex justify-center gap-3">
-        {!isActive && !streamRef.current && (
+        {!active && !starting && (
           <Button onClick={startCamera} className="gap-2">
             <Camera className="h-4 w-4" /> Buka Kamera
           </Button>
         )}
-        {isActive && (
+        {active && (
           <Button onClick={handleCapture} disabled={processing} className="gap-2">
             {processing ? <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</> : <><Camera className="h-4 w-4" /> Ambil Foto</>}
           </Button>
-        )}
-        {isActive && (
-          <Button variant="outline" onClick={stopCamera}>Tutup Kamera</Button>
         )}
       </div>
     </div>
