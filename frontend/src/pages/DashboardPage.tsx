@@ -12,8 +12,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
-import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, LogIn, LogOut } from 'lucide-react'
 
 const now = new Date()
 const curMonth = now.getMonth()
@@ -32,7 +31,7 @@ export default function DashboardPage() {
   const navigate = useNavigate()
   const [detailDate, setDetailDate] = useState<string | null>(null)
 
-  const { data: recentAbsensi, isLoading: chartLoading } = useRecentAbsensi()
+  const { data: recentAbsensi, isLoading: weekLoading } = useRecentAbsensi()
   const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: allAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
   const { data: todayAbsensi } = useAbsensiList({ userId: user?.id, tanggal: now.toISOString().split('T')[0] })
@@ -46,13 +45,19 @@ export default function DashboardPage() {
     terlambat: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && a.status === 'terlambat').length || 0,
   }
 
-  const chartData = (recentAbsensi || []).map((item) => ({
-    name: new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
-    hadir: item.status && ['hadir', 'pulang_cepat'].includes(item.status) ? 1 : 0,
-    terlambat: item.status === 'terlambat' ? 1 : 0,
-  }))
-
   const recent5 = allAbsensi?.slice(0, 5)
+
+  const weekDays = (recentAbsensi || []).map((item) => {
+    const d = new Date(item.tanggal)
+    return {
+      ...item,
+      dayName: d.toLocaleDateString('id-ID', { weekday: 'short' }),
+      dateNum: d.getDate(),
+      monthShort: d.toLocaleDateString('id-ID', { month: 'short' }),
+      checkInTime: item.checkIn ? new Date(item.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : null,
+      checkOutTime: item.checkOut ? new Date(item.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : null,
+    }
+  })
 
   if (!user) return null
 
@@ -81,22 +86,37 @@ export default function DashboardPage() {
             <CardTitle className="text-base">Absensi 7 Hari Terakhir</CardTitle>
           </CardHeader>
           <CardContent>
-            {chartLoading ? (
-              <Skeleton className="h-[200px] w-full rounded-lg" />
-            ) : chartData.some((d) => d.hadir > 0 || d.terlambat > 0) ? (
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} domain={[0, 1]} ticks={[0, 1]} />
-                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border)' }} />
-                    <Bar dataKey="hadir" fill="var(--chart-1)" radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="terlambat" fill="var(--chart-2)" radius={[4, 4, 0, 0]} stackId="a" />
-                  </BarChart>
-                </ResponsiveContainer>
+            {weekLoading ? (
+              <Skeleton className="h-32 w-full rounded-lg" />
+            ) : weekDays.length > 0 ? (
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {weekDays.map((day) => (
+                  <div
+                    key={day.tanggal}
+                    className="flex flex-col items-center gap-1.5 min-w-[80px] p-3 rounded-xl border bg-card text-center shrink-0"
+                  >
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{day.dayName}</span>
+                    <span className="text-lg font-bold leading-none">{day.dateNum}</span>
+                    <span className="text-[10px] text-muted-foreground">{day.monthShort}</span>
+                    <div className="w-full h-px bg-border my-1" />
+                    {day.status ? (
+                      <>
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${absensiStatusBadge[day.status as keyof typeof absensiStatusBadge]}`}>
+                          {absensiStatusLabel[day.status as keyof typeof absensiStatusLabel]}
+                        </span>
+                        <div className="flex flex-col items-center gap-0.5 text-[10px] text-muted-foreground mt-0.5">
+                          {day.checkInTime && <span className="flex items-center gap-1"><LogIn className="h-2.5 w-2.5 text-green-600" />{day.checkInTime}</span>}
+                          {day.checkOutTime && <span className="flex items-center gap-1"><LogOut className="h-2.5 w-2.5 text-red-600" />{day.checkOutTime}</span>}
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/40">—</span>
+                    )}
+                  </div>
+                ))}
               </div>
             ) : (
-              <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data absensi 7 hari terakhir</div>
+              <div className="h-20 flex items-center justify-center text-sm text-muted-foreground">Belum ada data absensi 7 hari terakhir</div>
             )}
           </CardContent>
         </Card>
