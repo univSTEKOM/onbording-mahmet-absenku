@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRecentAbsensi } from '@/hooks/useDashboard'
 import { useAbsensiList } from '@/hooks/useAbsensi'
@@ -5,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
+import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
 import { useNavigate } from 'react-router-dom'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -12,12 +14,20 @@ import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
+const now = new Date()
+const curMonth = now.getMonth()
+const curYear = now.getFullYear()
+
 export default function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [detailDate, setDetailDate] = useState<string | null>(null)
   const { data: recentAbsensi, isLoading: chartLoading } = useRecentAbsensi()
   const { data: allAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
   const { data: todayAbsensi } = useAbsensiList({ userId: user?.id, tanggal: new Date().toISOString().split('T')[0] })
+  const { data: dayDetail } = useAbsensiList(
+    detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
+  )
 
   const chartData = (recentAbsensi || []).map((item) => ({
     name: new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
@@ -28,6 +38,11 @@ export default function DashboardPage() {
   const isCheckedIn = !!todayAbsensi?.[0]?.checkIn
   const isCheckedOut = !!todayAbsensi?.[0]?.checkOut
   const recent5 = allAbsensi?.slice(0, 5)
+
+  const calendarData = (allAbsensi || []).reduce<Record<string, { status: string; checkIn: string | null; checkOut: string | null }>>((acc, a) => {
+    if (!acc[a.tanggal]) acc[a.tanggal] = { status: a.status, checkIn: a.checkIn, checkOut: a.checkOut }
+    return acc
+  }, {})
 
   if (!user) return null
 
@@ -105,6 +120,37 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardContent className="pt-6">
+          <AttendanceCalendar
+            year={curYear}
+            month={curMonth}
+            data={Object.entries(calendarData).map(([tanggal, v]) => ({
+              tanggal,
+              hadir: v.status === 'hadir' ? 1 : 0,
+              terlambat: v.status === 'terlambat' ? 1 : 0,
+              checkInOnly: v.checkIn && !v.checkOut ? 1 : 0,
+              izin: ['izin', 'sakit', 'cuti'].includes(v.status) ? 1 : 0,
+              tidakHadir: 0,
+            }))}
+            totalKaryawan={1}
+            onDayClick={setDetailDate}
+          />
+        </CardContent>
+      </Card>
+
+      {detailDate && dayDetail?.[0] && (
+        <DayDetailDialog
+          tanggal={detailDate}
+          userStatus={{
+            status: dayDetail[0].status,
+            checkIn: dayDetail[0].checkIn,
+            checkOut: dayDetail[0].checkOut,
+          }}
+          onClose={() => setDetailDate(null)}
+        />
+      )}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

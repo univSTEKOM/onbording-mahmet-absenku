@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
+import { useAbsensiListPaginated, useAbsensiList } from '@/hooks/useAbsensi'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { FilterDialog, type FilterValues } from '@/components/shared/FilterDialog'
@@ -15,6 +16,8 @@ import { Download, RefreshCw, Filter, LogIn, LogOut, CheckCircle2, History, Cloc
 import type { Absensi } from '@/types'
 
 const PAGE_SIZE = 10
+const curMonth = new Date().getMonth()
+const curYear = new Date().getFullYear()
 const datePresets = [
   { label: 'Hari Ini', get: () => new Date().toISOString().split('T')[0] },
   { label: '7 Hari', get: () => { const d = new Date(); d.setDate(d.getDate() - 7); return d.toISOString().split('T')[0] } },

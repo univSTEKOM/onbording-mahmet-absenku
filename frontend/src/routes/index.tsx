@@ -7,20 +7,14 @@ import MainLayout from '@/components/layout/MainLayout'
 import RoleDashboard from '@/components/shared/RoleDashboard'
 import RoleRedirect from '@/components/shared/RoleRedirect'
 
-function lazyPage(path: string) {
-  return () => import(`../pages/${path}.tsx`).then(m => ({ Component: m.default }))
-}
-
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
-      /* Public */
-      { index: true, lazy: lazyPage('WelcomePage') },
-      { path: 'login', lazy: lazyPage('LoginPage') },
-      { path: 'register', lazy: lazyPage('RegisterPage') },
+      { index: true, lazy: () => import('../pages/WelcomePage').then(m => ({ Component: m.default })) },
+      { path: 'login', lazy: () => import('../pages/LoginPage').then(m => ({ Component: m.default })) },
+      { path: 'register', lazy: () => import('../pages/RegisterPage').then(m => ({ Component: m.default })) },
 
-      /* Protected — butuh login */
       {
         element: <ProtectedRoute />,
         children: [
@@ -28,31 +22,28 @@ export const router = createBrowserRouter([
             element: <MainLayout />,
             children: [
               { path: 'dashboard', element: <RoleDashboard /> },
-              { path: 'status', lazy: lazyPage('StatusAkunPage') },
+              { path: 'status', lazy: () => import('../pages/StatusAkunPage').then(m => ({ Component: m.default })) },
 
-              /* Karyawan only */
               {
                 element: <KaryawanRoute />,
                 children: [
-                  { path: 'absensi', lazy: lazyPage('AbsensiPage') },
-                  { path: 'absensi/riwayat', lazy: lazyPage('RiwayatPage') },
-                  { path: 'pengajuan', lazy: lazyPage('PengajuanListPage') },
-                  { path: 'pengajuan/baru', lazy: lazyPage('PengajuanFormPage') },
+                  { path: 'absensi', lazy: () => import('../pages/AbsensiPage').then(m => ({ Component: m.default })) },
+                  { path: 'absensi/riwayat', lazy: () => import('../pages/RiwayatPage').then(m => ({ Component: m.default })) },
+                  { path: 'pengajuan', lazy: () => import('../pages/PengajuanListPage').then(m => ({ Component: m.default })) },
+                  { path: 'pengajuan/baru', lazy: () => import('../pages/PengajuanFormPage').then(m => ({ Component: m.default })) },
                 ],
               },
 
-              /* Shared */
-              { path: 'profil', lazy: lazyPage('ProfilPage') },
+              { path: 'profil', lazy: () => import('../pages/ProfilPage').then(m => ({ Component: m.default })) },
 
-              /* Admin only */
               {
                 element: <AdminRoute />,
                 children: [
-                  { path: 'hrd/dashboard', lazy: lazyPage('HrdDashboardPage') },
-                  { path: 'hrd/riwayat', lazy: lazyPage('HrdRiwayatPage') },
-                  { path: 'hrd/pengajuan', lazy: lazyPage('HrdPengajuanPage') },
-                  { path: 'hrd/karyawan', lazy: lazyPage('HrdKaryawanPage') },
-                  { path: 'hrd/verifikasi', lazy: lazyPage('HrdVerifikasiPage') },
+                  { path: 'hrd/dashboard', lazy: () => import('../pages/HrdDashboardPage').then(m => ({ Component: m.default })) },
+                  { path: 'hrd/riwayat', lazy: () => import('../pages/HrdRiwayatPage').then(m => ({ Component: m.default })) },
+                  { path: 'hrd/pengajuan', lazy: () => import('../pages/HrdPengajuanPage').then(m => ({ Component: m.default })) },
+                  { path: 'hrd/karyawan', lazy: () => import('../pages/HrdKaryawanPage').then(m => ({ Component: m.default })) },
+                  { path: 'hrd/verifikasi', lazy: () => import('../pages/HrdVerifikasiPage').then(m => ({ Component: m.default })) },
                 ],
               },
             ],
@@ -60,7 +51,6 @@ export const router = createBrowserRouter([
         ],
       },
 
-      /* Catch-all */
       { path: '*', element: <RoleRedirect /> },
     ],
   },
