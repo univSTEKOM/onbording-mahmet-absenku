@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useAbsensiListPaginated, useAbsensiList } from '@/hooks/useAbsensi'
+import { useMonthAttendance } from '@/hooks/useDashboard'
+import { useAllPengajuan } from '@/hooks/usePengajuan'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,7 +15,6 @@ import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { Download, RefreshCw, LogIn, LogOut, CheckCircle2, History, Clock, X } from 'lucide-react'
 import type { Absensi } from '@/types'
-import type { DayAttendanceData } from '@/api/dashboard'
 
 const PAGE_SIZE = 10
 const curMonth = new Date().getMonth()
@@ -73,17 +74,21 @@ export default function RiwayatPage() {
 
   const dateRange = useMemo(() => getDateRange(quickDate), [quickDate])
 
-  const { data: monthAbsensi } = useAbsensiList({
-    userId: user?.id,
-    _sort: 'tanggal',
-    _order: 'desc',
-    tanggal_gte: `${curYear}-${String(curMonth + 1).padStart(2, '0')}-01`,
-    tanggal_lte: `${curYear}-${String(curMonth + 1).padStart(2, '0')}-31`,
-  })
-
+  const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
+  const { data: allPengajuan } = useAllPengajuan()
   const { data: dayDetail } = useAbsensiList(
     detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
   )
+
+  const dayPengajuan = detailDate && allPengajuan
+    ? allPengajuan.find(
+        (p) =>
+          p.status === 'approved' &&
+          p.userId === user?.id &&
+          p.tanggalMulai <= detailDate &&
+          p.tanggalSelesai >= detailDate,
+      )
+    : null
 
   const { data, isLoading, refetch, isFetching } = useAbsensiListPaginated({
     userId: user?.id,
@@ -148,32 +153,28 @@ export default function RiwayatPage() {
 
       <Card>
         <CardContent className="pt-6">
-          <AttendanceCalendar
-            year={curYear}
-            month={curMonth}
-            data={Object.entries(
-              (monthAbsensi || []).reduce<Record<string, DayAttendanceData>>((acc, a) => {
-                if (!acc[a.tanggal]) acc[a.tanggal] = { tanggal: a.tanggal, hadir: 0, terlambat: 0, checkInOnly: 0, izin: 0, tidakHadir: 0 }
-                if (a.status === 'hadir') acc[a.tanggal].hadir++
-                else if (a.status === 'terlambat') acc[a.tanggal].terlambat++
-                else if (['izin', 'sakit', 'cuti'].includes(a.status)) acc[a.tanggal].izin++
-                if (a.checkIn && !a.checkOut) acc[a.tanggal].checkInOnly++
-                return acc
-              }, {})
-            ).map(([_, v]) => v)}
-            onDayClick={(tgl) => setDetailDate(tgl)}
-          />
+          {monthData ? (
+            <AttendanceCalendar
+              year={curYear}
+              month={curMonth}
+              data={monthData.data}
+              onDayClick={(tgl) => setDetailDate(tgl)}
+            />
+          ) : (
+            <Skeleton className="h-[300px] w-full rounded-lg" />
+          )}
         </CardContent>
       </Card>
 
-      {detailDate && dayDetail?.[0] && (
+      {detailDate && (
         <DayDetailDialog
           tanggal={detailDate}
-          userStatus={{
+          userStatus={dayDetail?.[0] ? {
             status: dayDetail[0].status,
             checkIn: dayDetail[0].checkIn,
             checkOut: dayDetail[0].checkOut,
-          }}
+          } : undefined}
+          pengajuan={dayPengajuan || undefined}
           onClose={() => setDetailDate(null)}
         />
       )}
