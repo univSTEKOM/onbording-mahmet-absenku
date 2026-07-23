@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { useHrdWeek, useMonthAttendance } from '@/hooks/useDashboard'
 import { useUsers } from '@/hooks/useUsers'
 import { useAllPengajuan } from '@/hooks/usePengajuan'
@@ -146,7 +146,7 @@ export default function HrdDashboardPage() {
             </CardContent>
           </Card>
 
-          <Button variant="outline" className="w-full gap-2" onClick={() => navigate('/hrd/verifikasi')}>
+          <Button variant="outline" className="w-full gap-2" onClick={() => navigate({ to: '/hrd/verifikasi' })}>
             <Clock className="h-4 w-4" /> Verifikasi Karyawan
             {pendingUsers > 0 && <Badge className="ml-1 bg-primary">{pendingUsers}</Badge>}
             <ArrowRight className="h-4 w-4 ml-auto" />
@@ -195,7 +195,7 @@ export default function HrdDashboardPage() {
                     <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-0 text-[10px]">Pending</Badge>
                   </div>
                 ))}
-                <Button variant="ghost" className="w-full text-sm gap-1" onClick={() => navigate('/hrd/verifikasi')}>
+                <Button variant="ghost" className="w-full text-sm gap-1" onClick={() => navigate({ to: '/hrd/verifikasi' })}>
                   Lihat semua <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -216,7 +216,7 @@ export default function HrdDashboardPage() {
                   <span className="text-sm text-muted-foreground">{lateToday} karyawan terlambat hari ini</span>
                   <span className="text-sm font-semibold text-yellow-600">{lateToday} orang</span>
                 </div>
-                <Button variant="outline" className="w-full text-sm" onClick={() => navigate('/hrd/riwayat')}>
+                <Button variant="outline" className="w-full text-sm" onClick={() => navigate({ to: '/hrd/riwayat' })}>
                   Lihat Riwayat
                 </Button>
               </div>

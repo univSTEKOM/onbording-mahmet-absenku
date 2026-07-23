@@ -14,6 +14,7 @@ import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { Download, RefreshCw, Filter, LogIn, LogOut, CheckCircle2, History, Clock } from 'lucide-react'
 import type { Absensi } from '@/types'
+import type { DayAttendanceData } from '@/api/dashboard'
 
 const PAGE_SIZE = 10
 const curMonth = new Date().getMonth()
@@ -42,6 +43,19 @@ export default function RiwayatPage() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [filter, setFilter] = useState<FilterValues>({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })
   const [detail, setDetail] = useState<Absensi | null>(null)
+  const [detailDate, setDetailDate] = useState<string | null>(null)
+
+  const { data: monthAbsensi } = useAbsensiList({
+    userId: user?.id,
+    _sort: 'tanggal',
+    _order: 'desc',
+    tanggal_gte: `${curYear}-${String(curMonth + 1).padStart(2, '0')}-01`,
+    tanggal_lte: `${curYear}-${String(curMonth + 1).padStart(2, '0')}-31`,
+  })
+
+  const { data: dayDetail } = useAbsensiList(
+    detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
+  )
 
   const { data, isLoading, refetch, isFetching } = useAbsensiListPaginated({
     userId: user?.id,
@@ -77,6 +91,39 @@ export default function RiwayatPage() {
           </Button>
         </div>
       </div>
+
+      <Card>
+        <CardContent className="pt-6">
+          <AttendanceCalendar
+            year={curYear}
+            month={curMonth}
+            data={Object.entries(
+              (monthAbsensi || []).reduce<Record<string, DayAttendanceData>>((acc, a) => {
+                if (!acc[a.tanggal]) acc[a.tanggal] = { tanggal: a.tanggal, hadir: 0, terlambat: 0, checkInOnly: 0, izin: 0, tidakHadir: 0 }
+                if (a.status === 'hadir') acc[a.tanggal].hadir++
+                else if (a.status === 'terlambat') acc[a.tanggal].terlambat++
+                else if (['izin', 'sakit', 'cuti'].includes(a.status)) acc[a.tanggal].izin++
+                if (a.checkIn && !a.checkOut) acc[a.tanggal].checkInOnly++
+                return acc
+              }, {})
+            ).map(([_, v]) => v)}
+            totalKaryawan={1}
+            onDayClick={(tgl) => setDetailDate(tgl)}
+          />
+        </CardContent>
+      </Card>
+
+      {detailDate && dayDetail?.[0] && (
+        <DayDetailDialog
+          tanggal={detailDate}
+          userStatus={{
+            status: dayDetail[0].status,
+            checkIn: dayDetail[0].checkIn,
+            checkOut: dayDetail[0].checkOut,
+          }}
+          onClose={() => setDetailDate(null)}
+        />
+      )}
 
       <div className="flex items-center gap-3">
         <Button variant={hasActiveFilter ? 'default' : 'outline'} size="sm" className="gap-2" onClick={() => { setFilterOpen(true); setPage(1) }}>

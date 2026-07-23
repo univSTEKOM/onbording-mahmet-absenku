@@ -1,5 +1,5 @@
 import { useState, useId } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { usePengajuanList, useDeletePengajuan } from '@/hooks/usePengajuan'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -66,7 +66,7 @@ export default function PengajuanListPage() {
           <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>
-          <Button className="gap-2" onClick={() => navigate('/pengajuan/baru')}>
+          <Button className="gap-2" onClick={() => navigate({ to: '/pengajuan/baru' })}>
             <PlusCircle className="h-4 w-4" /> Ajukan Baru
           </Button>
         </div>

@@ -13,7 +13,7 @@ import {
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import { LogOut, User, Menu } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 
 export function Navbar() {
   const { user, logout } = useAuth()
@@ -53,7 +53,7 @@ export function Navbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/profil')}>
+              <DropdownMenuItem onClick={() => navigate({ to: '/profil' })}>
                 <User className="mr-2 h-4 w-4" /> Profil
               </DropdownMenuItem>
               <DropdownMenuSeparator />

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -59,7 +59,7 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => navigate('/profil')}>
+              <DropdownMenuItem onClick={() => navigate({ to: '/profil' })}>
                 <User className="mr-2 size-4" /> Profil
               </DropdownMenuItem>
             </DropdownMenuGroup>

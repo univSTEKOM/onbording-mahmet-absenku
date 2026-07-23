@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { useCreatePengajuan } from '@/hooks/usePengajuan'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -49,7 +49,7 @@ export default function PengajuanFormPage() {
     mutation.mutate(
       { jenis: form.jenis, tanggalMulai: form.tanggalMulai, tanggalSelesai: form.tanggalSelesai, alasan: form.alasan },
       {
-        onSuccess: () => navigate('/pengajuan'),
+        onSuccess: () => navigate({ to: '/pengajuan' }),
         onError: (err) => {
           const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengajukan'
           setApiError(msg)
@@ -109,7 +109,7 @@ export default function PengajuanFormPage() {
             </div>
 
             <div className="flex gap-3">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => navigate('/pengajuan')}>Batal</Button>
+              <Button type="button" variant="outline" className="flex-1" onClick={() => navigate({ to: '/pengajuan' })}>Batal</Button>
               <Button type="submit" className="flex-1" disabled={mutation.isPending}>
                 {mutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Mengirim...</> : 'Ajukan'}
               </Button>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
 import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
@@ -53,7 +53,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Selamat datang kembali, <span className="font-medium text-foreground">{user.nama}</span></p>
         </div>
-        <Button size="lg" className="gap-2 shadow-sm" onClick={() => navigate('/absensi')}>
+        <Button size="lg" className="gap-2 shadow-sm" onClick={() => navigate({ to: '/absensi' })}>
           <Fingerprint className="h-4 w-4" /> Absen Sekarang
         </Button>
       </div>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Aktivitas Terbaru</CardTitle>
-          <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/absensi/riwayat')}>
+          <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate({ to: '/absensi/riwayat' })}>
             Lihat semua <ChevronRight className="h-3 w-3" />
           </Button>
         </CardHeader>

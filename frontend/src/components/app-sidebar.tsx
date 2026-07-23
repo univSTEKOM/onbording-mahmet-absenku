@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation } from '@tanstack/react-router'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
 import {

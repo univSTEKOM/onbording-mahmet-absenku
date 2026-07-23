@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,7 +34,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login({ email, password })
-      navigate('/')
+      navigate({ to: '/' })
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Email atau password salah'
       setApiError(msg)

@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/useAuth'
 import {
   Loader2, LogIn, LogOut, History, ChevronRight,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 
 function formatJam(iso: string | null): string {
   if (!iso) return '-'
@@ -180,7 +180,7 @@ export default function AbsensiPage() {
               <span className="font-medium">{new Date(lastAbsensi.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
               <Badge variant="secondary" className={absensiStatusBadge[lastAbsensi.status]}>{absensiStatusLabel[lastAbsensi.status]}</Badge>
             </div>
-            <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/absensi/riwayat')}>
+            <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate({ to: '/absensi/riwayat' })}>
               Riwayat <ChevronRight className="h-3 w-3" />
             </Button>
           </CardContent>

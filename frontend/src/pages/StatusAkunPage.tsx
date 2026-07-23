@@ -2,7 +2,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { Clock, AlertTriangle, CheckCircle2, XCircle, ArrowRight, RefreshCw } from 'lucide-react'
 
 const statusConfig = {
@@ -72,13 +72,13 @@ export default function StatusAkunPage() {
       )}
 
       {user.status === 'rejected' && (
-        <Button className="w-full gap-2" size="lg" onClick={() => navigate('/profil')}>
+        <Button className="w-full gap-2" size="lg" onClick={() => navigate({ to: '/profil' })}>
           Perbarui Profil <ArrowRight className="h-4 w-4" />
         </Button>
       )}
 
       {user.status === 'approved' && (
-        <Button className="w-full gap-2" size="lg" onClick={() => navigate(user.role === 'admin' ? '/hrd/dashboard' : '/dashboard')}>
+        <Button className="w-full gap-2" size="lg" onClick={() => navigate({ to: user.role === 'admin' ? '/hrd/dashboard' : '/dashboard' })}>
           Buka Dashboard <ArrowRight className="h-4 w-4" />
         </Button>
       )}

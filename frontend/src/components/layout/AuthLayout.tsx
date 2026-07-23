@@ -1,7 +1,8 @@
-import { Outlet, Navigate } from 'react-router-dom'
+import { Navigate } from '@tanstack/react-router'
+import type { ReactNode } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 
-export default function AuthLayout() {
+export default function AuthLayout({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth()
 
   if (isLoading) return null
@@ -12,7 +13,7 @@ export default function AuthLayout() {
 
   return (
     <div className="min-h-svh flex items-center justify-center bg-muted p-4">
-      <Outlet />
+      {children}
     </div>
   )
 }

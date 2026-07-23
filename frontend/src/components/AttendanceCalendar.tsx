@@ -132,8 +132,8 @@ export function DayDetailDialog({ tanggal, userStatus, allStatus, onClose }: Day
         {allStatus && allStatus.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-medium">Daftar Kehadiran</p>
-            {allStatus.map((item, i) => (
-              <div key={i} className="flex justify-between text-sm py-1.5 border-b last:border-0">
+            {allStatus.map((item) => (
+              <div key={item.nama} className="flex justify-between text-sm py-1.5 border-b last:border-0">
                 <span>{item.nama}</span>
                 <span className="capitalize text-xs px-2 py-0.5 rounded-full bg-muted">{item.status}</span>
               </div>

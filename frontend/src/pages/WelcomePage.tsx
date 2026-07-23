@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
@@ -39,35 +39,6 @@ const benefits = [
   { icon: CloudCheck, title: 'Handal', desc: 'Jaminan uptime 99.9%. AbsenKu bekerja saat tim Anda bekerja, siang atau malam.' },
 ]
 
-function useReveal() {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          el.style.opacity = '1'
-          el.style.transform = 'translateY(0)'
-        }
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-  return ref
-}
-
-function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const ref = useReveal()
-  return (
-    <div ref={ref} className={`transition-all duration-700 opacity-0 translate-y-10 ${className}`}>
-      {children}
-    </div>
-  )
-}
-
 export default function WelcomePage() {
   const { user, isAdmin, isLoading } = useAuth()
   const navigate = useNavigate()
@@ -76,14 +47,14 @@ export default function WelcomePage() {
     if (isLoading) return
     if (!user) return
     if (user.status === 'pending' || user.status === 'rejected') {
-      navigate('/status', { replace: true })
+      navigate({ to: '/status', replace: true })
     } else {
-      navigate(isAdmin ? '/hrd/dashboard' : '/dashboard', { replace: true })
+      navigate({ to: isAdmin ? '/hrd/dashboard' : '/dashboard', replace: true })
     }
   }, [user, isLoading, isAdmin, navigate])
 
   function goToDashboard() {
-    navigate(isAdmin ? '/hrd/dashboard' : '/dashboard')
+    navigate({ to: isAdmin ? '/hrd/dashboard' : '/dashboard' })
   }
 
   return (
@@ -117,24 +88,24 @@ export default function WelcomePage() {
         <section className="relative pt-24 pb-16 px-8 overflow-hidden">
           <div className="absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
           <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
-            <Reveal>
+            <div style={{ opacity: 1 }}>
               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full mb-8">
                 <BadgeCheck className="h-4 w-4" />
                 <span className="text-xs font-semibold uppercase tracking-widest">Siap Digunakan v2.0</span>
               </div>
-            </Reveal>
-            <Reveal>
+            </div>
+            <div style={{ opacity: 1 }}>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-none max-w-4xl mb-6 font-sans">
                 Kelola Absensi <span className="text-primary">Lebih Mudah.</span>
               </h1>
-            </Reveal>
-            <Reveal>
+            </div>
+            <div style={{ opacity: 1 }}>
               <p className="text-lg text-muted-foreground max-w-2xl mb-12">
                 Sistem manajemen kehadiran dan HRD premium untuk tim berkinerja tinggi. 
                 Rasakan presisi logistik tenaga kerja modern.
               </p>
-            </Reveal>
-            <Reveal>
+            </div>
+            <div style={{ opacity: 1 }}>
               <div className="flex flex-col sm:flex-row gap-4">
                 {user ? (
                   <Button onClick={goToDashboard} size="lg" className="text-base px-10 py-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all gap-2">
@@ -156,10 +127,10 @@ export default function WelcomePage() {
                   </>
                 )}
               </div>
-            </Reveal>
+            </div>
           </div>
 
-          <Reveal className="mt-20 relative max-w-6xl mx-auto">
+          <div style={{ opacity: 1 }} className="mt-20 relative max-w-6xl mx-auto">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 blur-3xl rounded-3xl opacity-50 pointer-events-none" />
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <img
@@ -168,20 +139,20 @@ export default function WelcomePage() {
                 className="w-full h-auto object-contain"
               />
             </div>
-          </Reveal>
+          </div>
         </section>
 
         <section id="features" className="py-24 px-8 bg-muted/30">
           <div className="max-w-7xl mx-auto">
-            <Reveal className="text-center mb-16">
+            <div style={{ opacity: 1 }} className="text-center mb-16">
               <h2 className="text-4xl font-bold tracking-tight mb-4 font-sans">Fitur Unggulan</h2>
               <p className="text-lg text-muted-foreground">Alat yang dirancang untuk memberdayakan manajemen dan menyenangkan karyawan.</p>
-            </Reveal>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {features.map((f) => {
                 const Icon = f.icon
                 return (
-                  <Reveal key={f.title}>
+                  <div style={{ opacity: 1 }} key={f.title}>
                     <div className="group bg-card p-8 rounded-2xl border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-xl">
                       <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                         <Icon className="h-7 w-7" />
@@ -189,7 +160,7 @@ export default function WelcomePage() {
                       <h3 className="text-lg font-semibold mb-3">{f.title}</h3>
                       <p className="text-muted-foreground leading-relaxed">{f.desc}</p>
                     </div>
-                  </Reveal>
+                  </div>
                 )
               })}
             </div>
@@ -198,7 +169,7 @@ export default function WelcomePage() {
 
         <section className="py-24 px-8">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
-            <Reveal className="flex-1">
+            <div style={{ opacity: 1 }} className="flex-1">
               <h2 className="text-4xl font-bold tracking-tight mb-8 leading-tight font-sans">Mengapa Memilih AbsenKu?</h2>
               <div className="space-y-8">
                 {benefits.map((b) => {
@@ -225,17 +196,17 @@ export default function WelcomePage() {
                   </Link>
                 </div>
               )}
-            </Reveal>
-            <Reveal className="flex-1 w-full">
+            </div>
+            <div style={{ opacity: 1 }} className="flex-1 w-full">
               <div className="rounded-3xl overflow-hidden shadow-2xl">
                 <img src="/why-choose-me-illustration.png" alt="Why Choose AbsenKu" className="w-full h-auto object-contain" />
               </div>
-            </Reveal>
+            </div>
           </div>
         </section>
 
         <section className="py-24 px-8">
-          <Reveal>
+          <div style={{ opacity: 1 }}>
             <div className="max-w-5xl mx-auto bg-primary rounded-3xl p-16 text-center text-primary-foreground relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
               <div className="relative z-10">
@@ -269,7 +240,7 @@ export default function WelcomePage() {
                 </p>
               </div>
             </div>
-          </Reveal>
+          </div>
         </section>
       </main>
 

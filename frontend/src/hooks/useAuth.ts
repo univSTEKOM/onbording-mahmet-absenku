@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { getAuthClient } from '@/lib/auth-client'
-const authClient = getAuthClient()
 import { useUserContext } from '@/lib/user-context'
 import api from '@/api/axios'
 import type { User, LoginRequest, RegisterRequest } from '@/types'
@@ -30,6 +29,13 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
 export function useAuth() {
   const navigate = useNavigate()
   const { profile, setProfile, profileReady, setProfileReady } = useUserContext()
+
+  const authClientRef = useRef<ReturnType<typeof getAuthClient> | null>(null)
+  if (!authClientRef.current) {
+    authClientRef.current = getAuthClient()
+  }
+  const authClient = authClientRef.current
+
   const { data: session, isPending, refetch } = authClient.useSession()
   const sessionUserId = session?.user?.id
 
@@ -52,7 +58,8 @@ export function useAuth() {
   const user = useMemo(() => mergeUserData(session?.user, profile), [session, profile])
 
   const login = useCallback(async (data: LoginRequest) => {
-    const { data: result, error } = await authClient.signIn.email({
+    const client = authClientRef.current!
+    const { data: result, error } = await client.signIn.email({
       email: data.email,
       password: data.password,
     })
@@ -71,8 +78,8 @@ export function useAuth() {
   }, [])
 
   const logout = useCallback(async () => {
-    await authClient.signOut()
-    navigate('/login')
+    await authClientRef.current!.signOut()
+    navigate({ to: '/login' })
   }, [navigate])
 
   const updateUser = useCallback(async (data: Partial<User>) => {
