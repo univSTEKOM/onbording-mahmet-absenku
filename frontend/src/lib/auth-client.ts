@@ -32,7 +32,7 @@ try {
     },
   })
 } catch (e) {
-  console.error('[AuthClient] Failed to initialize:', e)
+  // silent fallback to stub client
 }
 
 export function getAuthClient() {
