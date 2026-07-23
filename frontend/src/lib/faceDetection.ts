@@ -30,7 +30,7 @@ export async function detectFace(
   }
 }
 
-export function computeDistance(
+function computeDistance(
   descriptor1: Float32Array,
   descriptor2: Float32Array
 ): number {

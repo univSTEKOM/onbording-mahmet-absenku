@@ -6,11 +6,6 @@ export async function getUsers(): Promise<User[]> {
   return res.data
 }
 
-export async function getUser(id: string): Promise<User> {
-  const res = await api.get(`/users/${id}`)
-  return res.data
-}
-
 export async function updateUser(id: string, data: UpdateUserData): Promise<User> {
   const res = await api.patch(`/users/${id}`, data)
   return res.data

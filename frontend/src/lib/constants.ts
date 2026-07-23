@@ -40,7 +40,6 @@ export const MAX_PASSWORD_LENGTH = 50
 export const MAX_PHONE_DIGITS = 15
 export const MAX_ALASAN_LENGTH = 500
 export const MAX_ALAMAT_LENGTH = 500
-export const MAX_CATATAN_LENGTH = 500
 export const MIN_PASSWORD_LENGTH = 8
 export const MIN_PHONE_DIGITS = 10
 export const MIN_ALASAN_LENGTH = 10
