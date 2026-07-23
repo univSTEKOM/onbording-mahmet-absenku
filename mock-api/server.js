@@ -137,6 +137,7 @@ server.post('/api/register', async (req, res) => {
     const { email, password, phone } = req.body
     const nama = req.body.nama || req.body.name || ''
     const jabatan = req.body.jabatan || ''
+    const alamat = req.body.alamat || ''
     const role = req.body.role || 'karyawan'
 
     if (!email || !password || !nama) return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
@@ -151,7 +152,7 @@ server.post('/api/register', async (req, res) => {
     const effectiveStatus = isAdminAction ? 'approved' : 'pending'
 
     const response = await auth.api.signUpEmail({
-      body: { email, password, name: nama, role: effectiveRole, status: effectiveStatus, jabatan, phone: phone || '', alamat: '' },
+      body: { email, password, name: nama, role: effectiveRole, status: effectiveStatus, jabatan, phone: phone || '', alamat },
       asResponse: true,
     })
     if (response.status !== 200) {
@@ -162,7 +163,7 @@ server.post('/api/register', async (req, res) => {
     const profile = {
       id: data.user.id, email, nama, jabatan: jabatan || '', role: effectiveRole,
       status: effectiveStatus, rejectionNotes: [], foto: '', phone: phone || '',
-      alamat: '', createdAt: new Date().toISOString(),
+      alamat: alamat || '', createdAt: new Date().toISOString(),
     }
     router.db.get('users').push(profile).write()
     res.status(201).json({ user: { ...data.user, ...profile } })
@@ -272,6 +273,61 @@ server.get('/api/users/all', async (req, res) => {
   if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
   const users = router.db.get('users').value()
   res.json(users)
+})
+
+server.patch('/api/users/:id', async (req, res) => {
+  try {
+    const authResult = await requireAdmin(fromNodeHeaders(req.headers))
+    if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
+
+    const body = req.body
+    if (body.email !== undefined && body.email) {
+      if (body.email.length > 100) return res.status(400).json({ message: 'Email maksimal 100 karakter' })
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return res.status(400).json({ message: 'Format email tidak valid' })
+    }
+    if (body.nama !== undefined && body.nama) {
+      if (!body.nama.trim()) return res.status(400).json({ message: 'Nama tidak boleh kosong' })
+      if (body.nama.length > 100) return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
+    }
+    if (body.jabatan !== undefined && body.jabatan && body.jabatan.length > 100) return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
+    if (body.phone !== undefined && body.phone) {
+      const d = body.phone.replace(/\D/g, '')
+      if (d.length < 10) return res.status(400).json({ message: 'No telepon minimal 10 digit' })
+      if (d.length > 15) return res.status(400).json({ message: 'No telepon maksimal 15 digit' })
+    }
+    if (body.alamat !== undefined && body.alamat && body.alamat.length > 500) return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
+
+    const existing = router.db.get('users').find({ id: req.params.id }).value()
+    if (!existing) return res.status(404).json({ message: 'User tidak ditemukan' })
+
+    const updateFields = {}
+    if (body.nama !== undefined) updateFields.nama = body.nama
+    if (body.jabatan !== undefined) updateFields.jabatan = body.jabatan
+    if (body.phone !== undefined) updateFields.phone = body.phone
+    if (body.alamat !== undefined) updateFields.alamat = body.alamat
+    if (body.role !== undefined) updateFields.role = body.role
+    if (body.email !== undefined) updateFields.email = body.email
+
+    router.db.get('users').find({ id: req.params.id }).assign(updateFields).write()
+
+    /* Sync ke Better Auth */
+    const syncFields = {}
+    if (body.nama !== undefined) syncFields.name = body.nama
+    if (body.jabatan !== undefined) syncFields.jabatan = body.jabatan
+    if (body.phone !== undefined) syncFields.phone = body.phone
+    if (body.alamat !== undefined) syncFields.alamat = body.alamat
+    if (body.role !== undefined) syncFields.role = body.role
+    if (Object.keys(syncFields).length > 0) {
+      try {
+        await db.update(usersSchema).set(syncFields).where(eq(usersSchema.id, req.params.id)).run()
+      } catch (e) { console.error('Drizzle admin update error:', e.message) }
+    }
+
+    res.json({ message: 'User berhasil diupdate' })
+  } catch (e) {
+    console.error('Admin update error:', e.message, e.stack)
+    res.status(400).json({ message: 'Gagal update user: ' + e.message })
+  }
 })
 
 /* ── json-server middleware ── */
@@ -418,7 +474,11 @@ server.get('/api/dashboard/month', (req, res) => {
   const bulan = parseInt(req.query.bulan) || (new Date().getMonth() + 1)
   const userId = req.query.userId || null
   let a = router.db.get('absensi').value()
-  if (userId) a = a.filter((x) => x.userId === userId)
+  let p = router.db.get('pengajuan').value()
+  if (userId) {
+    a = a.filter((x) => x.userId === userId)
+    p = p.filter((x) => x.userId === userId)
+  }
   const u = router.db.get('users').value()
   const total = userId ? 1 : u.filter((x) => x.role === 'karyawan').length
 
@@ -428,17 +488,19 @@ server.get('/api/dashboard/month', (req, res) => {
   for (let d = 1; d <= daysInMonth; d++) {
     const tgl = `${tahun}-${String(bulan).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     const dayAbsensi = a.filter((x) => x.tanggal === tgl)
+    const dayPengajuan = p.filter((x) => x.status === 'approved' && x.tanggalMulai <= tgl && x.tanggalSelesai >= tgl)
     const hadir = dayAbsensi.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
     const terlambat = dayAbsensi.filter((x) => x.status === 'terlambat').length
     const checkInOnly = dayAbsensi.filter((x) => x.checkIn && !x.checkOut).length
     const izin = dayAbsensi.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
+    const pengajuanIzin = dayPengajuan.length
     data.push({
       tanggal: tgl,
       hadir,
       terlambat,
       checkInOnly,
-      izin,
-      tidakHadir: total - hadir - terlambat - checkInOnly - izin,
+      izin: izin + pengajuanIzin,
+      tidakHadir: total - hadir - terlambat - checkInOnly - izin - pengajuanIzin,
     })
   }
 
