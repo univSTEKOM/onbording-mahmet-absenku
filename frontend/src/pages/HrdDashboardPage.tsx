@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useHrdWeek, useMonthAttendance } from '@/hooks/useDashboard'
 import { useQuery } from '@tanstack/react-query'
@@ -7,14 +8,16 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceCalendar } from '@/components/AttendanceCalendar'
 import { StatsCard } from '@/components/shared/StatsCard'
-import { RefreshCw, Users, CheckCircle2, AlertTriangle, ArrowRight, UserCheck } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import api from '@/api/axios'
 import type { User } from '@/types'
 
 const today = new Date()
 const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
+
+const DONUT_COLORS = ['#22c55e', '#eab308', '#3b82f6', '#ef4444']
 
 export default function HrdDashboardPage() {
   const navigate = useNavigate()
@@ -30,11 +33,28 @@ export default function HrdDashboardPage() {
   const pendingCount = pendingUsers?.length || 0
   const totalKaryawan = s?.totalKaryawan || 0
 
+  const donutData = useMemo(() => {
+    if (!monthData?.data) return []
+    const daysWithData = monthData.data.filter((d) => d.hadir > 0 || d.terlambat > 0 || d.izin > 0 || d.tidakHadir > 0)
+    const hadirTotal = daysWithData.reduce((sum, d) => sum + d.hadir, 0)
+    const terlambatTotal = daysWithData.reduce((sum, d) => sum + d.terlambat, 0)
+    const izinTotal = daysWithData.reduce((sum, d) => sum + d.izin, 0)
+    const alfaTotal = daysWithData.reduce((sum, d) => sum + d.tidakHadir, 0)
+    return [
+      { name: 'Hadir', value: hadirTotal },
+      { name: 'Terlambat', value: terlambatTotal },
+      { name: 'Izin/Cuti', value: izinTotal },
+      { name: 'Alfa', value: alfaTotal },
+    ]
+  }, [monthData])
+
+  const hadirPct = donutData.length > 0 ? Math.round((donutData[0].value / (donutData.reduce((s, d) => s + d.value, 0) || 1)) * 100) : 0
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard HRD</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
           <p className="text-muted-foreground text-sm">
             {today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
@@ -46,36 +66,42 @@ export default function HrdDashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          label="Total Karyawan"
-          value={isLoading ? '-' : String(totalKaryawan)}
-          icon={Users}
-        />
-        <StatsCard
-          label="Hadir Hari Ini"
-          value={isLoading ? '-' : String(s?.hadirHariIni || 0)}
-          icon={CheckCircle2}
-        />
-        <StatsCard
-          label="Terlambat"
-          value={isLoading ? '-' : String(s?.terlambatHariIni || 0)}
-          icon={AlertTriangle}
-        />
+        <StatsCard label="Total Karyawan" value={isLoading ? '-' : String(totalKaryawan)} icon={Users} />
+        <Card>
+          <CardContent className="py-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">Hadir Hari Ini</span>
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            </div>
+            <p className="text-3xl font-bold text-green-600">{isLoading ? '-' : s?.hadirHariIni || 0}</p>
+            <p className="text-xs text-muted-foreground mt-1">dari {totalKaryawan} karyawan</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">Terlambat</span>
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            </div>
+            <p className="text-3xl font-bold text-yellow-600">{isLoading ? '-' : s?.terlambatHariIni || 0}</p>
+            {s?.terlambatHariIni && s.terlambatHariIni > 0 && (
+              <Button variant="link" size="sm" className="h-5 p-0 text-xs text-muted-foreground" onClick={() => navigate({ to: '/hrd/riwayat' })}>
+                Lihat detail →
+              </Button>
+            )}
+          </CardContent>
+        </Card>
         <Card className="relative">
           <CardContent className="py-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground">Verifikasi Karyawan</span>
+              <span className="text-xs font-medium text-muted-foreground">Verifikasi</span>
               <UserCheck className="h-4 w-4 text-blue-600" />
             </div>
             <p className="text-3xl font-bold text-blue-600">{pendingCount}</p>
+            <p className="text-xs text-muted-foreground mt-1">karyawan perlu verifikasi</p>
             {pendingCount > 0 && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="absolute bottom-2 right-2 gap-1 text-xs text-blue-600 h-7"
-                onClick={() => navigate({ to: '/hrd/verifikasi' })}
-              >
-                Lihat <ArrowRight className="h-3 w-3" />
+              <Button size="sm" variant="ghost" className="absolute bottom-2 right-2 gap-1 text-xs text-blue-600 h-7" onClick={() => navigate({ to: '/hrd/verifikasi' })}>
+                Verifikasi <ArrowRight className="h-3 w-3" />
               </Button>
             )}
           </CardContent>
@@ -98,10 +124,24 @@ export default function HrdDashboardPage() {
             ) : chart.length > 0 ? (
               <div className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chart}>
+                  <BarChart data={chart} barSize={28}>
                     <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border)' }} formatter={(value) => [String(value) + ' orang']} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 13 }}
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null
+                        const d = payload[0].payload
+                        return (
+                          <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
+                            <p className="font-medium mb-1">{d.name}</p>
+                            <p className="text-muted-foreground">Hadir: {d.hadir} orang</p>
+                            <p className="text-muted-foreground">Terlambat: {d.terlambat} orang</p>
+                            <p className="text-muted-foreground text-xs mt-1">{d.persen}% kehadiran</p>
+                          </div>
+                        )
+                      }}
+                    />
                     <Bar dataKey="hadir" fill="var(--chart-1)" radius={[4, 4, 0, 0]} stackId="a" />
                     <Bar dataKey="terlambat" fill="var(--chart-2)" radius={[4, 4, 0, 0]} stackId="a" />
                   </BarChart>
@@ -110,79 +150,55 @@ export default function HrdDashboardPage() {
             ) : (
               <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
             )}
+            <div className="flex items-center justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-1)' }} /> Hadir</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-2)' }} /> Terlambat</span>
+            </div>
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <div className="px-6 pt-6 pb-2">
-              <h3 className="font-semibold text-base">Ringkasan Hari Ini</h3>
-              <p className="text-xs text-muted-foreground">{today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-            </div>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-                <span className="text-sm text-muted-foreground">Total Karyawan</span>
-                <span className="text-sm font-semibold">{totalKaryawan} orang</span>
-              </div>
-              <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-                <span className="text-sm text-muted-foreground">Hadir</span>
-                <span className="text-sm font-semibold text-green-600">{s?.hadirHariIni || 0}</span>
-              </div>
-              <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-                <span className="text-sm text-muted-foreground">Terlambat</span>
-                <span className="text-sm font-semibold text-yellow-600">{s?.terlambatHariIni || 0}</span>
-              </div>
-              <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-                <span className="text-sm text-muted-foreground">Izin / Sakit / Cuti</span>
-                <span className="text-sm font-semibold">{s?.izinHariIni || 0}</span>
-              </div>
-              <div className="flex items-center justify-between py-1.5 border-b last:border-0">
-                <span className="text-sm text-muted-foreground">Belum Absen</span>
-                <span className="text-sm font-semibold text-muted-foreground">{s?.belumAbsen || 0}</span>
-              </div>
-              <div className="flex items-center justify-between py-1.5">
-                <span className="text-sm text-muted-foreground">Rata-rata pekan ini</span>
-                <span className="text-sm font-semibold">{s?.weekAvg || 0}%</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {pendingCount > 0 && (
-            <Card className="border-blue-200 dark:border-blue-800">
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <UserCheck className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium">{pendingCount} karyawan perlu verifikasi</span>
+        <Card>
+          <div className="px-6 pt-6 pb-2">
+            <h3 className="font-semibold text-base">Kehadiran Bulan Ini</h3>
+            <p className="text-xs text-muted-foreground">{monthNames[currentMonth]} {currentYear}</p>
+          </div>
+          <CardContent>
+            {monthLoading ? (
+              <Skeleton className="h-[200px] w-full rounded-lg" />
+            ) : donutData.length > 0 ? (
+              <div className="flex flex-col items-center">
+                <div className="relative h-[160px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={donutData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" paddingAngle={2}>
+                        {donutData.map((_, i) => (
+                          <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold">{hadirPct}%</p>
+                      <p className="text-[10px] text-muted-foreground">hadir</p>
+                    </div>
                   </div>
-                  <Button size="sm" variant="outline" className="gap-1" onClick={() => navigate({ to: '/hrd/verifikasi' })}>
-                    Verifikasi <ArrowRight className="h-3 w-3" />
-                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {s?.terlambatHariIni && s.terlambatHariIni > 0 ? (
-            <Card>
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                    <span className="text-sm">{s.terlambatHariIni} karyawan terlambat hari ini</span>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => navigate({ to: '/hrd/riwayat' })}>Riwayat</Button>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 mt-2 text-xs">
+                  {donutData.map((d, i) => (
+                    <div key={d.name} className="flex items-center gap-2">
+                      <span className="size-2.5 rounded-sm" style={{ backgroundColor: DONUT_COLORS[i] }} />
+                      <span className="text-muted-foreground">{d.name}</span>
+                      <span className="font-medium ml-auto">{d.value}</span>
+                    </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="py-4">
-                <p className="text-sm text-muted-foreground text-center">Semua karyawan hadir tepat waktu hari ini</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </div>
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -202,3 +218,5 @@ export default function HrdDashboardPage() {
     </div>
   )
 }
+
+const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']

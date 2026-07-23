@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -104,6 +104,12 @@ export function useAuth() {
 
   const isLoading = sessionPending || (!!sessionUserId && profileQuery.isLoading)
 
+  /* Periodic session check — detects deletion by admin */
+  useEffect(() => {
+    const id = setInterval(() => refetch(), 30000)
+    return () => clearInterval(id)
+  }, [refetch])
+
   return {
     user,
     token: null,
@@ -112,6 +118,7 @@ export function useAuth() {
     register,
     logout,
     updateUser,
+    refetch,
     isAdmin: user?.role === 'admin',
   }
 }

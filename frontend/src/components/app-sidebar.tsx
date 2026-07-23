@@ -24,7 +24,7 @@ const karyawanItems = [
 ]
 
 const adminItems = [
-  { title: 'Dashboard HRD', url: '/hrd/dashboard', icon: <LayoutDashboard /> },
+  { title: 'Admin', url: '/hrd/dashboard', icon: <LayoutDashboard /> },
   { title: 'Riwayat', url: '/hrd/riwayat', icon: <History /> },
   { title: 'Pengajuan', url: '/hrd/pengajuan', icon: <FileText /> },
   { title: 'Kelola Karyawan', url: '/hrd/karyawan', icon: <Users /> },
