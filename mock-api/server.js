@@ -339,12 +339,12 @@ server.patch('/users/:id', async (req, res, next) => {
   }
 
   /* Sync ke Better Auth database */
-  const syncFields: Record<string, string | undefined> = {}
+  const syncFields = {}
   if (body.nama !== undefined) syncFields.name = body.nama
   if (body.jabatan !== undefined) syncFields.jabatan = body.jabatan
   if (body.phone !== undefined) syncFields.phone = body.phone
   if (body.alamat !== undefined) syncFields.alamat = body.alamat
-  if (body.foto !== undefined) syncFields.foto = body.foto as string
+  if (body.foto !== undefined) syncFields.foto = body.foto
   if (Object.keys(syncFields).length > 0) {
     try {
       await db.update(usersSchema).set(syncFields).where(eq(usersSchema.id, req.params.id)).run()

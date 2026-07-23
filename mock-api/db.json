@@ -45,12 +45,30 @@
       "nama": "Budi Santoso",
       "jabatan": "Staff Baru",
       "role": "karyawan",
-      "status": "pending",
+      "status": "approved",
       "rejectionNotes": [],
       "foto": "",
       "phone": "081234567893",
       "alamat": "Jl. Baru No. 1, Jakarta",
       "createdAt": "2026-07-22T08:24:44.236Z"
+    },
+    {
+      "id": "zSNXhYfelRttawJ38hQUKQfyrx3QNzJZ",
+      "email": "embudi@stekom.ac.id",
+      "nama": "Susmanto",
+      "jabatan": "STAFF KETENAGA NGANGGURAN",
+      "role": "karyawan",
+      "status": "rejected",
+      "rejectionNotes": [
+        {
+          "note": "HAI SURYO, GIMANA KABARNYA ?",
+          "createdAt": "2026-07-23T06:53:23.372Z"
+        }
+      ],
+      "foto": "",
+      "phone": "02843223423",
+      "alamat": "",
+      "createdAt": "2026-07-23T06:53:00.021Z"
     }
   ],
   "absensi": [
