@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const [detailDate, setDetailDate] = useState<string | null>(null)
 
   const { data: recentAbsensi, isLoading: chartLoading } = useRecentAbsensi()
-  const { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
+  const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: allAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
   const { data: todayAbsensi } = useAbsensiList({ userId: user?.id, tanggal: now.toISOString().split('T')[0] })
 

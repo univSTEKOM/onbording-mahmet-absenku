@@ -18,9 +18,9 @@ export function useHrdWeek() {
   })
 }
 
-export function useMonthAttendance(tahun: number, bulan: number) {
+export function useMonthAttendance(tahun: number, bulan: number, userId?: string) {
   return useQuery({
-    queryKey: ['dashboard', 'month', tahun, bulan],
-    queryFn: () => getMonthAttendance(tahun, bulan),
+    queryKey: ['dashboard', 'month', tahun, bulan, userId],
+    queryFn: () => getMonthAttendance(tahun, bulan, userId),
   })
 }

@@ -54,7 +54,7 @@ export interface MonthAttendanceData {
   totalKaryawan: number
 }
 
-export async function getMonthAttendance(tahun: number, bulan: number): Promise<MonthAttendanceData> {
-  const res = await api.get('/api/dashboard/month', { params: { tahun, bulan } })
+export async function getMonthAttendance(tahun: number, bulan: number, userId?: string): Promise<MonthAttendanceData> {
+  const res = await api.get('/api/dashboard/month', { params: { tahun, bulan, ...(userId ? { userId } : {}) } })
   return res.data
 }
