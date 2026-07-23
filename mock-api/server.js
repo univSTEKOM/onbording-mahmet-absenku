@@ -156,10 +156,15 @@ server.post('/api/register', async (req, res) => {
 })
 
 server.get('/api/me', async (req, res) => {
-  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
-  if (!session) return res.status(401).json({ message: 'Unauthorized' })
-  const profile = router.db.get('users').find({ email: session.user.email }).value()
-  res.json({ ...session, user: { ...session.user, ...profile } })
+  try {
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+    if (!session) return res.status(401).json({ message: 'Unauthorized' })
+    const profile = router.db.get('users').find({ email: session.user.email }).value() || {}
+    res.json({ ...session, user: { ...session.user, ...profile } })
+  } catch (e) {
+    console.error('/api/me error:', e.message)
+    res.status(500).json({ message: 'Gagal memuat profil' })
+  }
 })
 
 server.patch('/api/users/:id/status', async (req, res) => {
