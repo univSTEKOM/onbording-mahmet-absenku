@@ -14,7 +14,7 @@ const multer = require('multer')
 const upload = multer()
 const server = jsonServer.create()
 const router = jsonServer.router('db.json')
-const middlewares = jsonServer.defaults()
+const middlewares = jsonServer.defaults({ noCors: true })
 
 async function syncSeedUsers() {
   try {
@@ -105,8 +105,9 @@ server.post('/api/auth/sign-in/email', (req, res, next) => {
 /* ── Better Auth handler ── */
 server.all('/api/auth/*', toNodeHandler(auth))
 
-/* ── Body parser for custom routes (after Better Auth) ── */
+/* ── Body parser (json-server compatible) ── */
 server.use(express.json({ limit: '10mb' }))
+server.use((req, res, next) => { req._body = true; next() })
 
 /* ── Helper: admin check ── */
 async function requireAdmin(headers) {
