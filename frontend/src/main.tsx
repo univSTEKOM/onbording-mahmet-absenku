@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -39,13 +39,17 @@ function RootLayout() {
 const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    errorElement: <div style={{padding:40}}>Terjadi kesalahan loading halaman</div>,
     children: [
-      { index: true, lazy: () => import("./pages/WelcomePage").then(m => ({ Component: m.default })) },
+      { index: true, element: <div style={{padding:40,fontSize:24,background:'green',color:'white'}}>✅ ROUTE RENDERED</div> },
       { path: "login", lazy: () => import("./pages/LoginPage").then(m => ({ Component: m.default })) },
       { path: "register", lazy: () => import("./pages/RegisterPage").then(m => ({ Component: m.default })) },
+      { path: "*", element: <Navigate to="/" replace /> },
     ],
   },
 ])
+
+
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
