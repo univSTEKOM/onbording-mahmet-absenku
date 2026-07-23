@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { createFileRoute, Navigate, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Navigate, Outlet, useLocation } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
 import { FilterProvider } from '@/lib/filter-context'
 import { AppSidebar } from '@/components/app-sidebar'
@@ -65,6 +65,7 @@ function LoadingScreen({ timedOut }: { timedOut?: boolean }) {
 
 function AuthenticatedLayout() {
   const { user, isLoading } = useAuth()
+  const location = useLocation()
   const [timedOut, setTimedOut] = useState(false)
 
   useEffect(() => {
@@ -75,7 +76,7 @@ function AuthenticatedLayout() {
 
   if (isLoading) return <LoadingScreen timedOut={timedOut} />
   if (!user) return <Navigate to="/login" replace />
-  if (['pending', 'rejected'].includes(user.status)) return <Navigate to="/status" replace />
+  if (['pending', 'rejected'].includes(user.status) && location.pathname !== '/status' && location.pathname !== '/profil') return <Navigate to="/status" replace />
 
   return (
     <ErrorBoundary>

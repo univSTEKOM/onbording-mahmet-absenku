@@ -17,19 +17,17 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, 
   const autoStartedRef = useRef(false)
   const [internalActive, setInternalActive] = useState(false)
   const [error, setError] = useState('')
-  const [starting, setStarting] = useState(false)
 
   const isActive = externalActive !== undefined ? externalActive && internalActive : internalActive
 
   const startCamera = useCallback(async () => {
     setError('')
-    setStarting(true)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: 'user' },
       })
-      setInternalActive(true)
       streamRef.current = stream
+      setInternalActive(true)
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         videoRef.current.onloadeddata = () => {
@@ -38,8 +36,6 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, 
       }
     } catch {
       setError('Kamera tidak tersedia. Periksa izin kamera atau gunakan HTTPS.')
-    } finally {
-      setStarting(false)
     }
   }, [onVideoReady])
 
@@ -59,6 +55,15 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, 
     return () => { stopCamera(); autoStartedRef.current = false }
   }, [autoStart, startCamera, stopCamera])
 
+  useEffect(() => {
+    if (!isActive && streamRef.current) {
+      stopCamera()
+    }
+    if (isActive && !streamRef.current && autoStartedRef.current) {
+      startCamera()
+    }
+  }, [isActive, startCamera, stopCamera])
+
   function handleCapture() {
     if (!videoRef.current || !canvasRef.current) return
     const video = videoRef.current
@@ -71,26 +76,25 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, 
     onCapture(canvas)
   }
 
-  if (!isActive && !starting) return null
+  if (!isActive && !streamRef.current) return null
 
   return (
     <div className="space-y-4">
       <div className="relative mx-auto max-w-sm rounded-lg overflow-hidden bg-muted">
-        {starting ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className={'w-full aspect-[4/3] object-cover' + (isActive ? '' : ' hidden')}
+        />
+        <canvas ref={canvasRef} className="hidden" />
+        {!isActive && (
           <div className="flex items-center justify-center aspect-[4/3] text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin mr-2" />
             Mengakses kamera...
           </div>
-        ) : internalActive ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full aspect-[4/3] object-cover"
-          />
-        ) : null}
-        <canvas ref={canvasRef} className="hidden" />
+        )}
       </div>
 
       {error && (
@@ -98,17 +102,17 @@ export function WebcamCapture({ onCapture, processing, autoStart, onVideoReady, 
       )}
 
       <div className="flex justify-center gap-3">
-        {!internalActive && !starting && (
-          <Button onClick={startCamera} disabled={starting} className="gap-2">
-            {starting ? <><Loader2 className="h-4 w-4 animate-spin" /> Membuka...</> : <><Camera className="h-4 w-4" /> Buka Kamera</>}
+        {!isActive && !streamRef.current && (
+          <Button onClick={startCamera} className="gap-2">
+            <Camera className="h-4 w-4" /> Buka Kamera
           </Button>
         )}
-        {internalActive && (
+        {isActive && (
           <Button onClick={handleCapture} disabled={processing} className="gap-2">
             {processing ? <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</> : <><Camera className="h-4 w-4" /> Ambil Foto</>}
           </Button>
         )}
-        {internalActive && (
+        {isActive && (
           <Button variant="outline" onClick={stopCamera}>Tutup Kamera</Button>
         )}
       </div>
