@@ -35,25 +35,21 @@ export default function HrdVerifikasiPage() {
   const approveMutation = useMutation({
     mutationFn: (id: string) => api.patch(`/api/users/${id}/status`, { status: 'approved' }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); toast.success('User berhasil disetujui') },
-    onError: () => toast.error('Gagal menyetujui user'),
   })
 
   const rejectMutation = useMutation({
     mutationFn: ({ id, note }: { id: string; note: string }) => api.patch(`/api/users/${id}/status`, { status: 'rejected', note }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setRejectTarget(null); setRejectNote(''); toast.success('User ditolak') },
-    onError: () => toast.error('Gagal menolak user'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/api/users/${id}`),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setDeleteTarget(null); toast.success('User berhasil dihapus') },
-    onError: () => toast.error('Gagal menghapus user'),
   })
 
   const noteMutation = useMutation({
     mutationFn: ({ id, note }: { id: string; note: string }) => api.post(`/api/users/${id}/notes`, { note }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setNoteTarget(null); setAdditionalNote(''); toast.success('Catatan ditambahkan') },
-    onError: () => toast.error('Gagal menambahkan catatan'),
   })
 
   return (

@@ -111,13 +111,21 @@ server.use(express.json())
 /* ── Helper: admin check ── */
 async function requireAdmin(headers) {
   const session = await auth.api.getSession({ headers })
-  if (!session) return { error: { status: 401, message: 'Unauthorized' } }
+  if (!session) {
+    console.log('[requireAdmin] no session')
+    return { error: { status: 401, message: 'Unauthorized' } }
+  }
   let role = session.user.role
+  console.log('[requireAdmin] session user:', session.user.email, 'session.role:', role)
   if (!role) {
     const profile = router.db.get('users').find({ email: session.user.email }).value()
     role = profile?.role
+    console.log('[requireAdmin] db.json fallback role:', role, 'profile:', profile?.nama)
   }
-  if (role !== 'admin') return { error: { status: 403, message: 'Forbidden' } }
+  if (role !== 'admin') {
+    console.log('[requireAdmin] forbidden - role is:', role)
+    return { error: { status: 403, message: 'Forbidden' } }
+  }
   return { session }
 }
 
@@ -202,7 +210,7 @@ server.patch('/api/users/:id/status', async (req, res) => {
     console.log(`Status updated: ${user.email} -> ${newStatus}`)
     res.json({ message: `Status berhasil diubah ke ${newStatus}` })
   } catch (e) {
-    console.error('Status change error:', e.message)
+    console.error('Status change error:', e.message, e.stack)
     res.status(400).json({ message: 'Gagal: ' + e.message })
   }
 })
