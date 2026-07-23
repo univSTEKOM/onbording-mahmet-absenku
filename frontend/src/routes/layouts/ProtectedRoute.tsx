@@ -6,7 +6,7 @@ export default function ProtectedRoute() {
   const location = useLocation()
 
   if (isLoading) return null
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />
 
   const allowedPaths = ['/status', '/profil']
   const isOnboarding = user.status === 'pending' || user.status === 'rejected'

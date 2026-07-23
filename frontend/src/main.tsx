@@ -1,12 +1,8 @@
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider, Outlet, Navigate } from 'react-router-dom'
-import { Toaster } from 'sonner'
+import { RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from '@/components/theme-provider'
-import { UserProvider } from '@/lib/user-context'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { toast } from 'sonner'
+import { router } from '@/routes'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -20,36 +16,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
-function RootLayout() {
-  return (
-    <ThemeProvider defaultTheme="system">
-      <UserProvider>
-        <TooltipProvider>
-          <ErrorBoundary>
-            <Outlet />
-            <Toaster position="top-right" richColors />
-          </ErrorBoundary>
-        </TooltipProvider>
-      </UserProvider>
-    </ThemeProvider>
-  )
-}
-
-const router = createBrowserRouter([
-  {
-    element: <RootLayout />,
-    errorElement: <div style={{padding:40}}>Terjadi kesalahan loading halaman</div>,
-    children: [
-      { index: true, element: <div style={{padding:40,fontSize:24,background:'green',color:'white'}}>✅ ROUTE RENDERED</div> },
-      { path: "login", lazy: () => import("./pages/LoginPage").then(m => ({ Component: m.default })) },
-      { path: "register", lazy: () => import("./pages/RegisterPage").then(m => ({ Component: m.default })) },
-      { path: "*", element: <Navigate to="/" replace /> },
-    ],
-  },
-])
-
-
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>

@@ -1,4 +1,4 @@
-/* App routes are defined in main.tsx via createBrowserRouter */
+/* Routes are defined in src/routes/index.tsx */
 export default function App() {
   return null
 }
