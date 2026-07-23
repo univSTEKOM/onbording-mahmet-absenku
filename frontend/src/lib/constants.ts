@@ -45,6 +45,7 @@ export const MIN_PHONE_DIGITS = 10
 export const MIN_ALASAN_LENGTH = 10
 export const MAX_FOTO_SIZE_MB = 5
 export const MAX_PENGAJUAN_DURATION_DAYS = 30
+export const APP_RELEASE_DATE = '2026-07-01'
 
 export const absensiStatusLabel: Record<AbsensiStatus, string> = {
   hadir: 'Hadir',

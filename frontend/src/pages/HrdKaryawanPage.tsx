@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useUsers, useUpdateUser } from '@/hooks/useUsers'
-import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH } from '@/lib/constants'
+import { useUsers } from '@/hooks/useUsers'
+import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_PHONE_DIGITS, MIN_PHONE_DIGITS, MAX_ALAMAT_LENGTH } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PhoneInput } from '@/components/ui/phone-input'
 import {
   Select,
   SelectContent,
@@ -27,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Search, PlusCircle, Pencil, Trash2, RefreshCw } from 'lucide-react'
@@ -39,13 +41,13 @@ import type { User } from '@/types'
 export default function HrdKaryawanPage() {
   const { user: currentUser } = useAuth()
   const { data: users, isLoading, refetch, isFetching } = useUsers()
-  const updateUserMutation = useUpdateUser()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<User | null>(null)
-  const [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const })
+  const [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const, phone: '', alamat: '' })
   const [formError, setFormError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
@@ -60,7 +62,7 @@ export default function HrdKaryawanPage() {
 
   function openCreate() {
     setEditTarget(null)
-    setForm({ nama: '', email: '', jabatan: '', role: 'karyawan' })
+    setForm({ nama: '', email: '', jabatan: '', role: 'karyawan', phone: '', alamat: '' })
     setFormError('')
     setFieldErrors({})
     setModalOpen(true)
@@ -68,7 +70,7 @@ export default function HrdKaryawanPage() {
 
   function openEdit(user: User) {
     setEditTarget(user)
-    setForm({ nama: user.nama, email: user.email, jabatan: user.jabatan, role: user.role })
+    setForm({ nama: user.nama, email: user.email, jabatan: user.jabatan, role: user.role, phone: user.phone || '', alamat: user.alamat || '' })
     setFormError('')
     setFieldErrors({})
     setModalOpen(true)
@@ -83,11 +85,18 @@ export default function HrdKaryawanPage() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Format email tidak valid'
     if (!form.jabatan?.trim()) errs.jabatan = 'Jabatan harus diisi'
     else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = `Maksimal ${MAX_JABATAN_LENGTH} karakter`
+    if (form.phone) {
+      const digits = form.phone.replace(/\D/g, '')
+      if (digits.length < MIN_PHONE_DIGITS) errs.phone = `Minimal ${MIN_PHONE_DIGITS} angka`
+      else if (digits.length > MAX_PHONE_DIGITS) errs.phone = `Maksimal ${MAX_PHONE_DIGITS} angka`
+    }
+    if (form.alamat && form.alamat.length > MAX_ALAMAT_LENGTH) errs.alamat = `Maksimal ${MAX_ALAMAT_LENGTH} karakter`
     if (Object.keys(errs).length > 0) { setFieldErrors(errs); return }
 
+    setSaving(true)
     try {
       if (editTarget) {
-        await updateUserMutation.mutateAsync({ id: editTarget.id, data: form as Partial<User> })
+        await api.patch(`/api/users/${editTarget.id}`, form as Partial<User>)
         toast.success('Karyawan berhasil diupdate')
       } else {
         await api.post('/api/register', { ...form, password: 'password', name: form.nama, role: form.role })
@@ -98,13 +107,15 @@ export default function HrdKaryawanPage() {
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal menyimpan'
       setFormError(msg)
+    } finally {
+      setSaving(false)
     }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return
     try {
-      await api.delete(`/users/${deleteTarget.id}`)
+      await api.delete(`/api/users/${deleteTarget.id}`)
       toast.success('Karyawan berhasil dihapus')
       queryClient.invalidateQueries({ queryKey: ['users'] })
     } catch {
@@ -141,6 +152,7 @@ export default function HrdKaryawanPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]"></TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Jabatan</TableHead>
@@ -151,6 +163,12 @@ export default function HrdKaryawanPage() {
           <TableBody>
             {filtered.map((u) => (
               <TableRow key={u.id}>
+                <TableCell>
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+                    <AvatarFallback className="text-xs">{u.nama?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
+                  </Avatar>
+                </TableCell>
                 <TableCell className="font-medium">{u.nama || '-'}</TableCell>
                 <TableCell>{u.email}</TableCell>
                 <TableCell>{u.jabatan || '-'}</TableCell>
@@ -208,6 +226,17 @@ export default function HrdKaryawanPage() {
               {fieldErrors.jabatan && <p className="text-xs text-destructive">{fieldErrors.jabatan}</p>}
             </div>
             <div className="space-y-2">
+              <Label>Telepon</Label>
+              <PhoneInput value={form.phone || ''} onChange={(v) => { setForm({ ...form, phone: v }); setFieldErrors((p) => ({ ...p, phone: '' })) }} error={fieldErrors.phone} />
+              {fieldErrors.phone && <p className="text-xs text-destructive">{fieldErrors.phone}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Alamat</Label>
+              <textarea className={`flex min-h-[60px] w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${fieldErrors.alamat ? 'border-destructive' : 'border-input'}`}
+                value={form.alamat || ''} maxLength={MAX_ALAMAT_LENGTH} onChange={(e) => { setForm({ ...form, alamat: e.target.value }); setFieldErrors((p) => ({ ...p, alamat: '' })) }} />
+              {fieldErrors.alamat && <p className="text-xs text-destructive">{fieldErrors.alamat}</p>}
+            </div>
+            <div className="space-y-2">
               <Label>Role</Label>
               <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: (v || 'karyawan') as 'admin' | 'karyawan' })}>
                 <SelectTrigger>
@@ -222,7 +251,7 @@ export default function HrdKaryawanPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Batal</Button>
-            <Button onClick={handleSave} disabled={updateUserMutation.isPending}>
+            <Button onClick={handleSave} disabled={saving}>
               {editTarget ? 'Simpan' : 'Tambah'}
             </Button>
           </DialogFooter>

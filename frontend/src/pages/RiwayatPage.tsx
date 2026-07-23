@@ -161,7 +161,6 @@ export default function RiwayatPage() {
                 return acc
               }, {})
             ).map(([_, v]) => v)}
-            totalKaryawan={1}
             onDayClick={(tgl) => setDetailDate(tgl)}
           />
         </CardContent>

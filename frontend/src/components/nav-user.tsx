@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ export function NavUser() {
   const { isMobile } = useSidebar()
 
   const initials = user?.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  const fotoSrc = user?.foto && !user.foto.startsWith('[') ? user.foto : undefined
 
   return (
     <SidebarMenu>
@@ -30,6 +31,7 @@ export function NavUser() {
         <DropdownMenu>
           <DropdownMenuTrigger className="group flex w-full items-center gap-2 rounded-md p-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground aria-expanded:bg-muted [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate">
             <Avatar className="size-8 rounded-lg">
+              <AvatarImage src={fotoSrc} />
               <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
@@ -48,6 +50,7 @@ export function NavUser() {
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="size-8 rounded-lg">
+                    <AvatarImage src={fotoSrc} />
                     <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">

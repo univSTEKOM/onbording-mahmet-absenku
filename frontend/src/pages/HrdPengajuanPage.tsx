@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
@@ -178,6 +178,7 @@ export default function HrdPengajuanPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <Avatar className="h-9 w-9 shrink-0">
+                        <AvatarImage src={pengaju?.foto && !pengaju.foto.startsWith('[') ? pengaju.foto : undefined} />
                         <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                       </Avatar>
                       <div className="space-y-1.5 min-w-0">
@@ -242,6 +243,7 @@ export default function HrdPengajuanPage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
+                    <AvatarImage src={pengaju?.foto && !pengaju.foto.startsWith('[') ? pengaju.foto : undefined} />
                     <AvatarFallback>{pengaju?.nama?.charAt(0) || '?'}</AvatarFallback>
                   </Avatar>
                   <div>

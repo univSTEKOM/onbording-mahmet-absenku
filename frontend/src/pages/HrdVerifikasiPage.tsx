@@ -11,6 +11,7 @@ import {
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { toast } from 'sonner'
@@ -75,9 +76,10 @@ export default function HrdVerifikasiPage() {
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
-                      {u.nama?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+                      <AvatarFallback className="text-lg font-bold">{u.nama?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
+                    </Avatar>
                     <div>
                       <p className="font-semibold">{u.nama}</p>
                       <p className="text-sm text-muted-foreground">{u.email}</p>

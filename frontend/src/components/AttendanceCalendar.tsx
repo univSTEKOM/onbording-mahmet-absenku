@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
+import { absensiStatusBadge, absensiStatusLabel, APP_RELEASE_DATE } from '@/lib/constants'
 import type { DayAttendanceData } from '@/api/dashboard'
 
 interface Props {
@@ -12,19 +13,50 @@ interface Props {
 
 const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
-function getDayStatus(day: DayAttendanceData, total: number): { label: string; color: string; bg: string } {
-  const hadirPct = day.hadir / total
-  const terlambatPct = day.terlambat / total
-  const inOnlyPct = day.checkInOnly / total
-  const izinPct = day.izin / total
-  const alfaPct = day.tidakHadir / total
+const STATUS_COLORS: Record<string, string> = {
+  hadir: 'bg-green-200 dark:bg-green-800',
+  terlambat: 'bg-yellow-200 dark:bg-yellow-800',
+  pulang_cepat: 'bg-orange-200 dark:bg-orange-800',
+  izin: 'bg-blue-200 dark:bg-blue-800',
+  sakit: 'bg-purple-200 dark:bg-purple-800',
+  cuti: 'bg-gray-300 dark:bg-gray-600',
+  checkInOnly: 'bg-blue-200 dark:bg-blue-800',
+  tidakHadir: 'bg-red-200 dark:bg-red-800/60',
+  sebelumRilis: 'bg-muted/20 dark:bg-muted/5',
+}
 
-  if (hadirPct > 0.5) return { label: `${day.hadir} hadir`, color: 'text-green-700', bg: 'bg-green-100' }
-  if (terlambatPct > 0.3) return { label: `${day.terlambat} terlambat`, color: 'text-yellow-700', bg: 'bg-yellow-100' }
-  if (inOnlyPct > 0.3) return { label: `${day.checkInOnly} in saja`, color: 'text-blue-700', bg: 'bg-blue-100' }
-  if (izinPct > 0.3) return { label: `${day.izin} izin`, color: 'text-purple-700', bg: 'bg-purple-100' }
-  if (alfaPct > 0.5) return { label: `${day.tidakHadir} alfa`, color: 'text-gray-500', bg: 'bg-gray-100' }
-  return { label: `${day.hadir}/${total}`, color: 'text-green-700', bg: 'bg-green-50' }
+function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean): string {
+  if (tanggal < APP_RELEASE_DATE) return STATUS_COLORS.sebelumRilis
+  if (!dayData) return STATUS_COLORS.tidakHadir
+  if (isAdmin) {
+    if (dayData.hadir > 0) return STATUS_COLORS.hadir
+    if (dayData.terlambat > 0) return STATUS_COLORS.terlambat
+    if (dayData.checkInOnly > 0) return STATUS_COLORS.checkInOnly
+    if (dayData.izin > 0) return STATUS_COLORS.izin
+    return STATUS_COLORS.tidakHadir
+  }
+  if (dayData.hadir > 0) return STATUS_COLORS.hadir
+  if (dayData.terlambat > 0) return STATUS_COLORS.terlambat
+  if (dayData.checkInOnly > 0) return STATUS_COLORS.checkInOnly
+  if (dayData.izin > 0) return STATUS_COLORS.izin
+  return STATUS_COLORS.tidakHadir
+}
+
+function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean, total?: number): string {
+  if (tanggal < APP_RELEASE_DATE) return ''
+  if (!dayData) return 'Alfa'
+  if (isAdmin && total) {
+    if (dayData.hadir > 0) return `${dayData.hadir}/${total}`
+    if (dayData.terlambat > 0) return `${dayData.terlambat} telat`
+    if (dayData.checkInOnly > 0) return `${dayData.checkInOnly} in`
+    if (dayData.izin > 0) return `${dayData.izin} izin`
+    return 'Alfa'
+  }
+  if (dayData.hadir > 0) return 'Hadir'
+  if (dayData.terlambat > 0) return 'Telat'
+  if (dayData.checkInOnly > 0) return 'In'
+  if (dayData.izin > 0) return 'Izin'
+  return 'Alfa'
 }
 
 export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClick }: Props) {
@@ -51,9 +83,10 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
         <div className="flex flex-wrap gap-3 text-[11px]">
           <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-200" /> Hadir</span>
           <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-200" /> Terlambat</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-200" /> In No Out</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-purple-200" /> Izin</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-gray-200" /> Alfa</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-orange-200" /> Pulang Cepat</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-200" /> Izin</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-purple-200" /> Sakit</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-red-200" /> Alfa</span>
         </div>
       </div>
 
@@ -66,24 +99,25 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
           const tgl = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
           const dayData = dataMap.get(tgl)
           const today = new Date().toISOString().split('T')[0] === tgl
-          const total = totalKaryawan || 1
-          const status = dayData ? getDayStatus(dayData, total) : null
+          const isBeforeRelease = tgl < APP_RELEASE_DATE
+          const isAdmin = totalKaryawan !== undefined && totalKaryawan > 1
 
           return (
             <button
               key={tgl}
               type="button"
-              onClick={() => onDayClick?.(tgl)}
+              onClick={() => isBeforeRelease ? null : onDayClick?.(tgl)}
               className={cn(
-                'rounded-lg p-1.5 text-center transition-colors border border-transparent cursor-pointer hover:border-primary/40 text-left',
+                'rounded-lg p-1.5 text-center transition-colors border border-transparent text-left',
+                isBeforeRelease ? 'cursor-default' : 'cursor-pointer hover:border-primary/40',
                 today && 'ring-2 ring-primary/40',
-                status?.bg || 'bg-muted/30',
+                getDayCellColor(tgl, dayData, isAdmin),
               )}
             >
               <p className={cn('text-sm font-medium', today && 'text-primary')}>{day}</p>
-              {status && (
-                <p className={cn('text-[10px] leading-tight mt-0.5', status.color)}>{status.label}</p>
-              )}
+              <p className="text-[10px] leading-tight mt-0.5 text-foreground/60">
+                {getDayLabel(tgl, dayData, isAdmin, totalKaryawan)}
+              </p>
             </button>
           )
         })}
@@ -103,6 +137,8 @@ export function DayDetailDialog({ tanggal, userStatus, allStatus, onClose }: Day
   const date = new Date(tanggal + 'T00:00:00')
   const dayName = date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
+  const s = userStatus?.status as keyof typeof absensiStatusBadge | undefined
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
@@ -112,8 +148,14 @@ export function DayDetailDialog({ tanggal, userStatus, allStatus, onClose }: Day
           <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl leading-none">&times;</button>
         </div>
 
-        {userStatus && (
-          <div className="space-y-3 mb-4 p-4 rounded-lg bg-muted/30">
+        {userStatus && s ? (
+          <div className="space-y-3 p-4 rounded-lg bg-muted/30">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Status</span>
+              <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${absensiStatusBadge[s] || 'bg-gray-100 text-gray-700'}`}>
+                {absensiStatusLabel[s] || userStatus.status}
+              </span>
+            </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Check-in</span>
               <span className="font-medium">{userStatus.checkIn ? new Date(userStatus.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
@@ -122,20 +164,23 @@ export function DayDetailDialog({ tanggal, userStatus, allStatus, onClose }: Day
               <span className="text-muted-foreground">Check-out</span>
               <span className="font-medium">{userStatus.checkOut ? new Date(userStatus.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Status</span>
-              <span className="font-medium capitalize">{userStatus.status || '-'}</span>
-            </div>
           </div>
-        )}
+        ) : userStatus && !s ? (
+          <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-center">
+            <p className="text-sm font-medium text-red-700 dark:text-red-400">Tidak Absen</p>
+            <p className="text-xs text-muted-foreground mt-1">Belum melakukan absensi pada tanggal ini.</p>
+          </div>
+        ) : null}
 
         {allStatus && allStatus.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2 mt-4">
             <p className="text-sm font-medium">Daftar Kehadiran</p>
             {allStatus.map((item) => (
               <div key={item.nama} className="flex justify-between text-sm py-1.5 border-b last:border-0">
                 <span>{item.nama}</span>
-                <span className="capitalize text-xs px-2 py-0.5 rounded-full bg-muted">{item.status}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${absensiStatusBadge[item.status as keyof typeof absensiStatusBadge] || 'bg-muted'}`}>
+                  {absensiStatusLabel[item.status as keyof typeof absensiStatusLabel] || item.status}
+                </span>
               </div>
             ))}
           </div>

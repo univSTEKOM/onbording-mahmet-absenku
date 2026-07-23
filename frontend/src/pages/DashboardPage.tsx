@@ -12,11 +12,18 @@ import { useNavigate } from '@tanstack/react-router'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
-import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, LogIn, LogOut } from 'lucide-react'
+import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight } from 'lucide-react'
+import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 const now = new Date()
 const curMonth = now.getMonth()
 const curYear = now.getFullYear()
+
+const STATUS_BAR_COLORS: Record<string, string> = {
+  hadir: 'var(--chart-1)',
+  terlambat: 'var(--chart-2)',
+  pulang_cepat: 'var(--chart-3)',
+}
 
 function hitungJam(checkIn: string | null, checkOut: string | null): string {
   if (!checkIn || !checkOut) return '-'
@@ -35,6 +42,9 @@ export default function DashboardPage() {
   const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: allAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
   const { data: todayAbsensi } = useAbsensiList({ userId: user?.id, tanggal: now.toISOString().split('T')[0] })
+  const { data: dayDetail } = useAbsensiList(
+    detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
+  )
 
   const isCheckedIn = !!todayAbsensi?.[0]?.checkIn
   const isCheckedOut = !!todayAbsensi?.[0]?.checkOut
@@ -47,17 +57,21 @@ export default function DashboardPage() {
 
   const recent5 = allAbsensi?.slice(0, 5)
 
-  const weekDays = (recentAbsensi || []).map((item) => {
-    const d = new Date(item.tanggal)
-    return {
-      ...item,
-      dayName: d.toLocaleDateString('id-ID', { weekday: 'short' }),
-      dateNum: d.getDate(),
-      monthShort: d.toLocaleDateString('id-ID', { month: 'short' }),
-      checkInTime: item.checkIn ? new Date(item.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : null,
-      checkOutTime: item.checkOut ? new Date(item.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : null,
-    }
-  })
+  const chartData = (recentAbsensi || []).map((item) => ({
+    dayName: new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
+    tanggal: item.tanggal,
+    status: item.status,
+    hadir: item.status && ['hadir'].includes(item.status) ? 1 : 0,
+    terlambat: item.status === 'terlambat' ? 1 : 0,
+    pulangCepat: item.status === 'pulang_cepat' ? 1 : 0,
+    checkIn: item.checkIn ? new Date(item.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-',
+    checkOut: item.checkOut ? new Date(item.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-',
+  }))
+
+  const chartBarColor = (entry: typeof chartData[number]) => {
+    if (entry.status && STATUS_BAR_COLORS[entry.status]) return STATUS_BAR_COLORS[entry.status]
+    return 'var(--muted-foreground)'
+  }
 
   if (!user) return null
 
@@ -75,7 +89,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard label="Status Hari Ini" value={isCheckedOut ? 'Selesai' : isCheckedIn ? 'Check-in' : 'Belum'} icon={Clock} />
-        <StatsCard label={`Hadir (Bulan Ini)`} value={`${monthStats.hadir} hari`} icon={CalendarDays} />
+        <StatsCard label="Hadir (Bulan Ini)" value={`${monthStats.hadir} hari`} icon={CalendarDays} />
         <StatsCard label="Terlambat" value={`${monthStats.terlambat} kali`} icon={TrendingUp} />
         <StatsCard label="Total Absensi" value={`${monthStats.total} hari`} icon={Fingerprint} />
       </div>
@@ -87,36 +101,57 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {weekLoading ? (
-              <Skeleton className="h-32 w-full rounded-lg" />
-            ) : weekDays.length > 0 ? (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {weekDays.map((day) => (
-                  <div
-                    key={day.tanggal}
-                    className="flex flex-col items-center gap-1.5 min-w-[80px] p-3 rounded-xl border bg-card text-center shrink-0"
-                  >
-                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{day.dayName}</span>
-                    <span className="text-lg font-bold leading-none">{day.dateNum}</span>
-                    <span className="text-[10px] text-muted-foreground">{day.monthShort}</span>
-                    <div className="w-full h-px bg-border my-1" />
-                    {day.status ? (
-                      <>
-                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${absensiStatusBadge[day.status as keyof typeof absensiStatusBadge]}`}>
-                          {absensiStatusLabel[day.status as keyof typeof absensiStatusLabel]}
-                        </span>
-                        <div className="flex flex-col items-center gap-0.5 text-[10px] text-muted-foreground mt-0.5">
-                          {day.checkInTime && <span className="flex items-center gap-1"><LogIn className="h-2.5 w-2.5 text-green-600" />{day.checkInTime}</span>}
-                          {day.checkOutTime && <span className="flex items-center gap-1"><LogOut className="h-2.5 w-2.5 text-red-600" />{day.checkOutTime}</span>}
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground/40">—</span>
-                    )}
-                  </div>
-                ))}
+              <Skeleton className="h-44 w-full rounded-lg" />
+            ) : chartData.length > 0 ? (
+              <div>
+                <div className="h-44">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} barSize={36}>
+                      <XAxis dataKey="dayName" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 13 }}
+                        formatter={(_value, _name, props) => {
+                          const d = props.payload
+                          if (!d.status) return ['Tidak absen', 'Status']
+                          return [
+                            `${absensiStatusLabel[d.status as keyof typeof absensiStatusLabel] || d.status} · ${d.checkIn} - ${d.checkOut}`,
+                            'Status',
+                          ]
+                        }}
+                        labelFormatter={(label) => `${label}`}
+                      />
+                      <Bar dataKey="hadir" stackId="a" radius={[4, 4, 0, 0]}>
+                        {chartData.map((entry, i) => (
+                          <Cell key={i} fill={chartBarColor(entry)} />
+                        ))}
+                      </Bar>
+                      <Bar dataKey="terlambat" stackId="a" radius={[4, 4, 0, 0]}>
+                        {chartData.map((entry, i) => (
+                          <Cell key={i} fill={chartBarColor(entry)} />
+                        ))}
+                      </Bar>
+                      <Bar dataKey="pulangCepat" stackId="a" radius={[4, 4, 0, 0]}>
+                        {chartData.map((entry, i) => (
+                          <Cell key={i} fill={chartBarColor(entry)} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex items-center justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-1)' }} /> Hadir
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-2)' }} /> Terlambat
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-3)' }} /> Pulang Cepat
+                  </span>
+                </div>
               </div>
             ) : (
-              <div className="h-20 flex items-center justify-center text-sm text-muted-foreground">Belum ada data absensi 7 hari terakhir</div>
+              <div className="h-44 flex items-center justify-center text-sm text-muted-foreground">Belum ada data absensi 7 hari terakhir</div>
             )}
           </CardContent>
         </Card>
@@ -170,7 +205,7 @@ export default function DashboardPage() {
               year={curYear}
               month={curMonth}
               data={monthData.data}
-              totalKaryawan={1}
+
               onDayClick={setDetailDate}
             />
           ) : (
@@ -179,14 +214,22 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {detailDate && todayAbsensi?.[0] && (
+      {detailDate && dayDetail?.[0] && (
         <DayDetailDialog
           tanggal={detailDate}
           userStatus={{
-            status: todayAbsensi[0].status,
-            checkIn: todayAbsensi[0].checkIn,
-            checkOut: todayAbsensi[0].checkOut,
+            status: dayDetail[0].status,
+            checkIn: dayDetail[0].checkIn,
+            checkOut: dayDetail[0].checkOut,
           }}
+          onClose={() => setDetailDate(null)}
+        />
+      )}
+
+      {detailDate && (!dayDetail || !dayDetail[0]) && (
+        <DayDetailDialog
+          tanggal={detailDate}
+          userStatus={{ status: 'tidakHadir', checkIn: null, checkOut: null }}
           onClose={() => setDetailDate(null)}
         />
       )}
