@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRecentAbsensi, useMonthAttendance } from '@/hooks/useDashboard'
 import { useAbsensiList } from '@/hooks/useAbsensi'
+import { useAllPengajuan } from '@/hooks/usePengajuan'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -45,6 +46,17 @@ export default function DashboardPage() {
   const { data: dayDetail } = useAbsensiList(
     detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
   )
+  const { data: allPengajuan } = useAllPengajuan()
+
+  const dayPengajuan = detailDate && allPengajuan
+    ? allPengajuan.find(
+        (p) =>
+          p.status === 'approved' &&
+          p.userId === user?.id &&
+          p.tanggalMulai <= detailDate &&
+          p.tanggalSelesai >= detailDate,
+      )
+    : null
 
   const isCheckedIn = !!todayAbsensi?.[0]?.checkIn
   const isCheckedOut = !!todayAbsensi?.[0]?.checkOut
@@ -214,22 +226,15 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {detailDate && dayDetail?.[0] && (
+      {detailDate && (
         <DayDetailDialog
           tanggal={detailDate}
-          userStatus={{
+          userStatus={dayDetail?.[0] ? {
             status: dayDetail[0].status,
             checkIn: dayDetail[0].checkIn,
             checkOut: dayDetail[0].checkOut,
-          }}
-          onClose={() => setDetailDate(null)}
-        />
-      )}
-
-      {detailDate && (!dayDetail || !dayDetail[0]) && (
-        <DayDetailDialog
-          tanggal={detailDate}
-          userStatus={{ status: 'tidakHadir', checkIn: null, checkOut: null }}
+          } : undefined}
+          pengajuan={dayPengajuan || undefined}
           onClose={() => setDetailDate(null)}
         />
       )}

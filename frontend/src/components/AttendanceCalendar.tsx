@@ -1,7 +1,10 @@
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { absensiStatusBadge, absensiStatusLabel, APP_RELEASE_DATE } from '@/lib/constants'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
+import { absensiStatusBadge, absensiStatusLabel, pengajuanJenisLabel, pengajuanJenisBadge, APP_RELEASE_DATE } from '@/lib/constants'
 import type { DayAttendanceData } from '@/api/dashboard'
+import type { Pengajuan } from '@/types'
 
 interface Props {
   year: number
@@ -129,32 +132,32 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
 interface DayDetailDialogProps {
   tanggal: string
   userStatus?: { status: string; checkIn: string | null; checkOut: string | null }
+  pengajuan?: Pengajuan | null
   allStatus?: { nama: string; status: string }[]
   onClose: () => void
 }
 
-export function DayDetailDialog({ tanggal, userStatus, allStatus, onClose }: DayDetailDialogProps) {
+export function DayDetailDialog({ tanggal, userStatus, pengajuan, allStatus, onClose }: DayDetailDialogProps) {
   const date = new Date(tanggal + 'T00:00:00')
   const dayName = date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   const s = userStatus?.status as keyof typeof absensiStatusBadge | undefined
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-50 w-full max-w-md rounded-xl border bg-background p-6 shadow-lg mx-4 max-h-[80vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">{dayName}</h3>
-          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl leading-none">&times;</button>
-        </div>
+    <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{dayName}</DialogTitle>
+          <DialogDescription>Detail absensi dan pengajuan</DialogDescription>
+        </DialogHeader>
 
         {userStatus && s ? (
-          <div className="space-y-3 p-4 rounded-lg bg-muted/30">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status</span>
-              <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${absensiStatusBadge[s] || 'bg-gray-100 text-gray-700'}`}>
+              <Badge variant="secondary" className={absensiStatusBadge[s] || ''}>
                 {absensiStatusLabel[s] || userStatus.status}
-              </span>
+              </Badge>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Check-in</span>
@@ -165,31 +168,48 @@ export function DayDetailDialog({ tanggal, userStatus, allStatus, onClose }: Day
               <span className="font-medium">{userStatus.checkOut ? new Date(userStatus.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
             </div>
           </div>
+        ) : pengajuan ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Pengajuan</span>
+              <Badge variant="secondary" className={pengajuanJenisBadge[pengajuan.jenis] || ''}>
+                {pengajuanJenisLabel[pengajuan.jenis]}
+              </Badge>
+            </div>
+            <div className="space-y-1 text-sm">
+              <p className="text-muted-foreground">Alasan</p>
+              <p className="font-medium">{pengajuan.alasan}</p>
+            </div>
+            {pengajuan.catatan && (
+              <div className="space-y-1 text-sm">
+                <p className="text-muted-foreground">Catatan</p>
+                <p className="text-sm p-2 rounded-md bg-muted">{pengajuan.catatan}</p>
+              </div>
+            )}
+          </div>
         ) : userStatus && !s ? (
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 text-center">
             <p className="text-sm font-medium text-red-700 dark:text-red-400">Tidak Absen</p>
             <p className="text-xs text-muted-foreground mt-1">Belum melakukan absensi pada tanggal ini.</p>
           </div>
-        ) : null}
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-4">Tidak ada data untuk tanggal ini.</p>
+        )}
 
         {allStatus && allStatus.length > 0 && (
-          <div className="space-y-2 mt-4">
+          <div className="space-y-2 mt-2">
             <p className="text-sm font-medium">Daftar Kehadiran</p>
             {allStatus.map((item) => (
               <div key={item.nama} className="flex justify-between text-sm py-1.5 border-b last:border-0">
                 <span>{item.nama}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${absensiStatusBadge[item.status as keyof typeof absensiStatusBadge] || 'bg-muted'}`}>
+                <Badge variant="secondary" className={absensiStatusBadge[item.status as keyof typeof absensiStatusBadge] || 'bg-muted'}>
                   {absensiStatusLabel[item.status as keyof typeof absensiStatusLabel] || item.status}
-                </span>
+                </Badge>
               </div>
             ))}
           </div>
         )}
-
-        {!userStatus && (!allStatus || allStatus.length === 0) && (
-          <p className="text-sm text-muted-foreground text-center py-4">Tidak ada data absensi untuk tanggal ini.</p>
-        )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
