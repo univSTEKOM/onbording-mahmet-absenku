@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { useLocation } from '@tanstack/react-router'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
@@ -12,6 +13,8 @@ import {
 import { LayoutDashboard, History, FileText, Users, ShieldCheck, UserCheck } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/hooks/useAuth'
+import api from '@/api/axios'
+import type { User } from '@/types'
 
 const karyawanItems = [
   { title: 'Dashboard', url: '/dashboard', icon: <LayoutDashboard /> },
@@ -22,7 +25,6 @@ const karyawanItems = [
 
 const adminItems = [
   { title: 'Dashboard HRD', url: '/hrd/dashboard', icon: <LayoutDashboard /> },
-  { title: 'Verifikasi', url: '/hrd/verifikasi', icon: <UserCheck /> },
   { title: 'Riwayat', url: '/hrd/riwayat', icon: <History /> },
   { title: 'Pengajuan', url: '/hrd/pengajuan', icon: <FileText /> },
   { title: 'Kelola Karyawan', url: '/hrd/karyawan', icon: <Users /> },
@@ -33,14 +35,29 @@ const onboardingItems = [
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const location = useLocation()
   const isOnboarding = user?.status === 'pending' || user?.status === 'rejected'
-  const items = isOnboarding
+
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ['users', 'pending', 'count'],
+    queryFn: () => api.get('/api/users/pending').then((r) => (r.data as User[]).length),
+    enabled: isAdmin,
+  })
+
+  const baseItems = isOnboarding
     ? onboardingItems
-    : user?.role === 'admin'
+    : isAdmin
       ? adminItems
       : karyawanItems
+
+  const items = isAdmin
+    ? [
+        ...baseItems.slice(0, 1),
+        { title: 'Verifikasi Karyawan', url: '/hrd/verifikasi', icon: <UserCheck />, badge: pendingCount > 0 ? pendingCount : undefined },
+        ...baseItems.slice(1),
+      ]
+    : baseItems
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -59,6 +76,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: item.url,
           icon: item.icon,
           isActive: location.pathname === item.url,
+          badge: (item as { badge?: number }).badge,
         }))} />
       </SidebarContent>
       <SidebarFooter>

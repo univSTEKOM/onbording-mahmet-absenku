@@ -112,7 +112,12 @@ server.use(express.json())
 async function requireAdmin(headers) {
   const session = await auth.api.getSession({ headers })
   if (!session) return { error: { status: 401, message: 'Unauthorized' } }
-  if (session.user.role !== 'admin') return { error: { status: 403, message: 'Forbidden' } }
+  let role = session.user.role
+  if (!role) {
+    const profile = router.db.get('users').find({ email: session.user.email }).value()
+    role = profile?.role
+  }
+  if (role !== 'admin') return { error: { status: 403, message: 'Forbidden' } }
   return { session }
 }
 

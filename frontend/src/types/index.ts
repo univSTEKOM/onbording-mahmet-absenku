@@ -74,7 +74,7 @@ export interface AbsensiFilters {
   tanggal?: string
   tanggal_gte?: string
   tanggal_lte?: string
-  status?: string
+  status?: string | string[]
   _sort?: string
   _order?: string
   _page?: number
