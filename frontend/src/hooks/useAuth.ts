@@ -11,18 +11,18 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
   const base = sessionUser || {} as Record<string, unknown>
   const p = profile || {} as Record<string, unknown>
   return {
-    id: String(p.id || base.id),
-    email: (p.email as string) || (base.email as string) || '',
+    id: String(p.id ?? base.id),
+    email: (p.email as string) ?? (base.email as string) ?? '',
     password: '',
-    nama: (p.nama as string) || (base.name as string) || '',
-    jabatan: (p.jabatan as string) || (base.jabatan as string) || '',
-    role: (p.role as User['role']) || (base.role as User['role']) || 'karyawan',
-    status: (p.status as User['status']) || (base.status as User['status']) || 'approved',
-    rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) || [],
-    foto: (p.foto as string) || (base.image as string) || '',
-    phone: (p.phone as string) || (base.phone as string) || '',
-    alamat: (p.alamat as string) || (base.alamat as string) || '',
-    createdAt: (p.createdAt as string) || (base.createdAt as string) || '',
+    nama: (p.nama as string) ?? (base.name as string) ?? '',
+    jabatan: (p.jabatan as string) ?? (base.jabatan as string) ?? '',
+    role: (p.role as User['role']) ?? (base.role as User['role']) ?? 'karyawan',
+    status: (p.status as User['status']) ?? (base.status as User['status']) ?? 'approved',
+    rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) ?? [],
+    foto: (p.foto as string) ?? (base.image as string) ?? '',
+    phone: (p.phone as string) ?? (base.phone as string) ?? '',
+    alamat: (p.alamat as string) ?? (base.alamat as string) ?? '',
+    createdAt: (p.createdAt as string) ?? (base.createdAt as string) ?? '',
   }
 }
 

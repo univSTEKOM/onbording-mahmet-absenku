@@ -387,8 +387,15 @@ server.get('/api/dashboard/recent', (req, res) => {
   const userId = req.query.userId || null
   let a = router.db.get('absensi').value()
   if (userId) a = a.filter((x) => x.userId === userId)
-  const dates = [...new Set(a.map((x) => x.tanggal))].sort().slice(-7)
-  res.json({ data: dates.map((t) => { const r = a.filter((x) => x.tanggal === t); return { tanggal: t, checkIn: r[0]?.checkIn, checkOut: r[0]?.checkOut, status: r[0]?.status } }) })
+  const today = new Date()
+  const data = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i)
+    const tgl = d.toISOString().split('T')[0]
+    const r = a.filter((x) => x.tanggal === tgl)
+    data.push({ tanggal: tgl, checkIn: r[0]?.checkIn || null, checkOut: r[0]?.checkOut || null, status: r[0]?.status || null })
+  }
+  res.json({ data })
 })
 
 server.get('/api/dashboard/hrd/week', (req, res) => {
@@ -409,9 +416,11 @@ server.get('/api/dashboard/hrd/week', (req, res) => {
 server.get('/api/dashboard/month', (req, res) => {
   const tahun = parseInt(req.query.tahun) || new Date().getFullYear()
   const bulan = parseInt(req.query.bulan) || (new Date().getMonth() + 1)
-  const a = router.db.get('absensi').value()
+  const userId = req.query.userId || null
+  let a = router.db.get('absensi').value()
+  if (userId) a = a.filter((x) => x.userId === userId)
   const u = router.db.get('users').value()
-  const total = u.filter((x) => x.role === 'karyawan').length
+  const total = userId ? 1 : u.filter((x) => x.role === 'karyawan').length
 
   const daysInMonth = new Date(tahun, bulan, 0).getDate()
   const data = []
@@ -419,7 +428,7 @@ server.get('/api/dashboard/month', (req, res) => {
   for (let d = 1; d <= daysInMonth; d++) {
     const tgl = `${tahun}-${String(bulan).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     const dayAbsensi = a.filter((x) => x.tanggal === tgl)
-    const hadir = dayAbsensi.filter((x) => x.status === 'hadir').length
+    const hadir = dayAbsensi.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
     const terlambat = dayAbsensi.filter((x) => x.status === 'terlambat').length
     const checkInOnly = dayAbsensi.filter((x) => x.checkIn && !x.checkOut).length
     const izin = dayAbsensi.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length

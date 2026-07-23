@@ -20,11 +20,13 @@ export default function ProfilPage() {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
   const [fotoPreview, setFotoPreview] = useState(user?.foto || '')
+  const [photoChanged, setPhotoChanged] = useState(false)
 
   useEffect(() => {
     if (!editing) return
     setForm({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
     setFotoPreview(user?.foto || '')
+    setPhotoChanged(false)
   }, [editing, user?.nama, user?.email, user?.jabatan, user?.phone, user?.alamat, user?.foto])
 
   function validate() {
@@ -51,7 +53,7 @@ export default function ProfilPage() {
     else if (file.size > MAX_FOTO_SIZE_MB * 1024 * 1024) errs.foto = `Maksimal ${MAX_FOTO_SIZE_MB}MB`
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     const reader = new FileReader()
-    reader.onload = () => { setFotoPreview(reader.result as string) }
+    reader.onload = () => { setFotoPreview(reader.result as string); setPhotoChanged(true) }
     reader.readAsDataURL(file)
     setErrors({})
   }
@@ -60,7 +62,7 @@ export default function ProfilPage() {
     e.preventDefault()
     if (!validate() || !user) return
     const data: Partial<User> = { ...form }
-    if (fotoPreview && fotoPreview.startsWith('data:')) { data.foto = fotoPreview }
+    if (photoChanged && fotoPreview) { data.foto = fotoPreview }
     setSaving(true)
     try {
       await updateUser(data)
@@ -77,6 +79,7 @@ export default function ProfilPage() {
     setEditing(false); setErrors({})
     setForm({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
     setFotoPreview(user?.foto || '')
+    setPhotoChanged(false)
   }
 
   const initials = user?.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
