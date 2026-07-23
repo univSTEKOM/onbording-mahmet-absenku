@@ -1,0 +1,117 @@
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
+import { getAuthClient } from '@/lib/auth-client'
+import { useUserContext } from '@/lib/user-context'
+import api from '@/api/axios'
+import type { User, LoginRequest, RegisterRequest } from '@/types'
+
+function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, profile: Record<string, unknown> | null): User | null {
+  if (!sessionUser && !profile) return null
+  const base = sessionUser || {} as Record<string, unknown>
+  const p = profile || {} as Record<string, unknown>
+  return {
+    id: String(p.id || base.id),
+    email: (p.email as string) || (base.email as string) || '',
+    password: '',
+    nama: (p.nama as string) || (base.name as string) || '',
+    jabatan: (p.jabatan as string) || (base.jabatan as string) || '',
+    role: (p.role as User['role']) || (base.role as User['role']) || 'karyawan',
+    status: (p.status as User['status']) || (base.status as User['status']) || 'approved',
+    rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) || [],
+    foto: (p.foto as string) || (base.image as string) || '',
+    phone: (p.phone as string) || (base.phone as string) || '',
+    alamat: (p.alamat as string) || (base.alamat as string) || '',
+    createdAt: (p.createdAt as string) || (base.createdAt as string) || '',
+  }
+}
+
+export function useAuth() {
+  const navigate = useNavigate()
+  const { profile, setProfile, profileReady, setProfileReady } = useUserContext()
+
+  const authClientRef = useRef<ReturnType<typeof getAuthClient> | null>(null)
+  if (!authClientRef.current) {
+    authClientRef.current = getAuthClient()
+  }
+  const authClient = authClientRef.current
+
+  const { data: session, isPending, refetch } = authClient.useSession()
+  const sessionUserId = session?.user?.id
+
+  useEffect(() => {
+    if (!sessionUserId) { setProfile(null); setProfileReady(true); return }
+    let cancelled = false
+    setProfileReady(false)
+    api.get('/api/me').then((r) => {
+      if (!cancelled) {
+        setProfile((r.data as Record<string, unknown>)?.user as Record<string, unknown> || null)
+      }
+    }).catch(() => {
+      if (!cancelled) setProfile(null)
+    }).finally(() => {
+      if (!cancelled) setProfileReady(true)
+    })
+    return () => { cancelled = true }
+  }, [sessionUserId, setProfile, setProfileReady])
+
+  const user = useMemo(() => mergeUserData(session?.user, profile), [session, profile])
+
+  const login = useCallback(async (data: LoginRequest) => {
+    const client = authClientRef.current!
+    const { data: result, error } = await client.signIn.email({
+      email: data.email,
+      password: data.password,
+    })
+    if (error) {
+      throw { response: { data: { message: error.message || 'Email atau password salah' } } }
+    }
+    await refetch()
+    toast.success('Login berhasil')
+    return result
+  }, [refetch])
+
+  const register = useCallback(async (data: RegisterRequest) => {
+    const res = await api.post('/api/register', data)
+    toast.success('Registrasi berhasil')
+    return res.data
+  }, [])
+
+  const logout = useCallback(async () => {
+    await authClientRef.current!.signOut()
+    navigate({ to: '/login' })
+  }, [navigate])
+
+  const updateUser = useCallback(async (data: Partial<User>) => {
+    if (!sessionUserId) return
+    const body: Record<string, unknown> = {}
+    if (data.nama !== undefined) body.nama = data.nama
+    if (data.jabatan !== undefined) body.jabatan = data.jabatan
+    if (data.foto !== undefined) body.foto = data.foto
+    if (data.phone !== undefined) body.phone = data.phone
+    if (data.alamat !== undefined) body.alamat = data.alamat
+    await api.patch(`/users/${sessionUserId}`, body)
+
+    setProfile((prev) => ({
+      ...prev,
+      ...(data.nama !== undefined ? { nama: data.nama } : {}),
+      ...(data.jabatan !== undefined ? { jabatan: data.jabatan } : {}),
+      ...(data.phone !== undefined ? { phone: data.phone } : {}),
+      ...(data.alamat !== undefined ? { alamat: data.alamat } : {}),
+      ...(data.foto !== undefined ? { foto: data.foto } : {}),
+    }))
+    await refetch()
+    toast.success('Profil berhasil diperbarui')
+  }, [sessionUserId, setProfile, refetch])
+
+  return {
+    user,
+    token: null,
+    isLoading: isPending || !profileReady,
+    login,
+    register,
+    logout,
+    updateUser,
+    isAdmin: user?.role === 'admin',
+  }
+}
