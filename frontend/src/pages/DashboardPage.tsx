@@ -122,15 +122,24 @@ export default function DashboardPage() {
                       <XAxis dataKey="dayName" fontSize={12} tickLine={false} axisLine={false} />
                       <Tooltip
                         contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 13 }}
-                        formatter={(_value, _name, props) => {
-                          const d = props.payload
-                          if (!d.status) return ['Tidak absen', 'Status']
-                          return [
-                            `${absensiStatusLabel[d.status as keyof typeof absensiStatusLabel] || d.status} · ${d.checkIn} - ${d.checkOut}`,
-                            'Status',
-                          ]
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null
+                          const d = payload[0].payload
+                          return (
+                            <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
+                              <p className="font-medium mb-1">{d.dayName}</p>
+                              {d.status ? (
+                                <p className="text-muted-foreground">
+                                  {absensiStatusLabel[d.status as keyof typeof absensiStatusLabel] || d.status}
+                                  <span className="mx-1">·</span>
+                                  {d.checkIn} - {d.checkOut}
+                                </p>
+                              ) : (
+                                <p className="text-muted-foreground">Tidak absen</p>
+                              )}
+                            </div>
+                          )
                         }}
-                        labelFormatter={(label) => `${label}`}
                       />
                       <Bar dataKey="hadir" stackId="a" radius={[4, 4, 0, 0]}>
                         {chartData.map((entry, i) => (
