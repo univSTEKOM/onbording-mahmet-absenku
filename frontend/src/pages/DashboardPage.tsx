@@ -14,7 +14,8 @@ import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
 import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, X } from 'lucide-react'
-import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, Cell, XAxis, CartesianGrid } from 'recharts'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart'
 
 const now = new Date()
 const curMonth = now.getMonth()
@@ -167,60 +168,37 @@ export default function DashboardPage() {
             {weekLoading ? (
               <Skeleton className="h-44 w-full rounded-lg" />
             ) : chartData.length > 0 ? (
-              <div>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} barSize={36}>
-                      <XAxis dataKey="dayName" fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 13 }}
-                        content={({ active, payload }) => {
-                          if (!active || !payload?.length) return null
-                          const d = payload[0].payload
-                          return (
-                            <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
-                              <p className="font-medium mb-1">{d.dayName}</p>
-                              {d.status ? (
-                                <p className="text-muted-foreground">
-                                  <span className={`inline-block w-2 h-2 rounded-full mr-1.5`} style={{ backgroundColor: STATUS_COLORS_MAP[d.status] || '#999' }} />
-                                  {absensiStatusLabel[d.status as keyof typeof absensiStatusLabel] || d.status}
-                                  <span className="mx-1">·</span>
-                                  {d.checkIn} - {d.checkOut}
-                                </p>
-                              ) : (
-                                <p className="text-muted-foreground">Tidak absen</p>
-                              )}
-                            </div>
-                          )
-                        }}
-                      />
-                      {/* Stacked: belakang→depan = terbanyak→tersedikit */}
-                      <Bar dataKey="tidakHadir" fill={STATUS_COLORS_MAP.tidakHadir} stackId="a" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="hadir" stackId="a" radius={[4, 4, 0, 0]}>
-                        {chartData.map((entry, i) => (
-                          <Cell key={i} fill={chartBarColor(entry)} />
-                        ))}
-                      </Bar>
-                      <Bar dataKey="terlambat" stackId="a" radius={[4, 4, 0, 0]}>
-                        {chartData.map((entry, i) => (
-                          <Cell key={i} fill={chartBarColor(entry)} />
-                        ))}
-                      </Bar>
-                      <Bar dataKey="pulangCepat" stackId="a" radius={[4, 4, 0, 0]}>
-                        {chartData.map((entry, i) => (
-                          <Cell key={i} fill={chartBarColor(entry)} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex items-center justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.tidakHadir }} /> Alfa</span>
-                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.hadir }} /> Hadir</span>
-                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.terlambat }} /> Terlambat</span>
-                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.pulang_cepat || STATUS_COLORS_MAP.izin }} /> Pulang Cepat</span>
-                </div>
-              </div>
+                <ChartContainer config={{
+                  tidakHadir: { label: 'Alfa', color: STATUS_COLORS_MAP.tidakHadir },
+                  hadir: { label: 'Hadir', color: STATUS_COLORS_MAP.hadir },
+                  terlambat: { label: 'Terlambat', color: STATUS_COLORS_MAP.terlambat },
+                  pulangCepat: { label: 'Pulang Cepat', color: STATUS_COLORS_MAP.pulang_cepat || STATUS_COLORS_MAP.izin },
+                } satisfies ChartConfig} className="h-44">
+                  <BarChart accessibilityLayer data={chartData}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="dayName" tickLine={false} tickMargin={10} axisLine={false} />
+                    <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
+                    <ChartLegend content={<ChartLegendContent payload={[
+                      { value: 'pulangCepat' }, { value: 'terlambat' }, { value: 'hadir' }, { value: 'tidakHadir' },
+                    ]} />} />
+                    <Bar dataKey="tidakHadir" fill="var(--color-tidakHadir)" radius={[0, 0, 4, 4]} stackId="a" />
+                    <Bar dataKey="hadir" stackId="a" radius={[0, 0, 0, 0]}>
+                      {chartData.map((entry, i) => (
+                        <Cell key={i} fill={chartBarColor(entry)} />
+                      ))}
+                    </Bar>
+                    <Bar dataKey="terlambat" stackId="a" radius={[0, 0, 0, 0]}>
+                      {chartData.map((entry, i) => (
+                        <Cell key={i} fill={chartBarColor(entry)} />
+                      ))}
+                    </Bar>
+                    <Bar dataKey="pulangCepat" stackId="a" radius={[4, 4, 0, 0]}>
+                      {chartData.map((entry, i) => (
+                        <Cell key={i} fill={chartBarColor(entry)} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ChartContainer>
             ) : (
               <div className="h-44 flex items-center justify-center text-sm text-muted-foreground">Belum ada data absensi 7 hari terakhir</div>
             )}

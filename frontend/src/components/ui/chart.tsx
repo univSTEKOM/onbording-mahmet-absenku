@@ -13,6 +13,22 @@ function useChart() {
 }
 
 function ChartContainer({ id, config, children, className }: { id?: string; config: ChartConfig; children: React.ReactNode; className?: string }) {
+  const chartRef = React.useRef<HTMLDivElement>(null)
+  const [size, setSize] = React.useState({ width: 0, height: 0 })
+
+  React.useEffect(() => {
+    const el = chartRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        setSize({ width: Math.floor(width), height: Math.floor(height) })
+      }
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   const colorVars = React.useMemo(() => {
     const vars: Record<string, string> = {}
     for (const [key, val] of Object.entries(config)) {
@@ -22,9 +38,19 @@ function ChartContainer({ id, config, children, className }: { id?: string; conf
   }, [config])
 
   return (
-    <div id={id} className={cn('w-full', className)} style={colorVars as React.CSSProperties}>
+    <div id={id} ref={chartRef} className={cn('relative', className)} style={colorVars as React.CSSProperties}>
       <ChartContext.Provider value={{ config }}>
-        {children}
+        {size.width > 0 && size.height > 0
+          ? React.Children.map(children, (child) => {
+              if (React.isValidElement(child)) {
+                return React.cloneElement(child as React.ReactElement<{ width?: number; height?: number }>, {
+                  width: size.width,
+                  height: size.height,
+                })
+              }
+              return child
+            })
+          : null}
       </ChartContext.Provider>
     </div>
   )
@@ -40,27 +66,23 @@ function ChartStyle({ id, config }: { id: string; config: ChartConfig }) {
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
-function ChartTooltipContent({ active, payload, labelFormatter }: {
+function ChartTooltipContent({ active, payload, hideIndicator }: {
   active?: boolean
   payload?: { name?: string; value?: number; payload?: Record<string, unknown> }[]
   labelFormatter?: (value: string) => string
   className?: string
+  hideIndicator?: boolean
 }) {
   const { config } = useChart()
   if (!active || !payload?.length) return null
   return (
     <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
-      {payload[0]?.payload && (
-        <p className="font-medium mb-1">
-          {labelFormatter ? labelFormatter(String((payload[0].payload as Record<string, string>).name || '')) : (payload[0].payload as Record<string, string>).name}
-        </p>
-      )}
       {payload.map((entry) => {
         const cfg = entry.name ? config[entry.name] : undefined
         if ((entry.value ?? 0) <= 0) return null
         return (
           <div key={entry.name} className="flex items-center gap-2 text-muted-foreground">
-            {cfg?.color && <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />}
+            {!hideIndicator && cfg?.color && <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />}
             <span>{cfg?.label || entry.name}: {entry.value}</span>
           </div>
         )
@@ -77,7 +99,7 @@ function ChartLegendContent({ payload }: { payload?: { value: string; color?: st
   const { config } = useChart()
   if (!payload?.length) return null
   return (
-    <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground mt-2">
+    <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground">
       {payload.map((entry) => {
         const cfg = config[entry.value]
         return (

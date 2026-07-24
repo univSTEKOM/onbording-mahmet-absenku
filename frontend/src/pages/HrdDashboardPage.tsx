@@ -9,9 +9,8 @@ import { AttendanceCalendar } from '@/components/AttendanceCalendar'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
 import { STATUS_COLORS_MAP } from '@/lib/constants'
-import { BarChart, Bar, XAxis, PieChart, Pie, CartesianGrid, Label } from 'recharts'
+import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Label } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle, type ChartConfig } from '@/components/ui/chart'
-import { ResponsiveContainer } from 'recharts'
 import api from '@/api/axios'
 import type { User } from '@/types'
 
@@ -145,29 +144,27 @@ export default function HrdDashboardPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Skeleton className="h-[220px] w-full rounded-lg" />
+              <Skeleton className="h-[250px] w-full rounded-lg" />
             ) : chart.length > 0 ? (
-              <ChartContainer config={barChartConfig} className="h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart accessibilityLayer data={chart} barSize={28}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                    <ChartLegend content={<ChartLegendContent payload={[
-                      { value: 'cuti' }, { value: 'sakit' }, { value: 'terlambat' },
-                      { value: 'izin' }, { value: 'hadir' }, { value: 'tidakHadir' },
-                    ]} />} />
-                    <Bar dataKey="tidakHadir" fill="var(--color-tidakHadir)" radius={[0, 0, 4, 4]} stackId="a" />
-                    <Bar dataKey="hadir" fill="var(--color-hadir)" radius={[0, 0, 0, 0]} stackId="a" />
-                    <Bar dataKey="izin" fill="var(--color-izin)" radius={[0, 0, 0, 0]} stackId="a" />
-                    <Bar dataKey="terlambat" fill="var(--color-terlambat)" radius={[0, 0, 0, 0]} stackId="a" />
-                    <Bar dataKey="sakit" fill="var(--color-sakit)" radius={[0, 0, 0, 0]} stackId="a" />
-                    <Bar dataKey="cuti" fill="var(--color-cuti)" radius={[4, 4, 0, 0]} stackId="a" />
-                  </BarChart>
-                </ResponsiveContainer>
+              <ChartContainer config={barChartConfig} className="h-[250px]">
+                <BarChart accessibilityLayer data={chart}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} tickFormatter={(v) => v.slice(0, 3)} />
+                  <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
+                  <ChartLegend content={<ChartLegendContent payload={[
+                    { value: 'cuti' }, { value: 'sakit' }, { value: 'terlambat' },
+                    { value: 'izin' }, { value: 'hadir' }, { value: 'tidakHadir' },
+                  ]} />} />
+                  <Bar dataKey="tidakHadir" fill="var(--color-tidakHadir)" radius={[0, 0, 4, 4]} stackId="a" />
+                  <Bar dataKey="hadir" fill="var(--color-hadir)" radius={[0, 0, 0, 0]} stackId="a" />
+                  <Bar dataKey="izin" fill="var(--color-izin)" radius={[0, 0, 0, 0]} stackId="a" />
+                  <Bar dataKey="terlambat" fill="var(--color-terlambat)" radius={[0, 0, 0, 0]} stackId="a" />
+                  <Bar dataKey="sakit" fill="var(--color-sakit)" radius={[0, 0, 0, 0]} stackId="a" />
+                  <Bar dataKey="cuti" fill="var(--color-cuti)" radius={[4, 4, 0, 0]} stackId="a" />
+                </BarChart>
               </ChartContainer>
             ) : (
-              <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
+              <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
             )}
           </CardContent>
         </Card>
@@ -182,12 +179,12 @@ export default function HrdDashboardPage() {
           </CardHeader>
           <CardContent className="flex flex-1 justify-center pb-0">
             {monthLoading ? (
-              <Skeleton className="h-[200px] w-full rounded-lg" />
+              <Skeleton className="h-[250px] w-full rounded-lg" />
             ) : donutData.length > 0 && totalAbsen > 0 ? (
               <ChartContainer id={pieId} config={pieChartConfig} className="mx-auto aspect-square w-full max-w-[250px]">
                 <PieChart>
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                  <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={75} strokeWidth={2}>
+                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                  <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={2}>
                     <Label
                       content={({ viewBox }) => {
                         if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
@@ -202,10 +199,12 @@ export default function HrdDashboardPage() {
                     />
                   </Pie>
                 </PieChart>
-                <ChartLegend content={<ChartLegendContent payload={donutData.map((d) => ({ value: d.name }))} />} />
               </ChartContainer>
             ) : (
-              <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
+              <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
+            )}
+            {donutData.length > 0 && totalAbsen > 0 && (
+              <ChartLegend content={<ChartLegendContent payload={donutData.map((d) => ({ value: d.name }))} />} />
             )}
           </CardContent>
         </Card>

@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { toast } from 'sonner'
 import { Camera, Loader2, Save, Pencil } from 'lucide-react'
+import { ImageCropperDialog } from '@/components/shared/ImageCropperDialog'
 
 export default function ProfilPage() {
   const { user, updateUser } = useAuth()
@@ -21,6 +22,7 @@ export default function ProfilPage() {
   const [form, setForm] = useState({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
   const [fotoPreview, setFotoPreview] = useState(user?.foto || '')
   const [photoChanged, setPhotoChanged] = useState(false)
+  const [cropSource, setCropSource] = useState<string | null>(null)
 
   useEffect(() => {
     if (!editing) return
@@ -53,9 +55,10 @@ export default function ProfilPage() {
     else if (file.size > MAX_FOTO_SIZE_MB * 1024 * 1024) errs.foto = `Maksimal ${MAX_FOTO_SIZE_MB}MB`
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     const reader = new FileReader()
-    reader.onload = () => { setFotoPreview(reader.result as string); setPhotoChanged(true) }
+    reader.onload = () => { setCropSource(reader.result as string) }
     reader.readAsDataURL(file)
     setErrors({})
+    e.target.value = ''
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -80,10 +83,17 @@ export default function ProfilPage() {
     setForm({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
     setFotoPreview(user?.foto || '')
     setPhotoChanged(false)
+    setCropSource(null)
   }
 
   const initials = user?.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
   if (!user) return null
+
+  function handleCropComplete(croppedDataUrl: string) {
+    setFotoPreview(croppedDataUrl)
+    setPhotoChanged(true)
+    setCropSource(null)
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -185,6 +195,13 @@ export default function ProfilPage() {
           )}
         </CardContent>
       </Card>
+
+      <ImageCropperDialog
+        open={!!cropSource}
+        imageSrc={cropSource || ''}
+        onCropComplete={handleCropComplete}
+        onCancel={() => setCropSource(null)}
+      />
     </div>
   )
 }
