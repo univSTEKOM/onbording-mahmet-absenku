@@ -2,15 +2,15 @@ import { useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useHrdWeek, useMonthAttendance } from '@/hooks/useDashboard'
 import { useQuery } from '@tanstack/react-query'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceCalendar } from '@/components/AttendanceCalendar'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
 import { STATUS_COLORS_MAP } from '@/lib/constants'
-import { BarChart, Bar, XAxis, YAxis, PieChart, Pie } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegendContent } from '@/components/ui/chart'
+import { BarChart, Bar, XAxis, PieChart, Pie, CartesianGrid, Label } from 'recharts'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle, type ChartConfig } from '@/components/ui/chart'
 import { ResponsiveContainer } from 'recharts'
 import api from '@/api/axios'
 import type { User } from '@/types'
@@ -19,8 +19,6 @@ const today = new Date()
 const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
 
-
-
 const barChartConfig = {
   tidakHadir: { label: 'Alfa', color: STATUS_COLORS_MAP.tidakHadir },
   hadir: { label: 'Hadir', color: STATUS_COLORS_MAP.hadir },
@@ -28,7 +26,18 @@ const barChartConfig = {
   terlambat: { label: 'Terlambat', color: STATUS_COLORS_MAP.terlambat },
   sakit: { label: 'Sakit', color: STATUS_COLORS_MAP.sakit },
   cuti: { label: 'Cuti', color: STATUS_COLORS_MAP.cuti },
-}
+} satisfies ChartConfig
+
+const pieChartConfig = {
+  hadir: { label: 'Hadir', color: STATUS_COLORS_MAP.hadir },
+  terlambat: { label: 'Terlambat', color: STATUS_COLORS_MAP.terlambat },
+  izin: { label: 'Izin', color: STATUS_COLORS_MAP.izin },
+  sakit: { label: 'Sakit', color: STATUS_COLORS_MAP.sakit },
+  cuti: { label: 'Cuti', color: STATUS_COLORS_MAP.cuti },
+  tidakHadir: { label: 'Alfa', color: STATUS_COLORS_MAP.tidakHadir },
+} satisfies ChartConfig
+
+const pieId = 'pie-kehadiran'
 
 export default function HrdDashboardPage() {
   const navigate = useNavigate()
@@ -53,17 +62,18 @@ export default function HrdDashboardPage() {
     const cutiTotal = monthData.data.reduce((sum, d) => sum + (d.cuti || 0), 0)
     const alfaTotal = monthData.data.reduce((sum, d) => sum + (d.tidakHadir || 0), 0)
     return [
-      { name: 'hadir', value: hadirTotal, fill: STATUS_COLORS_MAP.hadir },
-      { name: 'terlambat', value: terlambatTotal, fill: STATUS_COLORS_MAP.terlambat },
-      { name: 'izin', value: izinTotal, fill: STATUS_COLORS_MAP.izin },
-      { name: 'sakit', value: sakitTotal, fill: STATUS_COLORS_MAP.sakit },
-      { name: 'cuti', value: cutiTotal, fill: STATUS_COLORS_MAP.cuti },
-      { name: 'tidakHadir', value: alfaTotal, fill: STATUS_COLORS_MAP.tidakHadir },
+      { name: 'hadir', value: hadirTotal, fill: 'var(--color-hadir)' },
+      { name: 'terlambat', value: terlambatTotal, fill: 'var(--color-terlambat)' },
+      { name: 'izin', value: izinTotal, fill: 'var(--color-izin)' },
+      { name: 'sakit', value: sakitTotal, fill: 'var(--color-sakit)' },
+      { name: 'cuti', value: cutiTotal, fill: 'var(--color-cuti)' },
+      { name: 'tidakHadir', value: alfaTotal, fill: 'var(--color-tidakHadir)' },
     ]
   }, [monthData])
 
   const totalAbsen = donutData.reduce((s, d) => s + d.value, 0)
-  const hadirPct = totalAbsen > 0 ? Math.round((donutData[0].value / totalAbsen) * 100) : 0
+  const hadirVal = donutData[0]?.value ?? 0
+  const hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
 
   return (
     <div className="space-y-6">
@@ -125,37 +135,36 @@ export default function HrdDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
-          <div className="px-6 pt-6 pb-2">
-            <h3 className="font-semibold text-base">Tren Kehadiran 7 Hari</h3>
-            <p className="text-xs text-muted-foreground">
+          <CardHeader>
+            <CardTitle className="text-base">Tren Kehadiran 7 Hari</CardTitle>
+            <CardDescription>
               {new Date(today.getTime() - 6 * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
               {' — '}
               {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-            </p>
-          </div>
+            </CardDescription>
+          </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-[220px] w-full rounded-lg" />
             ) : chart.length > 0 ? (
               <ChartContainer config={barChartConfig} className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chart} barSize={28}>
-                  <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    {/* Stacked: belakang→depan = terbanyak→tersedikit */}
-                    <Bar dataKey="tidakHadir" fill={STATUS_COLORS_MAP.tidakHadir} radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="hadir" fill={STATUS_COLORS_MAP.hadir} radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="izin" fill={STATUS_COLORS_MAP.izin} radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="terlambat" fill={STATUS_COLORS_MAP.terlambat} radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="sakit" fill={STATUS_COLORS_MAP.sakit} radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="cuti" fill={STATUS_COLORS_MAP.cuti} radius={[4, 4, 0, 0]} stackId="a" />
+                  <BarChart accessibilityLayer data={chart} barSize={28}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
+                    <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                    <ChartLegend content={<ChartLegendContent payload={[
+                      { value: 'cuti' }, { value: 'sakit' }, { value: 'terlambat' },
+                      { value: 'izin' }, { value: 'hadir' }, { value: 'tidakHadir' },
+                    ]} />} />
+                    <Bar dataKey="tidakHadir" fill="var(--color-tidakHadir)" radius={[0, 0, 4, 4]} stackId="a" />
+                    <Bar dataKey="hadir" fill="var(--color-hadir)" radius={[0, 0, 0, 0]} stackId="a" />
+                    <Bar dataKey="izin" fill="var(--color-izin)" radius={[0, 0, 0, 0]} stackId="a" />
+                    <Bar dataKey="terlambat" fill="var(--color-terlambat)" radius={[0, 0, 0, 0]} stackId="a" />
+                    <Bar dataKey="sakit" fill="var(--color-sakit)" radius={[0, 0, 0, 0]} stackId="a" />
+                    <Bar dataKey="cuti" fill="var(--color-cuti)" radius={[4, 4, 0, 0]} stackId="a" />
                   </BarChart>
                 </ResponsiveContainer>
-                <ChartLegendContent payload={[
-                  { value: 'cuti' }, { value: 'sakit' }, { value: 'terlambat' },
-                  { value: 'izin' }, { value: 'hadir' }, { value: 'tidakHadir' },
-                ]} />
               </ChartContainer>
             ) : (
               <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
@@ -163,31 +172,37 @@ export default function HrdDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <div className="px-6 pt-6 pb-2">
-            <h3 className="font-semibold text-base">Kehadiran Bulan Ini</h3>
-            <p className="text-xs text-muted-foreground">{monthNames[currentMonth]} {currentYear}</p>
-          </div>
-          <CardContent>
+        <Card data-chart={pieId} className="flex flex-col">
+          <ChartStyle id={pieId} config={pieChartConfig} />
+          <CardHeader className="flex-row items-start space-y-0 pb-0">
+            <div className="grid gap-1">
+              <CardTitle>Kehadiran Bulan Ini</CardTitle>
+              <CardDescription>{['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][currentMonth]} {currentYear}</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-1 justify-center pb-0">
             {monthLoading ? (
               <Skeleton className="h-[200px] w-full rounded-lg" />
-            ) : donutData.length > 0 ? (
-              <ChartContainer config={barChartConfig}>
-                <div className="relative h-[200px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Pie data={donutData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" nameKey="name" paddingAngle={2} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: 0 }}>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{hadirPct}%</p>
-                      <p className="text-[10px] text-muted-foreground">hadir</p>
-                    </div>
-                  </div>
-                </div>
-                <ChartLegendContent payload={donutData.map((d) => ({ value: d.name }))} />
+            ) : donutData.length > 0 && totalAbsen > 0 ? (
+              <ChartContainer id={pieId} config={pieChartConfig} className="mx-auto aspect-square w-full max-w-[250px]">
+                <PieChart>
+                  <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                  <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={75} strokeWidth={2}>
+                    <Label
+                      content={({ viewBox }) => {
+                        if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                          return (
+                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                              <tspan x={viewBox.cx} y={(viewBox.cy || 0) - 8} className="fill-foreground text-2xl font-bold">{hadirPct}%</tspan>
+                              <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 16} className="fill-muted-foreground text-xs">hadir</tspan>
+                            </text>
+                          )
+                        }
+                      }}
+                    />
+                  </Pie>
+                </PieChart>
+                <ChartLegend content={<ChartLegendContent payload={donutData.map((d) => ({ value: d.name }))} />} />
               </ChartContainer>
             ) : (
               <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
@@ -213,5 +228,3 @@ export default function HrdDashboardPage() {
     </div>
   )
 }
-
-const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
