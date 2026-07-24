@@ -564,10 +564,13 @@ server.get('/api/dashboard/hrd/week', (req, res) => {
   })
 })
 
+const APP_RELEASE_DATE = '2026-07-01'
+
 server.get('/api/dashboard/month', (req, res) => {
   const tahun = parseInt(req.query.tahun) || new Date().getFullYear()
   const bulan = parseInt(req.query.bulan) || (new Date().getMonth() + 1)
   const userId = req.query.userId || null
+  const todayStr = new Date().toISOString().split('T')[0]
   let a = router.db.get('absensi').value()
   let p = router.db.get('pengajuan').value()
   if (userId) {
@@ -582,6 +585,12 @@ server.get('/api/dashboard/month', (req, res) => {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const tgl = `${tahun}-${String(bulan).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+
+    if (tgl < APP_RELEASE_DATE || tgl > todayStr) {
+      data.push({ tanggal: tgl, hadir: 0, terlambat: 0, checkInOnly: 0, izin: 0, tidakHadir: 0 })
+      continue
+    }
+
     const dayAbsensi = a.filter((x) => x.tanggal === tgl)
     const dayPengajuan = p.filter((x) => x.status === 'approved' && x.tanggalMulai <= tgl && x.tanggalSelesai >= tgl)
     const hadir = dayAbsensi.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
@@ -589,13 +598,14 @@ server.get('/api/dashboard/month', (req, res) => {
     const checkInOnly = dayAbsensi.filter((x) => x.checkIn && !x.checkOut).length
     const izin = dayAbsensi.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
     const pengajuanIzin = dayPengajuan.length
+    const totalIzin = izin + pengajuanIzin
     data.push({
       tanggal: tgl,
       hadir,
       terlambat,
       checkInOnly,
-      izin: izin + pengajuanIzin,
-      tidakHadir: total - hadir - terlambat - checkInOnly - izin - pengajuanIzin,
+      izin: totalIzin,
+      tidakHadir: Math.max(0, total - hadir - terlambat - checkInOnly - totalIzin),
     })
   }
 
