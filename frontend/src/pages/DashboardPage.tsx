@@ -178,6 +178,8 @@ export default function DashboardPage() {
                           )
                         }}
                       />
+                      {/* Stacked: belakang→depan = terbanyak→tersedikit */}
+                      <Bar dataKey="tidakHadir" fill={STATUS_COLORS_MAP.tidakHadir} stackId="a" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="hadir" stackId="a" radius={[4, 4, 0, 0]}>
                         {chartData.map((entry, i) => (
                           <Cell key={i} fill={chartBarColor(entry)} />
@@ -193,15 +195,14 @@ export default function DashboardPage() {
                           <Cell key={i} fill={chartBarColor(entry)} />
                         ))}
                       </Bar>
-                      <Bar dataKey="tidakHadir" fill={STATUS_COLORS_MAP.tidakHadir} stackId="a" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="flex items-center justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.tidakHadir }} /> Alfa</span>
                   <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.hadir }} /> Hadir</span>
                   <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.terlambat }} /> Terlambat</span>
                   <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.pulang_cepat || STATUS_COLORS_MAP.izin }} /> Pulang Cepat</span>
-                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.tidakHadir }} /> Alfa</span>
                 </div>
               </div>
             ) : (

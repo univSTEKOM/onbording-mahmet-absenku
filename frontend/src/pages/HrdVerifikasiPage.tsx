@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { UserLink } from '@/components/pengguna/UserLink'
 import { toast } from 'sonner'
 import api from '@/api/axios'
 import type { User } from '@/types'
@@ -76,10 +77,7 @@ export default function HrdVerifikasiPage() {
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
-                      <AvatarFallback className="text-lg font-bold">{u.nama?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
-                    </Avatar>
+                    <UserLink user={u} />
                     <div>
                       <p className="font-semibold">{u.nama}</p>
                       <p className="text-sm text-muted-foreground">{u.email}</p>

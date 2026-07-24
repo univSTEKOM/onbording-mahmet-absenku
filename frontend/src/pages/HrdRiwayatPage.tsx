@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { AttendanceCalendar } from '@/components/AttendanceCalendar'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
+import { UserLink } from '@/components/pengguna/UserLink'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { Download, RefreshCw, X, Search } from 'lucide-react'
@@ -254,10 +255,13 @@ export default function HrdRiwayatPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((a) => {
-                  const nama = users?.find((u) => u.id === a.userId)?.nama || '-'
+                  const user = users?.find((u) => u.id === a.userId)
+                  const nama = user?.nama || '-'
                   return (
                     <TableRow key={a.id}>
-                      <TableCell className="font-medium">{nama}</TableCell>
+                      <TableCell>
+                        {user ? <UserLink user={user} showAvatar={false} /> : <span className="font-medium">{nama}</span>}
+                      </TableCell>
                       <TableCell>{new Date(a.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
                       <TableCell className="text-muted-foreground">{a.checkIn ? new Date(a.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</TableCell>
                       <TableCell className="text-muted-foreground">{a.checkOut ? new Date(a.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</TableCell>
