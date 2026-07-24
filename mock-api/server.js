@@ -526,9 +526,13 @@ server.get('/api/dashboard/hrd/week', (req, res) => {
   const todayStr = today.toISOString().split('T')[0]
   const ms = new Date(); ms.setDate(1); const msStr = ms.toISOString().split('T')[0]
 
+  const dayOfWeek = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+
   const chart = []
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today); d.setDate(d.getDate() - i)
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(monday.getDate() + i)
     const tgl = d.toISOString().split('T')[0]
     const da = a.filter((x) => x.tanggal === tgl)
     const hadir = da.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length

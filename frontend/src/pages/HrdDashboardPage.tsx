@@ -22,7 +22,7 @@ const DONUT_COLORS = ['#22c55e', '#eab308', '#3b82f6', '#ef4444']
 export default function HrdDashboardPage() {
   const navigate = useNavigate()
   const { data: hrdData, isLoading, refetch, isFetching } = useHrdWeek()
-  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth)
+  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
   const { data: pendingUsers } = useQuery({
     queryKey: ['users', 'pending'],
     queryFn: () => api.get('/api/users/pending').then((r) => r.data as User[]),
