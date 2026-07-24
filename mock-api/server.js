@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import cors from 'cors'
 import fs from 'fs'
 import express from 'express'
@@ -568,7 +569,7 @@ server.get('/api/dashboard/hrd/week', (req, res) => {
   })
 })
 
-const APP_RELEASE_DATE = '2026-07-01'
+const APP_RELEASE_DATE = process.env.APP_RELEASE_DATE || '2026-07-13'
 
 server.get('/api/dashboard/month', (req, res) => {
   const tahun = parseInt(req.query.tahun) || new Date().getFullYear()

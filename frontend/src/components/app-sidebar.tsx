@@ -45,6 +45,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     enabled: isAdmin,
   })
 
+  const { data: pendingPengajuanCount = 0 } = useQuery({
+    queryKey: ['pengajuan', 'pending', 'count'],
+    queryFn: () => api.get('/pengajuan?status=pending').then((r) => (r.data as any[]).length),
+    enabled: isAdmin,
+  })
+
   const baseItems = isOnboarding
     ? onboardingItems
     : isAdmin
@@ -55,7 +61,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ? [
         ...baseItems.slice(0, 1),
         { title: 'Verifikasi Karyawan', url: '/hrd/verifikasi', icon: <UserCheck />, badge: pendingCount > 0 ? pendingCount : undefined },
-        ...baseItems.slice(1),
+        ...baseItems.slice(1).map((item) => ({
+          ...item,
+          badge: item.title === 'Pengajuan' && pendingPengajuanCount > 0 ? pendingPengajuanCount : undefined,
+        })),
       ]
     : baseItems
 

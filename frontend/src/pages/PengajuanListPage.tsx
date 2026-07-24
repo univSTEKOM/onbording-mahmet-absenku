@@ -3,33 +3,27 @@ import { useNavigate } from '@tanstack/react-router'
 import { usePengajuanList, useDeletePengajuan } from '@/hooks/usePengajuan'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
-} from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { Pagination } from '@/components/shared/Pagination'
 import { FilterDialog, type FilterValues } from '@/components/shared/FilterDialog'
-import { pengajuanJenisLabel, pengajuanStatusBadge, pengajuanStatusLabel, pengajuanJenisBadge } from '@/lib/constants'
-import { PlusCircle, Trash2, RefreshCw, CalendarDays, Clock, CheckCircle2, XCircle, FileText, ChevronRight, Filter } from 'lucide-react'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { PengajuanCard } from '@/components/pengajuan/PengajuanCard'
+import { PengajuanDetailDialog } from '@/components/pengajuan/PengajuanDetailDialog'
+import { PlusCircle, RefreshCw, Clock, CheckCircle2, FileText, Filter } from 'lucide-react'
 import type { Pengajuan } from '@/types'
 
-const statusIcons = {
-  pending: Clock,
-  approved: CheckCircle2,
-  rejected: XCircle,
-} as const
+const ITEMS_PER_PAGE = 10
 
 export default function PengajuanListPage() {
   const navigate = useNavigate()
   const { data: pengajuan, isLoading, refetch, isFetching } = usePengajuanList()
   const deleteMutation = useDeletePengajuan()
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
   const [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
   const [filter, setFilter] = useState<FilterValues>({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })
+  const [page, setPage] = useState(1)
   const skId = useId()
 
   const filtered = pengajuan?.filter((p) => {
@@ -38,20 +32,13 @@ export default function PengajuanListPage() {
     const matchDate = (!filter.dateFrom || p.tanggalMulai >= filter.dateFrom) && (!filter.dateTo || p.tanggalMulai <= filter.dateTo)
     const matchSearch = !filter.search || p.alasan.toLowerCase().includes(filter.search.toLowerCase())
     return matchStatus && matchJenis && matchDate && matchSearch
-  })
+  }) || []
 
   const total = pengajuan?.length || 0
   const pending = pengajuan?.filter((p) => p.status === 'pending').length || 0
   const approved = pengajuan?.filter((p) => p.status === 'approved').length || 0
-
-  function durasiHari(mulai: string, selesai: string) {
-    const ms = new Date(selesai).getTime() - new Date(mulai).getTime()
-    return Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1
-  }
-
-  function formatTanggal(date: string) {
-    return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-  }
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
+  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
   const hasActiveFilter = filter.search || filter.jenis || filter.status || filter.dateFrom || filter.dateTo
 
@@ -114,62 +101,31 @@ export default function PengajuanListPage() {
           {hasActiveFilter && <span className="ml-1 w-2 h-2 rounded-full bg-primary-foreground" />}
         </Button>
         {hasActiveFilter && (
-          <Button variant="ghost" size="sm" onClick={() => setFilter({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })}>
+          <Button variant="ghost" size="sm" onClick={() => { setFilter({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' }); setPage(1) }}>
             Hapus filter
           </Button>
         )}
         <div className="flex-1" />
-        <span className="text-sm text-muted-foreground">{filtered?.length || 0} hasil</span>
+        <span className="text-sm text-muted-foreground">{filtered.length} hasil</span>
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }, (_, i) => ({ id: `${skId}-s${i}` })).map((item) => (
-            <Skeleton key={item.id} className="h-28 w-full rounded-xl" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {Array.from({ length: 4 }, (_, i) => ({ id: `${skId}-s${i}` })).map((item) => (
+            <Skeleton key={item.id} className="h-32 w-full rounded-xl" />
           ))}
         </div>
-      ) : filtered?.length ? (
-        <div className="space-y-3">
-          {filtered.map((p) => {
-            const StatusIcon = statusIcons[p.status]
-            const hari = durasiHari(p.tanggalMulai, p.tanggalSelesai)
-            return (
-              <Card key={p.id} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setDetailTarget(p)}>
-                <CardContent className="py-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2 flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="secondary" className={pengajuanJenisBadge[p.jenis]}>{pengajuanJenisLabel[p.jenis]}</Badge>
-                        <Badge variant="secondary" className={pengajuanStatusBadge[p.status]}>
-                          <StatusIcon className="h-3 w-3 mr-1 inline" /> {pengajuanStatusLabel[p.status]}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <CalendarDays className="h-3.5 w-3.5" />
-                        {formatTanggal(p.tanggalMulai)} — {formatTanggal(p.tanggalSelesai)}
-                        <span className="text-xs text-muted-foreground/70">({hari} hari)</span>
-                      </p>
-                      <p className="text-sm leading-snug line-clamp-2">{p.alasan}</p>
-                      {p.catatan && p.status !== 'pending' && (
-                        <p className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md inline-block">📋 {p.catatan}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {p.status === 'pending' && (
-                        <Button
-                          variant="ghost" size="icon" className="h-8 w-8"
-                          onClick={(e) => { e.stopPropagation(); setDeleteId(p.id) }}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+      ) : paginated.length ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {paginated.map((p) => (
+            <PengajuanCard
+              key={p.id}
+              pengajuan={p}
+              variant="karyawan"
+              onDelete={(id) => setDeleteConfirmId(id)}
+              onClick={(p) => setDetailTarget(p)}
+            />
+          ))}
         </div>
       ) : (
         <EmptyState
@@ -177,6 +133,8 @@ export default function PengajuanListPage() {
           icon={FileText}
         />
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <FilterDialog
         open={filterOpen}
@@ -192,49 +150,25 @@ export default function PengajuanListPage() {
         ]}
       />
 
-      <Dialog open={!!detailTarget} onOpenChange={(o) => { if (!o) setDetailTarget(null) }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Detail Pengajuan</DialogTitle>
-            <DialogDescription>Informasi lengkap pengajuan izin / cuti</DialogDescription>
-          </DialogHeader>
-          {detailTarget && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className={pengajuanJenisBadge[detailTarget.jenis]}>{pengajuanJenisLabel[detailTarget.jenis]}</Badge>
-                <Badge variant="secondary" className={pengajuanStatusBadge[detailTarget.status]}>{pengajuanStatusLabel[detailTarget.status]}</Badge>
-              </div>
-              <Separator />
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><p className="text-muted-foreground text-xs">Tanggal Mulai</p><p className="font-medium">{formatTanggal(detailTarget.tanggalMulai)}</p></div>
-                <div><p className="text-muted-foreground text-xs">Tanggal Selesai</p><p className="font-medium">{formatTanggal(detailTarget.tanggalSelesai)}</p></div>
-              </div>
-              <p className="text-xs text-muted-foreground">Durasi: {durasiHari(detailTarget.tanggalMulai, detailTarget.tanggalSelesai)} hari kerja</p>
-              <Separator />
-              <div><p className="text-muted-foreground text-xs mb-1">Alasan</p><p className="text-sm">{detailTarget.alasan}</p></div>
-              {detailTarget.catatan && (
-                <>
-                  <Separator />
-                  <div><p className="text-muted-foreground text-xs mb-1">Catatan HRD</p><p className="text-sm p-3 rounded-lg bg-muted">{detailTarget.catatan}</p></div>
-                </>
-              )}
-              <Separator />
-              <p className="text-xs text-muted-foreground">Diajukan pada {formatTanggal(detailTarget.createdAt)}</p>
-              {detailTarget.status === 'pending' && (
-                <Button variant="destructive" size="sm" className="w-full gap-2" onClick={() => { setDetailTarget(null); setDeleteId(detailTarget.id) }}>
-                  <Trash2 className="h-4 w-4" /> Hapus Pengajuan
-                </Button>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PengajuanDetailDialog
+        open={!!detailTarget}
+        onOpenChange={(o) => { if (!o) setDetailTarget(null) }}
+        pengajuan={detailTarget}
+        variant="karyawan"
+        onDelete={(id) => { setDetailTarget(null); setDeleteConfirmId(id) }}
+      />
 
       <ConfirmDialog
-        open={deleteId !== null}
-        onOpenChange={(o) => { if (!o) setDeleteId(null) }}
+        open={deleteConfirmId !== null}
+        onOpenChange={(o) => { if (!o) setDeleteConfirmId(null) }}
         title="Hapus Pengajuan"
-        actions={[{ label: 'Hapus', onClick: () => { if (deleteId) deleteMutation.mutate(deleteId); setDeleteId(null) }, variant: 'destructive' as const }]}
+        actions={[
+          {
+            label: 'Hapus',
+            onClick: () => { if (deleteConfirmId) { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null) } },
+            variant: 'destructive' as const,
+          },
+        ]}
       >
         <p className="text-sm">Yakin ingin menghapus pengajuan ini? Tindakan ini tidak dapat dibatalkan.</p>
       </ConfirmDialog>

@@ -62,6 +62,7 @@
       "checkOut": "2026-07-13T16:30:00Z",
       "status": "hadir",
       "faceVerified": true,
+      "photos": [],
       "keterangan": "",
       "createdAt": "2026-07-13T07:55:00Z"
     },
@@ -73,13 +74,16 @@
       "checkOut": null,
       "status": "hadir",
       "faceVerified": false,
+      "photos": [],
       "keterangan": "",
       "createdAt": "2026-07-14T08:00:00Z"
     },
     {
+      "id": 8,
       "userId": "0we57PIMBqsd1zQihPPvhabzPbwYVH5X",
       "tanggal": "2026-07-23",
       "checkIn": "2026-07-23T07:45:17.830Z",
+      "checkOut": "2026-07-23T07:45:43.128Z",
       "status": "pulang_cepat",
       "faceVerified": false,
       "photos": [
@@ -95,14 +99,14 @@
         }
       ],
       "keterangan": "",
-      "createdAt": "2026-07-23T07:45:17.830Z",
-      "id": 8,
-      "checkOut": "2026-07-23T07:45:43.128Z"
+      "createdAt": "2026-07-23T07:45:17.830Z"
     },
     {
+      "id": 9,
       "userId": "zSNXhYfelRttawJ38hQUKQfyrx3QNzJZ",
       "tanggal": "2026-07-23",
       "checkIn": "2026-07-23T08:08:38.510Z",
+      "checkOut": "2026-07-23T08:09:12.621Z",
       "status": "pulang_cepat",
       "faceVerified": false,
       "photos": [
@@ -118,9 +122,7 @@
         }
       ],
       "keterangan": "",
-      "createdAt": "2026-07-23T08:08:38.510Z",
-      "id": 9,
-      "checkOut": "2026-07-23T08:09:12.621Z"
+      "createdAt": "2026-07-23T08:08:38.510Z"
     }
   ],
   "pengajuan": [
@@ -136,26 +138,59 @@
       "createdAt": "2026-07-17T09:00:00Z"
     },
     {
+      "id": 3,
+      "userId": "zSNXhYfelRttawJ38hQUKQfyrx3QNzJZ",
       "jenis": "cuti",
       "tanggalMulai": "2026-07-23",
       "tanggalSelesai": "2026-07-30",
       "alasan": "TERSERAH GW DONG",
-      "userId": "zSNXhYfelRttawJ38hQUKQfyrx3QNzJZ",
       "status": "rejected",
       "catatan": "terserah gw juga dong , bleehhh",
-      "createdAt": "2026-07-23T08:39:25.945Z",
-      "id": 3
+      "createdAt": "2026-07-23T08:39:25.945Z"
     },
     {
+      "id": 4,
+      "userId": "zSNXhYfelRttawJ38hQUKQfyrx3QNzJZ",
       "jenis": "cuti",
       "tanggalMulai": "2026-07-23",
       "tanggalSelesai": "2026-07-29",
       "alasan": "Syalan anak titik inii",
-      "userId": "zSNXhYfelRttawJ38hQUKQfyrx3QNzJZ",
       "status": "approved",
       "catatan": "YA YA TERSERAH ENTE, LIBUR SANA LIBUR",
-      "createdAt": "2026-07-23T08:40:06.801Z",
-      "id": 4
+      "createdAt": "2026-07-23T08:40:06.801Z"
+    },
+    {
+      "id": 5,
+      "userId": "0we57PIMBqsd1zQihPPvhabzPbwYVH5X",
+      "jenis": "cuti",
+      "tanggalMulai": "2026-07-24",
+      "tanggalSelesai": "2026-08-05",
+      "alasan": "EMBUD EMBUD\n",
+      "status": "approved",
+      "catatan": "",
+      "createdAt": "2026-07-24T01:08:52.875Z"
+    },
+    {
+      "jenis": "cuti",
+      "tanggalMulai": "2026-07-25",
+      "tanggalSelesai": "2026-08-05",
+      "alasan": "GUA PENGEN TIDUR ANGLEER",
+      "userId": "0we57PIMBqsd1zQihPPvhabzPbwYVH5X",
+      "status": "pending",
+      "catatan": "",
+      "createdAt": "2026-07-24T01:24:47.281Z",
+      "id": 6
+    },
+    {
+      "jenis": "cuti",
+      "tanggalMulai": "2026-07-25",
+      "tanggalSelesai": "2026-08-06",
+      "alasan": "pusing TUJUH KELILING",
+      "userId": "0we57PIMBqsd1zQihPPvhabzPbwYVH5X",
+      "status": "pending",
+      "catatan": "",
+      "createdAt": "2026-07-24T01:25:13.129Z",
+      "id": 7
     }
   ]
 }
