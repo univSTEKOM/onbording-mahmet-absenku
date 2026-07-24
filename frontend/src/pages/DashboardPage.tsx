@@ -14,7 +14,7 @@ import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
 import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, X } from 'lucide-react'
-import { BarChart, Bar, Cell, XAxis, CartesianGrid } from 'recharts'
+import { BarChart, Bar, XAxis, CartesianGrid } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart'
 
 const now = new Date()
@@ -93,11 +93,6 @@ export default function DashboardPage() {
     checkIn: item.checkIn ? new Date(item.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-',
     checkOut: item.checkOut ? new Date(item.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-',
   }))
-
-  const chartBarColor = (entry: typeof chartData[number]) => {
-    if (entry.status && STATUS_COLORS_MAP[entry.status]) return STATUS_COLORS_MAP[entry.status]
-    return '#999'
-  }
 
   if (!user) return null
 
@@ -182,21 +177,9 @@ export default function DashboardPage() {
                       { value: 'pulangCepat' }, { value: 'terlambat' }, { value: 'hadir' }, { value: 'tidakHadir' },
                     ]} />} />
                     <Bar dataKey="tidakHadir" fill="var(--color-tidakHadir)" radius={[0, 0, 4, 4]} stackId="a" />
-                    <Bar dataKey="hadir" stackId="a" radius={[0, 0, 0, 0]}>
-                      {chartData.map((entry, i) => (
-                        <Cell key={i} fill={chartBarColor(entry)} />
-                      ))}
-                    </Bar>
-                    <Bar dataKey="terlambat" stackId="a" radius={[0, 0, 0, 0]}>
-                      {chartData.map((entry, i) => (
-                        <Cell key={i} fill={chartBarColor(entry)} />
-                      ))}
-                    </Bar>
-                    <Bar dataKey="pulangCepat" stackId="a" radius={[4, 4, 0, 0]}>
-                      {chartData.map((entry, i) => (
-                        <Cell key={i} fill={chartBarColor(entry)} />
-                      ))}
-                    </Bar>
+                    <Bar dataKey="hadir" fill="var(--color-hadir)" radius={[0, 0, 0, 0]} stackId="a" />
+                    <Bar dataKey="terlambat" fill="var(--color-terlambat)" radius={[0, 0, 0, 0]} stackId="a" />
+                    <Bar dataKey="pulangCepat" fill="var(--color-pulangCepat)" radius={[4, 4, 0, 0]} stackId="a" />
                   </BarChart>
                 </ChartContainer>
             ) : (
