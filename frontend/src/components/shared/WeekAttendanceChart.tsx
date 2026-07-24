@@ -2,7 +2,8 @@ import { BarChart, Bar, XAxis, CartesianGrid } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart'
 
 interface WeekAttendanceChartProps {
-  data: { name: string; [key: string]: string | number | undefined | null }[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>[]
   config: ChartConfig
   legendOrder: string[]
   loading?: boolean
