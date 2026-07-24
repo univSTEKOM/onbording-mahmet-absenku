@@ -4,13 +4,14 @@ import { useHrdWeek, useMonthAttendance } from '@/hooks/useDashboard'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-
 import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceCalendar } from '@/components/AttendanceCalendar'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
 import { STATUS_COLORS_MAP } from '@/lib/constants'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie } from 'recharts'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegendContent } from '@/components/ui/chart'
+import { ResponsiveContainer } from 'recharts'
 import api from '@/api/axios'
 import type { User } from '@/types'
 
@@ -18,7 +19,16 @@ const today = new Date()
 const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
 
-const DONUT_ORDER = ['hadir', 'terlambat', 'izin', 'sakit', 'cuti', 'tidakHadir']
+
+
+const barChartConfig = {
+  tidakHadir: { label: 'Alfa', color: STATUS_COLORS_MAP.tidakHadir },
+  hadir: { label: 'Hadir', color: STATUS_COLORS_MAP.hadir },
+  izin: { label: 'Izin', color: STATUS_COLORS_MAP.izin },
+  terlambat: { label: 'Terlambat', color: STATUS_COLORS_MAP.terlambat },
+  sakit: { label: 'Sakit', color: STATUS_COLORS_MAP.sakit },
+  cuti: { label: 'Cuti', color: STATUS_COLORS_MAP.cuti },
+}
 
 export default function HrdDashboardPage() {
   const navigate = useNavigate()
@@ -43,16 +53,17 @@ export default function HrdDashboardPage() {
     const cutiTotal = monthData.data.reduce((sum, d) => sum + (d.cuti || 0), 0)
     const alfaTotal = monthData.data.reduce((sum, d) => sum + (d.tidakHadir || 0), 0)
     return [
-      { name: 'Hadir', value: hadirTotal },
-      { name: 'Terlambat', value: terlambatTotal },
-      { name: 'Izin', value: izinTotal },
-      { name: 'Sakit', value: sakitTotal },
-      { name: 'Cuti', value: cutiTotal },
-      { name: 'Alfa', value: alfaTotal },
+      { name: 'hadir', value: hadirTotal, fill: STATUS_COLORS_MAP.hadir },
+      { name: 'terlambat', value: terlambatTotal, fill: STATUS_COLORS_MAP.terlambat },
+      { name: 'izin', value: izinTotal, fill: STATUS_COLORS_MAP.izin },
+      { name: 'sakit', value: sakitTotal, fill: STATUS_COLORS_MAP.sakit },
+      { name: 'cuti', value: cutiTotal, fill: STATUS_COLORS_MAP.cuti },
+      { name: 'tidakHadir', value: alfaTotal, fill: STATUS_COLORS_MAP.tidakHadir },
     ]
   }, [monthData])
 
-  const hadirPct = donutData.length > 0 ? Math.round((donutData[0].value / (donutData.reduce((s, d) => s + d.value, 0) || 1)) * 100) : 0
+  const totalAbsen = donutData.reduce((s, d) => s + d.value, 0)
+  const hadirPct = totalAbsen > 0 ? Math.round((donutData[0].value / totalAbsen) * 100) : 0
 
   return (
     <div className="space-y-6">
@@ -126,30 +137,12 @@ export default function HrdDashboardPage() {
             {isLoading ? (
               <Skeleton className="h-[220px] w-full rounded-lg" />
             ) : chart.length > 0 ? (
-              <div className="h-[220px]">
+              <ChartContainer config={barChartConfig} className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chart} barSize={28}>
-                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 13 }}
-                      content={({ active, payload }) => {
-                        if (!active || !payload?.length) return null
-                        const d = payload[0].payload
-                        return (
-                          <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
-                            <p className="font-medium mb-1">{d.name}</p>
-                            {d.cuti > 0 && <p className="text-muted-foreground">Cuti: {d.cuti}</p>}
-                            {d.sakit > 0 && <p className="text-muted-foreground">Sakit: {d.sakit}</p>}
-                            {d.terlambat > 0 && <p className="text-muted-foreground">Terlambat: {d.terlambat}</p>}
-                            {d.izin > 0 && <p className="text-muted-foreground">Izin: {d.izin}</p>}
-                            {d.hadir > 0 && <p className="text-muted-foreground">Hadir: {d.hadir}</p>}
-                            {d.tidakHadir > 0 && <p className="text-muted-foreground">Tidak Hadir: {d.tidakHadir}</p>}
-                            <p className="text-muted-foreground text-xs mt-1">{d.persen}% kehadiran</p>
-                          </div>
-                        )
-                      }}
-                    />
+                  <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     {/* Stacked: belakang→depan = terbanyak→tersedikit */}
                     <Bar dataKey="tidakHadir" fill={STATUS_COLORS_MAP.tidakHadir} radius={[4, 4, 0, 0]} stackId="a" />
                     <Bar dataKey="hadir" fill={STATUS_COLORS_MAP.hadir} radius={[4, 4, 0, 0]} stackId="a" />
@@ -159,18 +152,14 @@ export default function HrdDashboardPage() {
                     <Bar dataKey="cuti" fill={STATUS_COLORS_MAP.cuti} radius={[4, 4, 0, 0]} stackId="a" />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
+                <ChartLegendContent payload={[
+                  { value: 'cuti' }, { value: 'sakit' }, { value: 'terlambat' },
+                  { value: 'izin' }, { value: 'hadir' }, { value: 'tidakHadir' },
+                ]} />
+              </ChartContainer>
             ) : (
               <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
             )}
-            <div className="flex items-center justify-center gap-x-4 gap-y-1 mt-2 text-[11px] text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.cuti }} /> Cuti</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.sakit }} /> Sakit</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.terlambat }} /> Terlambat</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.izin }} /> Izin</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.hadir }} /> Hadir</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.tidakHadir }} /> Alfa</span>
-            </div>
           </CardContent>
         </Card>
 
@@ -183,34 +172,23 @@ export default function HrdDashboardPage() {
             {monthLoading ? (
               <Skeleton className="h-[200px] w-full rounded-lg" />
             ) : donutData.length > 0 ? (
-              <div className="flex flex-col items-center">
-                <div className="relative h-[160px] w-full">
+              <ChartContainer config={barChartConfig}>
+                <div className="relative h-[200px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={donutData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" paddingAngle={2}>
-                        {donutData.map((d, i) => (
-                          <Cell key={i} fill={STATUS_COLORS_MAP[DONUT_ORDER[i]] || '#ccc'} />
-                        ))}
-                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Pie data={donutData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" nameKey="name" paddingAngle={2} />
                     </PieChart>
                   </ResponsiveContainer>
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: 0 }}>
                     <div className="text-center">
                       <p className="text-2xl font-bold">{hadirPct}%</p>
                       <p className="text-[10px] text-muted-foreground">hadir</p>
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 mt-2 text-xs">
-                  {donutData.map((d, i) => (
-                    <div key={d.name} className="flex items-center gap-2">
-                      <span className="size-2.5 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP[DONUT_ORDER[i]] || '#ccc' }} />
-                      <span className="text-muted-foreground">{d.name}</span>
-                      <span className="font-medium ml-auto">{d.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                <ChartLegendContent payload={donutData.map((d) => ({ value: d.name }))} />
+              </ChartContainer>
             ) : (
               <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
             )}

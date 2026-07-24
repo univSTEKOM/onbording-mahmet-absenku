@@ -1,9 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { CalendarDays, CheckCircle2, XCircle, Trash2, Pencil } from 'lucide-react'
 import { pengajuanJenisLabel, pengajuanStatusLabel, pengajuanJenisBadge, pengajuanStatusBadge } from '@/lib/constants'
+import { UserLink } from '@/components/pengguna/UserLink'
 import type { Pengajuan } from '@/types'
 import type { User } from '@/types'
 
@@ -38,15 +38,12 @@ export function PengajuanCard({ pengajuan: p, variant, pengaju, onApprove, onRej
       <CardContent className="p-4 flex flex-col h-full">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           {variant === 'admin' && pengaju && (
-            <Avatar className="h-10 w-10 shrink-0 mt-0.5">
-              <AvatarImage src={pengaju.foto && !pengaju.foto.startsWith('[') ? pengaju.foto : undefined} />
-              <AvatarFallback className="text-sm">{pengaju.nama?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
-            </Avatar>
+            <UserLink user={pengaju} className="shrink-0" />
           )}
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
               {variant === 'admin' && pengaju && (
-                <span className="text-sm font-medium truncate">{pengaju.nama}</span>
+                <UserLink user={pengaju} showAvatar={false} />
               )}
               <Badge variant="secondary" className={pengajuanJenisBadge[p.jenis]}>
                 {pengajuanJenisLabel[p.jenis]}

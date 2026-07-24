@@ -35,6 +35,7 @@ const todayStr = new Date().toISOString().split('T')[0]
 function getAdminDominant(dayData: DayAttendanceData): string {
   const counts = [
     { key: 'hadir', val: dayData.hadir },
+    { key: 'pulangCepat', val: dayData.pulangCepat },
     { key: 'terlambat', val: dayData.terlambat },
     { key: 'izin', val: dayData.izin },
     { key: 'sakit', val: dayData.sakit },
@@ -46,7 +47,7 @@ function getAdminDominant(dayData: DayAttendanceData): string {
 }
 
 function hasAttendanceData(dayData: DayAttendanceData | undefined): boolean {
-  return !!dayData && (dayData.hadir > 0 || dayData.terlambat > 0 || dayData.checkInOnly > 0 || dayData.izin > 0 || dayData.sakit > 0 || dayData.cuti > 0)
+  return !!dayData && (dayData.hadir > 0 || dayData.pulangCepat > 0 || dayData.terlambat > 0 || dayData.checkInOnly > 0 || dayData.izin > 0 || dayData.sakit > 0 || dayData.cuti > 0)
 }
 
 function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean): string {
@@ -59,6 +60,7 @@ function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined
     return STATUS_COLORS[dominant] || STATUS_COLORS.tidakHadir
   }
   if (dayData.hadir > 0) return STATUS_COLORS.hadir
+  if (dayData.pulangCepat > 0) return STATUS_COLORS.pulang_cepat
   if (dayData.terlambat > 0) return STATUS_COLORS.terlambat
   if (dayData.checkInOnly > 0) return STATUS_COLORS.checkInOnly
   if (dayData.izin > 0) return STATUS_COLORS.izin
@@ -75,6 +77,7 @@ function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, is
   if (isAdmin && total) {
     const parts: string[] = []
     if (dayData.hadir > 0) parts.push(`${dayData.hadir}H`)
+    if (dayData.pulangCepat > 0) parts.push(`${dayData.pulangCepat}PC`)
     if (dayData.terlambat > 0) parts.push(`${dayData.terlambat}T`)
     if (dayData.izin > 0) parts.push(`${dayData.izin}I`)
     if (dayData.sakit > 0) parts.push(`${dayData.sakit}S`)
@@ -83,6 +86,7 @@ function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, is
     return parts.length > 0 ? parts.join(' ') : 'Alfa'
   }
   if (dayData.hadir > 0) return 'Hadir'
+  if (dayData.pulangCepat > 0) return 'Pulang Cepat'
   if (dayData.terlambat > 0) return 'Telat'
   if (dayData.checkInOnly > 0) return 'In'
   if (dayData.izin > 0) return 'Izin'
@@ -114,6 +118,7 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
         <h3 className="font-semibold text-base">{monthNames[month]} {year}</h3>
         <div className="flex flex-wrap gap-3 text-[11px]">
           <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-200" /> Hadir</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-orange-200" /> Pulang Cepat</span>
           <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-200" /> Terlambat</span>
           <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-200" /> Izin</span>
           <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-purple-200" /> Sakit</span>

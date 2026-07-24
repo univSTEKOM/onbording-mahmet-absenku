@@ -118,8 +118,13 @@ export default function HrdRiwayatPage() {
   }, [])
 
   const handleDayClick = useCallback((tgl: string) => {
-    setCalendarDate(tgl === calendarDate ? null : tgl)
-    setQuickDate(null)
+    if (tgl === calendarDate) {
+      setCalendarDate(null)
+      setQuickDate('hari_ini')
+    } else {
+      setCalendarDate(tgl)
+      setQuickDate(null)
+    }
     setPage(1)
   }, [calendarDate])
 

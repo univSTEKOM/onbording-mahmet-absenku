@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRecentAbsensi, useMonthAttendance } from '@/hooks/useDashboard'
 import { useAbsensiList } from '@/hooks/useAbsensi'
@@ -13,7 +13,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
-import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight } from 'lucide-react'
+import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, X } from 'lucide-react'
 import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 const now = new Date()
@@ -75,7 +75,11 @@ export default function DashboardPage() {
     izinSakit: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && ['izin', 'sakit', 'cuti'].includes(a.status)).length || 0,
   }
 
-  const recent5 = allAbsensi?.slice(0, 5)
+  const recent5 = useMemo(() => {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 7)
+    const cutoffStr = cutoff.toISOString().split('T')[0]
+    return allAbsensi?.filter((a) => a.tanggal >= cutoffStr).slice(0, 5) || []
+  }, [allAbsensi])
 
   const chartData = (recentAbsensi || []).map((item) => ({
     dayName: new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
@@ -107,6 +111,18 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">Selamat datang kembali, <span className="font-medium text-foreground">{user.nama}</span></p>
         </div>
       </div>
+
+      {detailDate && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Tanggal dipilih:</span>
+          <Badge variant="secondary" className="text-sm px-3 py-1">
+            {new Date(detailDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+            <button onClick={() => setDetailDate(null)} className="ml-2 hover:text-foreground">
+              <X className="h-3 w-3" />
+            </button>
+          </Badge>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="relative lg:col-span-1">

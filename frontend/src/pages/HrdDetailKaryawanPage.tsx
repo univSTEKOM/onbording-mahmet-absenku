@@ -2,11 +2,11 @@ import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import { useUsers } from '@/hooks/useUsers'
 import { useMonthAttendance } from '@/hooks/useDashboard'
-import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
+import { useAbsensiList, useAbsensiListPaginated } from '@/hooks/useAbsensi'
 import { useAllPengajuan } from '@/hooks/usePengajuan'
 import { ProfileInfoCard } from '@/components/pengguna/ProfileInfoCard'
 import { StatsCard } from '@/components/shared/StatsCard'
-import { AttendanceCalendar } from '@/components/AttendanceCalendar'
+import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
 import { Pagination } from '@/components/shared/Pagination'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PengajuanCard } from '@/components/pengajuan/PengajuanCard'
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, FileText, CalendarDays, Clock, CheckCircle2, ChevronsUpDown, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, FileText, CalendarDays, Clock, CheckCircle2, ChevronsUpDown, AlertTriangle, X } from 'lucide-react'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import type { User, Pengajuan } from '@/types'
 
@@ -55,6 +55,7 @@ export default function HrdDetailKaryawanPage() {
   const curMonth = now.getMonth() + 1
   const [page, setPage] = useState(1)
   const [pengajuanDetail, setPengajuanDetail] = useState<Pengajuan | null>(null)
+  const [detailDate, setDetailDate] = useState<string | null>(null)
 
   const { data: monthData, isLoading: monthLoading } = useMonthAttendance(curYear, curMonth, user?.id)
   const { data: absensiData, isLoading: absensiLoading } = useAbsensiListPaginated({
@@ -65,6 +66,19 @@ export default function HrdDetailKaryawanPage() {
     _limit: ITEMS_PER_PAGE,
   })
   const { data: allPengajuan } = useAllPengajuan()
+  const { data: dayDetail } = useAbsensiList(
+    detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
+  )
+
+  const dayPengajuan = detailDate && allPengajuan
+    ? allPengajuan.find(
+        (p) =>
+          p.status === 'approved' &&
+          p.userId === user?.id &&
+          p.tanggalMulai <= detailDate &&
+          p.tanggalSelesai >= detailDate,
+      )
+    : null
 
   const userPengajuan = useMemo(() =>
     allPengajuan?.filter((p) => p.userId === user?.id) || [],
@@ -114,7 +128,20 @@ export default function HrdDetailKaryawanPage() {
               year={curYear}
               month={curMonth}
               data={monthData?.data || []}
+              onDayClick={setDetailDate}
             />
+          )}
+
+          {detailDate && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Tanggal dipilih:</span>
+              <Badge variant="secondary" className="text-sm px-3 py-1">
+                {new Date(detailDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                <button onClick={() => setDetailDate(null)} className="ml-2 hover:text-foreground">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            </div>
           )}
 
           <div>
@@ -198,6 +225,19 @@ export default function HrdDetailKaryawanPage() {
             variant="admin"
             pengaju={user}
           />
+
+          {detailDate && (
+            <DayDetailDialog
+              tanggal={detailDate}
+              userStatus={dayDetail?.[0] ? {
+                status: dayDetail[0].status,
+                checkIn: dayDetail[0].checkIn,
+                checkOut: dayDetail[0].checkOut,
+              } : undefined}
+              pengajuan={dayPengajuan || undefined}
+              onClose={() => setDetailDate(null)}
+            />
+          )}
         </>
       )}
 
