@@ -26,10 +26,16 @@ const STATUS_COLORS: Record<string, string> = {
   checkInOnly: 'bg-blue-200 dark:bg-blue-800',
   tidakHadir: 'bg-red-200 dark:bg-red-800/60',
   sebelumRilis: 'bg-muted/20 dark:bg-muted/5',
+  hariIni: 'bg-blue-100 dark:bg-blue-900/20',
+  masaDepan: 'bg-muted/20 dark:bg-muted/5',
 }
+
+const todayStr = new Date().toISOString().split('T')[0]
 
 function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean): string {
   if (tanggal < APP_RELEASE_DATE) return STATUS_COLORS.sebelumRilis
+  if (tanggal > todayStr) return STATUS_COLORS.masaDepan
+  if (tanggal === todayStr && !dayData) return STATUS_COLORS.hariIni
   if (!dayData) return STATUS_COLORS.tidakHadir
   if (isAdmin) {
     if (dayData.hadir > 0) return STATUS_COLORS.hadir
@@ -47,6 +53,8 @@ function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined
 
 function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean, total?: number): string {
   if (tanggal < APP_RELEASE_DATE) return ''
+  if (tanggal > todayStr) return ''
+  if (tanggal === todayStr && !dayData) return 'Hari Ini'
   if (!dayData) return 'Alfa'
   if (isAdmin && total) {
     if (dayData.hadir > 0) return `${dayData.hadir}/${total}`
@@ -103,16 +111,18 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
           const dayData = dataMap.get(tgl)
           const today = new Date().toISOString().split('T')[0] === tgl
           const isBeforeRelease = tgl < APP_RELEASE_DATE
+          const isFuture = tgl > todayStr
+          const isDisabled = isBeforeRelease || isFuture
           const isAdmin = totalKaryawan !== undefined && totalKaryawan > 1
 
           return (
             <button
               key={tgl}
               type="button"
-              onClick={() => isBeforeRelease ? null : onDayClick?.(tgl)}
+              onClick={() => isDisabled ? null : onDayClick?.(tgl)}
               className={cn(
                 'rounded-lg p-1.5 text-center transition-colors border border-transparent text-left',
-                isBeforeRelease ? 'cursor-default' : 'cursor-pointer hover:border-primary/40',
+                isDisabled ? 'cursor-default' : 'cursor-pointer hover:border-primary/40',
                 today && 'ring-2 ring-primary/40',
                 getDayCellColor(tgl, dayData, isAdmin),
               )}
