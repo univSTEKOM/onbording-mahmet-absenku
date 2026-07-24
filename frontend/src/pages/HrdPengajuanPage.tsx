@@ -220,7 +220,7 @@ export default function HrdPengajuanPage() {
             <p className="text-sm text-muted-foreground mb-1">
               {confirmTarget && `${users?.find((u) => u.id === confirmTarget.userId)?.nama || 'Unknown'}`}
             </p>
-            <p className="text-sm text-muted-foreground mb-4">{confirmTarget?.alasan}</p>
+            <div className="max-h-[120px] overflow-y-auto text-sm text-muted-foreground whitespace-pre-wrap mb-4">{confirmTarget?.alasan}</div>
             <p className="text-sm mb-4">Yakin ingin menyetujui pengajuan ini?</p>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" size="sm" onClick={() => { setConfirmTarget(null); setConfirmAction(null) }}>Batal</Button>
@@ -239,12 +239,12 @@ export default function HrdPengajuanPage() {
             <p className="text-sm text-muted-foreground mb-1">
               {confirmTarget && `${users?.find((u) => u.id === confirmTarget.userId)?.nama || 'Unknown'}`}
             </p>
-            <p className="text-sm text-muted-foreground mb-4">{confirmTarget?.alasan}</p>
+            <div className="max-h-[120px] overflow-y-auto text-sm text-muted-foreground whitespace-pre-wrap mb-4">{confirmTarget?.alasan}</div>
             <div className="space-y-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Catatan <span className="text-destructive">*</span></label>
                 <textarea
-                  className="flex min-h-[80px] w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex min-h-[80px] max-h-[200px] w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   value={rejectNote}
                   onChange={(e) => setRejectNote(e.target.value)}
                   placeholder="Catatan alasan penolakan (wajib diisi)"

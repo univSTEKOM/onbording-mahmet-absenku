@@ -592,7 +592,7 @@ server.get('/api/dashboard/month', (req, res) => {
     const tgl = `${tahun}-${String(bulan).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
     if (tgl < APP_RELEASE_DATE || tgl > todayStr) {
-      data.push({ tanggal: tgl, hadir: 0, terlambat: 0, checkInOnly: 0, izin: 0, tidakHadir: 0 })
+      data.push({ tanggal: tgl, hadir: 0, terlambat: 0, checkInOnly: 0, izin: 0, sakit: 0, cuti: 0, tidakHadir: 0 })
       continue
     }
 
@@ -601,16 +601,19 @@ server.get('/api/dashboard/month', (req, res) => {
     const hadir = dayAbsensi.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
     const terlambat = dayAbsensi.filter((x) => x.status === 'terlambat').length
     const checkInOnly = dayAbsensi.filter((x) => x.checkIn && !x.checkOut).length
-    const izin = dayAbsensi.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
-    const pengajuanIzin = dayPengajuan.length
-    const totalIzin = izin + pengajuanIzin
+    const izin = dayAbsensi.filter((x) => x.status === 'izin').length + dayPengajuan.filter((x) => x.jenis === 'izin').length
+    const sakit = dayAbsensi.filter((x) => x.status === 'sakit').length + dayPengajuan.filter((x) => x.jenis === 'sakit').length
+    const cuti = dayAbsensi.filter((x) => x.status === 'cuti').length + dayPengajuan.filter((x) => x.jenis === 'cuti').length
+    const totalLain = izin + sakit + cuti
     data.push({
       tanggal: tgl,
       hadir,
       terlambat,
       checkInOnly,
-      izin: totalIzin,
-      tidakHadir: Math.max(0, total - hadir - terlambat - checkInOnly - totalIzin),
+      izin,
+      sakit,
+      cuti,
+      tidakHadir: Math.max(0, total - hadir - terlambat - checkInOnly - totalLain),
     })
   }
 

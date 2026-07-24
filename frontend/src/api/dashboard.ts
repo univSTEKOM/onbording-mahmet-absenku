@@ -46,6 +46,8 @@ export interface DayAttendanceData {
   terlambat: number
   checkInOnly: number
   izin: number
+  sakit: number
+  cuti: number
   tidakHadir: number
 }
 

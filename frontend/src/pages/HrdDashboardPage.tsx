@@ -17,7 +17,7 @@ const today = new Date()
 const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
 
-const DONUT_COLORS = ['#22c55e', '#eab308', '#3b82f6', '#ef4444']
+const DONUT_COLORS = ['#22c55e', '#eab308', '#3b82f6', '#a855f7', '#6b7280', '#ef4444']
 
 export default function HrdDashboardPage() {
   const navigate = useNavigate()
@@ -38,11 +38,15 @@ export default function HrdDashboardPage() {
     const hadirTotal = monthData.data.reduce((sum, d) => sum + d.hadir, 0)
     const terlambatTotal = monthData.data.reduce((sum, d) => sum + d.terlambat, 0)
     const izinTotal = monthData.data.reduce((sum, d) => sum + d.izin, 0)
+    const sakitTotal = monthData.data.reduce((sum, d) => sum + d.sakit, 0)
+    const cutiTotal = monthData.data.reduce((sum, d) => sum + d.cuti, 0)
     const alfaTotal = monthData.data.reduce((sum, d) => sum + d.tidakHadir, 0)
     return [
       { name: 'Hadir', value: hadirTotal },
       { name: 'Terlambat', value: terlambatTotal },
-      { name: 'Izin/Cuti', value: izinTotal },
+      { name: 'Izin', value: izinTotal },
+      { name: 'Sakit', value: sakitTotal },
+      { name: 'Cuti', value: cutiTotal },
       { name: 'Alfa', value: alfaTotal },
     ]
   }, [monthData])

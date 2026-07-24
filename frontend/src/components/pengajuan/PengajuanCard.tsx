@@ -65,7 +65,7 @@ export function PengajuanCard({ pengajuan: p, variant, pengaju, onApprove, onRej
             <p className="text-sm leading-snug line-clamp-2">{p.alasan}</p>
 
             {p.catatan && p.status !== 'pending' && (
-              <p className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md inline-block">
+              <p className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md line-clamp-2">
                 {p.catatan}
               </p>
             )}

@@ -32,23 +32,23 @@ const STATUS_COLORS: Record<string, string> = {
 
 const todayStr = new Date().toISOString().split('T')[0]
 
-function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean): string {
+function getDominantStatus(dayData: DayAttendanceData): string {
+  if (dayData.hadir > 0) return 'hadir'
+  if (dayData.terlambat > 0) return 'terlambat'
+  if (dayData.checkInOnly > 0) return 'checkInOnly'
+  if (dayData.izin > 0) return 'izin'
+  if (dayData.sakit > 0) return 'sakit'
+  if (dayData.cuti > 0) return 'cuti'
+  return 'tidakHadir'
+}
+
+function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined): string {
   if (tanggal < APP_RELEASE_DATE) return STATUS_COLORS.sebelumRilis
   if (tanggal > todayStr) return STATUS_COLORS.masaDepan
   if (tanggal === todayStr && !dayData) return STATUS_COLORS.hariIni
   if (!dayData) return STATUS_COLORS.tidakHadir
-  if (isAdmin) {
-    if (dayData.hadir > 0) return STATUS_COLORS.hadir
-    if (dayData.terlambat > 0) return STATUS_COLORS.terlambat
-    if (dayData.checkInOnly > 0) return STATUS_COLORS.checkInOnly
-    if (dayData.izin > 0) return STATUS_COLORS.izin
-    return STATUS_COLORS.tidakHadir
-  }
-  if (dayData.hadir > 0) return STATUS_COLORS.hadir
-  if (dayData.terlambat > 0) return STATUS_COLORS.terlambat
-  if (dayData.checkInOnly > 0) return STATUS_COLORS.checkInOnly
-  if (dayData.izin > 0) return STATUS_COLORS.izin
-  return STATUS_COLORS.tidakHadir
+  const dominant = getDominantStatus(dayData)
+  return STATUS_COLORS[dominant] || STATUS_COLORS.tidakHadir
 }
 
 function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean, total?: number): string {
@@ -57,16 +57,21 @@ function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, is
   if (tanggal === todayStr && !dayData) return 'Hari Ini'
   if (!dayData) return 'Alfa'
   if (isAdmin && total) {
-    if (dayData.hadir > 0) return `${dayData.hadir}/${total}`
-    if (dayData.terlambat > 0) return `${dayData.terlambat} telat`
-    if (dayData.checkInOnly > 0) return `${dayData.checkInOnly} in`
-    if (dayData.izin > 0) return `${dayData.izin} izin`
-    return 'Alfa'
+    const parts: string[] = []
+    if (dayData.hadir > 0) parts.push(`${dayData.hadir}H`)
+    if (dayData.terlambat > 0) parts.push(`${dayData.terlambat}T`)
+    if (dayData.izin > 0) parts.push(`${dayData.izin}I`)
+    if (dayData.sakit > 0) parts.push(`${dayData.sakit}S`)
+    if (dayData.cuti > 0) parts.push(`${dayData.cuti}C`)
+    if (dayData.checkInOnly > 0) parts.push(`${dayData.checkInOnly}In`)
+    return parts.length > 0 ? parts.join(' ') : 'Alfa'
   }
   if (dayData.hadir > 0) return 'Hadir'
   if (dayData.terlambat > 0) return 'Telat'
   if (dayData.checkInOnly > 0) return 'In'
   if (dayData.izin > 0) return 'Izin'
+  if (dayData.sakit > 0) return 'Sakit'
+  if (dayData.cuti > 0) return 'Cuti'
   return 'Alfa'
 }
 
@@ -92,12 +97,12 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-base">{monthNames[month]} {year}</h3>
         <div className="flex flex-wrap gap-3 text-[11px]">
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-200" /> Hadir</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-200" /> Terlambat</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-orange-200" /> Pulang Cepat</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-200" /> Izin</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-purple-200" /> Sakit</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-red-200" /> Alfa</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-200" /> H</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-200" /> T</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-200" /> I</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-purple-200" /> S</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-gray-300 dark:bg-gray-600" /> C</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-red-200" /> A</span>
         </div>
       </div>
 
