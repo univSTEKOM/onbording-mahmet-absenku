@@ -14,8 +14,7 @@ import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
 import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, X } from 'lucide-react'
-import { BarChart, Bar, XAxis, CartesianGrid } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart'
+import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
 
 const now = new Date()
 const curMonth = now.getMonth()
@@ -160,31 +159,17 @@ export default function DashboardPage() {
             <CardTitle className="text-base">Absensi 7 Hari Terakhir</CardTitle>
           </CardHeader>
           <CardContent>
-            {weekLoading ? (
-              <Skeleton className="h-44 w-full rounded-lg" />
-            ) : chartData.length > 0 ? (
-                <ChartContainer config={{
-                  tidakHadir: { label: 'Alfa', color: 'var(--chart-1)' },
-                  hadir: { label: 'Hadir', color: 'var(--chart-2)' },
-                  terlambat: { label: 'Terlambat', color: 'var(--chart-3)' },
-                  pulangCepat: { label: 'Pulang Cepat', color: 'var(--chart-4)' },
-                } satisfies ChartConfig} className="h-44">
-                  <BarChart accessibilityLayer data={chartData}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis dataKey="dayName" tickLine={false} tickMargin={10} axisLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
-                    <ChartLegend content={<ChartLegendContent payload={[
-                      { value: 'pulangCepat' }, { value: 'terlambat' }, { value: 'hadir' }, { value: 'tidakHadir' },
-                    ]} />} />
-                    <Bar dataKey="tidakHadir" fill="var(--color-tidakHadir)" radius={[0, 0, 4, 4]} stackId="a" />
-                    <Bar dataKey="hadir" fill="var(--color-hadir)" radius={[0, 0, 0, 0]} stackId="a" />
-                    <Bar dataKey="terlambat" fill="var(--color-terlambat)" radius={[0, 0, 0, 0]} stackId="a" />
-                    <Bar dataKey="pulangCepat" fill="var(--color-pulangCepat)" radius={[4, 4, 0, 0]} stackId="a" />
-                  </BarChart>
-                </ChartContainer>
-            ) : (
-              <div className="h-44 flex items-center justify-center text-sm text-muted-foreground">Belum ada data absensi 7 hari terakhir</div>
-            )}
+            <WeekAttendanceChart
+              data={chartData.map((d) => ({ ...d, name: d.dayName }))}
+              config={{
+                tidakHadir: { label: 'Alfa', color: 'var(--chart-1)' },
+                hadir: { label: 'Hadir', color: 'var(--chart-2)' },
+                terlambat: { label: 'Terlambat', color: 'var(--chart-3)' },
+                pulangCepat: { label: 'Pulang Cepat', color: 'var(--chart-4)' },
+              } satisfies ChartConfig}
+              legendOrder={['pulangCepat', 'terlambat', 'hadir', 'tidakHadir']}
+              loading={weekLoading}
+            />
           </CardContent>
         </Card>
 

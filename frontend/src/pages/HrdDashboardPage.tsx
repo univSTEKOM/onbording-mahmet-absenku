@@ -8,8 +8,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceCalendar } from '@/components/AttendanceCalendar'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Label } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle, type ChartConfig } from '@/components/ui/chart'
+import { Pie, PieChart, Label } from 'recharts'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartStyle, type ChartConfig } from '@/components/ui/chart'
+import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
 import api from '@/api/axios'
 import type { User } from '@/types'
 
@@ -142,29 +143,12 @@ export default function HrdDashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-[250px] w-full rounded-lg" />
-            ) : chart.length > 0 ? (
-              <ChartContainer config={barChartConfig} className="h-[250px]">
-                <BarChart accessibilityLayer data={chart}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} tickFormatter={(v) => v.slice(0, 3)} />
-                  <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
-                  <ChartLegend content={<ChartLegendContent payload={[
-                    { value: 'cuti' }, { value: 'sakit' }, { value: 'terlambat' },
-                    { value: 'izin' }, { value: 'hadir' }, { value: 'tidakHadir' },
-                  ]} />} />
-                  <Bar dataKey="tidakHadir" fill="var(--color-tidakHadir)" radius={[0, 0, 4, 4]} stackId="a" />
-                  <Bar dataKey="hadir" fill="var(--color-hadir)" radius={[0, 0, 0, 0]} stackId="a" />
-                  <Bar dataKey="izin" fill="var(--color-izin)" radius={[0, 0, 0, 0]} stackId="a" />
-                  <Bar dataKey="terlambat" fill="var(--color-terlambat)" radius={[0, 0, 0, 0]} stackId="a" />
-                  <Bar dataKey="sakit" fill="var(--color-sakit)" radius={[0, 0, 0, 0]} stackId="a" />
-                  <Bar dataKey="cuti" fill="var(--color-cuti)" radius={[4, 4, 0, 0]} stackId="a" />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
-            )}
+            <WeekAttendanceChart
+              data={chart}
+              config={barChartConfig}
+              legendOrder={['cuti', 'sakit', 'terlambat', 'izin', 'hadir', 'tidakHadir']}
+              loading={isLoading}
+            />
           </CardContent>
         </Card>
 
@@ -176,15 +160,21 @@ export default function HrdDashboardPage() {
               <CardDescription>{['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][currentMonth]} {currentYear}</CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-1 justify-center pb-0">
+          <CardContent className="flex flex-1 flex-col items-center justify-center pb-0">
             {monthLoading ? (
               <Skeleton className="h-[250px] w-full rounded-lg" />
             ) : donutData.length > 0 && totalAbsen > 0 ? (
-              <ChartContainer id={pieId} config={pieChartConfig} className="mx-auto aspect-square w-full max-w-[250px]">
-                <div className="flex flex-col items-center">
+              <>
+                <ChartContainer id={pieId} config={pieChartConfig} className="mx-auto aspect-square w-full max-w-[250px]">
                   <PieChart>
                     <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                    <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={2}>
+                    <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={1}
+                      stroke="hsl(var(--border))"
+                      shape={renderPieShape}
+                      activeIndex={activeIndex}
+                      onMouseEnter={(_, index) => setActiveIndex(index)}
+                      onMouseLeave={() => setActiveIndex(undefined)}
+                    >
                       <Label
                         content={({ viewBox }) => {
                           if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
@@ -199,16 +189,16 @@ export default function HrdDashboardPage() {
                       />
                     </Pie>
                   </PieChart>
-                  <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground mt-2">
-                    {donutData.map((d) => (
-                      <span key={d.name} className="flex items-center gap-1.5">
-                        <span className="size-3 rounded-sm" style={{ backgroundColor: `var(--color-${d.name})` }} />
-                        {d.name === 'tidakHadir' ? 'Alfa' : d.name.charAt(0).toUpperCase() + d.name.slice(1)}
-                      </span>
-                    ))}
-                  </div>
+                </ChartContainer>
+                <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground mt-2">
+                  {donutData.map((d) => (
+                    <span key={d.name} className="flex items-center gap-1.5">
+                      <span className="size-3 rounded-sm" style={{ backgroundColor: `var(--color-${d.name})` }} />
+                      {d.name === 'tidakHadir' ? 'Alfa' : d.name.charAt(0).toUpperCase() + d.name.slice(1)}
+                    </span>
+                  ))}
                 </div>
-              </ChartContainer>
+              </>
             ) : (
               <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
             )}
