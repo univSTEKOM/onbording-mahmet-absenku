@@ -45,10 +45,14 @@ function getAdminDominant(dayData: DayAttendanceData): string {
   return counts.reduce((a, b) => (a.val >= b.val ? a : b)).key
 }
 
+function hasAttendanceData(dayData: DayAttendanceData | undefined): boolean {
+  return !!dayData && (dayData.hadir > 0 || dayData.terlambat > 0 || dayData.checkInOnly > 0 || dayData.izin > 0 || dayData.sakit > 0 || dayData.cuti > 0)
+}
+
 function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean): string {
   if (tanggal < APP_RELEASE_DATE) return STATUS_COLORS.sebelumRilis
   if (tanggal > todayStr) return STATUS_COLORS.masaDepan
-  if (tanggal === todayStr && !dayData) return STATUS_COLORS.hariIni
+  if (tanggal === todayStr && !hasAttendanceData(dayData)) return STATUS_COLORS.hariIni
   if (!dayData) return STATUS_COLORS.tidakHadir
   if (isAdmin) {
     const dominant = getAdminDominant(dayData)
@@ -66,7 +70,7 @@ function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined
 function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean, total?: number): string {
   if (tanggal < APP_RELEASE_DATE) return ''
   if (tanggal > todayStr) return ''
-  if (tanggal === todayStr && !dayData) return 'Hari Ini'
+  if (tanggal === todayStr && !hasAttendanceData(dayData)) return 'Hari Ini'
   if (!dayData) return 'Alfa'
   if (isAdmin && total) {
     const parts: string[] = []
