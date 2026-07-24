@@ -342,6 +342,44 @@ const CHECK_IN_START = '06:45'
 const CHECK_IN_END = '07:45'
 const CHECK_OUT_MIN = '16:00'
 
+function normalizeDbFile() {
+  try {
+    const dbRaw = fs.readFileSync('./db.json', 'utf-8')
+    const d = JSON.parse(dbRaw)
+
+    if (d.absensi && d.absensi.length > 0) {
+      d.absensi = d.absensi.map(entry => ({
+        id: entry.id,
+        userId: entry.userId,
+        tanggal: entry.tanggal,
+        checkIn: entry.checkIn || null,
+        checkOut: entry.checkOut || null,
+        status: entry.status || '',
+        faceVerified: entry.faceVerified || false,
+        photos: entry.photos || [],
+        keterangan: entry.keterangan || '',
+        createdAt: entry.createdAt || '',
+      }))
+    }
+
+    if (d.pengajuan && d.pengajuan.length > 0) {
+      d.pengajuan = d.pengajuan.map(entry => ({
+        id: entry.id,
+        userId: entry.userId,
+        jenis: entry.jenis,
+        tanggalMulai: entry.tanggalMulai,
+        tanggalSelesai: entry.tanggalSelesai,
+        alasan: entry.alasan,
+        status: entry.status,
+        catatan: entry.catatan || '',
+        createdAt: entry.createdAt || '',
+      }))
+    }
+
+    fs.writeFileSync('./db.json', JSON.stringify(d, null, 2))
+  } catch (e) { console.error('Normalize error:', e.message) }
+}
+
 server.post('/absensi', (req, res, next) => {
   try {
     if (!req.body || !req.body.userId) {
@@ -351,7 +389,19 @@ server.post('/absensi', (req, res, next) => {
     const t = nowTime(); const m = toMinutes(t)
     if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
     if (router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()) return res.status(400).json({ message: 'Sudah absen hari ini' })
-    req.body.status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'; next()
+    const status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'
+    req.body = {
+      userId: req.body.userId,
+      tanggal: req.body.tanggal,
+      checkIn: req.body.checkIn || null,
+      checkOut: null,
+      status,
+      faceVerified: req.body.faceVerified || false,
+      photos: req.body.photos || [],
+      keterangan: req.body.keterangan || '',
+      createdAt: req.body.createdAt || new Date().toISOString(),
+    }
+    next()
   } catch (e) {
     console.error('[absensi] POST error:', e.message, e.stack)
     res.status(500).json({ message: 'Gagal absen: ' + e.message })
@@ -364,7 +414,21 @@ server.patch('/absensi/:id', (req, res, next) => {
       return res.status(400).json({ message: 'Data tidak valid' })
     }
     if (!req.body.checkOut) return next()
-    req.body.status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : undefined; next()
+    const existing = router.db.get('absensi').find({ id: Number(req.params.id) }).value()
+    if (!existing) return res.status(404).json({ message: 'Absensi tidak ditemukan' })
+    const status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : existing.status
+    req.body = {
+      userId: existing.userId,
+      tanggal: existing.tanggal,
+      checkIn: existing.checkIn,
+      checkOut: req.body.checkOut,
+      status: status || existing.status,
+      faceVerified: existing.faceVerified || false,
+      photos: existing.photos || [],
+      keterangan: existing.keterangan || '',
+      createdAt: existing.createdAt,
+    }
+    next()
   } catch (e) {
     console.error('[absensi] PATCH error:', e.message, e.stack)
     res.status(500).json({ message: 'Gagal update absensi: ' + e.message })
@@ -458,15 +522,46 @@ server.get('/api/dashboard/hrd/week', (req, res) => {
   const a = router.db.get('absensi').value()
   const u = router.db.get('users').value()
   const k = u.filter((x) => x.role === 'karyawan')
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
   const ms = new Date(); ms.setDate(1); const msStr = ms.toISOString().split('T')[0]
-  const dates = [...new Set(a.map((x) => x.tanggal))].sort().slice(-7)
-  const chart = dates.map((d) => {
-    const da = a.filter((x) => x.tanggal === d)
-    return { name: new Date(d).toLocaleDateString('id-ID', { weekday: 'short' }), hadir: da.filter((x) => x.status === 'hadir').length, terlambat: da.filter((x) => x.status === 'terlambat').length, persen: Math.round(da.filter((x) => ['hadir', 'terlambat'].includes(x.status)).length / k.length * 100) }
+
+  const chart = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i)
+    const tgl = d.toISOString().split('T')[0]
+    const da = a.filter((x) => x.tanggal === tgl)
+    const hadir = da.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
+    const terlambat = da.filter((x) => x.status === 'terlambat').length
+    const totalAktif = hadir + terlambat
+    chart.push({
+      name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
+      hadir,
+      terlambat,
+      persen: Math.round(totalAktif / (k.length || 1) * 100),
+    })
+  }
+
+  const ta = a.filter((x) => x.tanggal === todayStr)
+  const hadirHariIni = ta.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
+  const terlambatHariIni = ta.filter((x) => x.status === 'terlambat').length
+  const izinHariIni = ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
+  const sudahAbsen = ta.filter((x) => x.checkIn).length
+  const weekAvg = chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0
+
+  res.json({
+    chart,
+    summary: {
+      totalKaryawan: k.length,
+      hadirHariIni,
+      terlambatHariIni,
+      izinHariIni,
+      belumAbsen: k.length - sudahAbsen,
+      totalAbsensiBulanIni: a.filter((x) => x.tanggal >= msStr).length,
+      weekAvg,
+      bestDay: chart.length ? chart.reduce((a, b) => a.persen > b.persen ? a : b) : null,
+    },
   })
-  const ta = a.filter((x) => x.tanggal === today)
-  res.json({ chart, summary: { totalKaryawan: k.length, hadirHariIni: ta.filter((x) => x.status === 'hadir').length, terlambatHariIni: ta.filter((x) => x.status === 'terlambat').length, izinHariIni: ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length, belumAbsen: k.length - ta.filter((x) => x.checkIn).length, totalAbsensiBulanIni: a.filter((x) => x.tanggal >= msStr).length, weekAvg: chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0, bestDay: chart.length ? chart.reduce((a, b) => a.persen > b.persen ? a : b) : null } })
 })
 
 server.get('/api/dashboard/month', (req, res) => {
@@ -523,6 +618,7 @@ server.use(async (req, res, next) => {
 server.use(router)
 
 const PORT = process.env.PORT || 3001
+normalizeDbFile()
 syncSeedUsers().then(() => {
   server.listen(PORT, () => { console.log(`Mock API running at http://localhost:${PORT}`) })
 })
