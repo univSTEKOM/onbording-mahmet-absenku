@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRecentAbsensi, useMonthAttendance } from '@/hooks/useDashboard'
 import { useAbsensiList } from '@/hooks/useAbsensi'
@@ -28,10 +28,23 @@ function hitungJam(checkIn: string | null, checkOut: string | null): string {
   return `${jam}j ${menit}m`
 }
 
+function durasiRealTime(checkIn: string): string {
+  const selisih = Math.max(0, Date.now() - new Date(checkIn).getTime())
+  const jam = Math.floor(selisih / (1000 * 60 * 60))
+  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
+  return `${jam}j ${menit}m`
+}
+
 export default function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [detailDate, setDetailDate] = useState<string | null>(null)
+  const [, setTick] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60000)
+    return () => clearInterval(id)
+  }, [])
 
   const { data: recentAbsensi, isLoading: weekLoading } = useRecentAbsensi()
   const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
@@ -59,6 +72,7 @@ export default function DashboardPage() {
     total: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`)).length || 0,
     hadir: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && ['hadir', 'pulang_cepat'].includes(a.status)).length || 0,
     terlambat: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && a.status === 'terlambat').length || 0,
+    izinSakit: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && ['izin', 'sakit', 'cuti'].includes(a.status)).length || 0,
   }
 
   const recent5 = allAbsensi?.slice(0, 5)
@@ -81,23 +95,50 @@ export default function DashboardPage() {
 
   if (!user) return null
 
+  const todayStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">{todayStr}</p>
           <p className="text-muted-foreground">Selamat datang kembali, <span className="font-medium text-foreground">{user.nama}</span></p>
         </div>
-        <Button size="lg" className="gap-2 shadow-sm" onClick={() => navigate({ to: '/absensi' })}>
-          <Fingerprint className="h-4 w-4" /> Absen Sekarang
-        </Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard label="Status Hari Ini" value={isCheckedOut ? 'Selesai' : isCheckedIn ? 'Check-in' : 'Belum'} icon={Clock} />
+        <Card className="relative lg:col-span-1">
+          <CardContent className="py-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">Status Hari Ini</span>
+              <Fingerprint className="h-4 w-4 text-primary" />
+            </div>
+            <p className="text-xl font-bold mb-1">
+              {isCheckedOut ? 'Absensi Selesai' : isCheckedIn ? 'Sedang Bekerja' : 'Belum Absen'}
+            </p>
+            {todayAbsensi?.[0] && (
+              <Badge variant="secondary" className={absensiStatusBadge[todayAbsensi[0].status] + ' mb-2'}>
+                {absensiStatusLabel[todayAbsensi[0].status]}
+              </Badge>
+            )}
+            <Button size="sm" className="w-full gap-2 mt-2" onClick={() => navigate({ to: '/absensi' })}>
+              <Fingerprint className="h-4 w-4" /> {isCheckedIn ? 'Lihat Absensi' : 'Absen Sekarang'}
+            </Button>
+          </CardContent>
+        </Card>
         <StatsCard label="Hadir (Bulan Ini)" value={`${monthStats.hadir} hari`} icon={CalendarDays} />
         <StatsCard label="Terlambat" value={`${monthStats.terlambat} kali`} icon={TrendingUp} />
-        <StatsCard label="Total Absensi" value={`${monthStats.total} hari`} icon={Fingerprint} />
+        <Card>
+          <CardContent className="py-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">Izin / Sakit</span>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <p className="text-2xl font-bold">{monthStats.izinSakit} hari</p>
+            <p className="text-xs text-muted-foreground mt-1">dari {monthStats.total} absensi</p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -124,6 +165,7 @@ export default function DashboardPage() {
                               <p className="font-medium mb-1">{d.dayName}</p>
                               {d.status ? (
                                 <p className="text-muted-foreground">
+                                  <span className={`inline-block w-2 h-2 rounded-full mr-1.5`} style={{ backgroundColor: STATUS_COLORS_MAP[d.status] || '#999' }} />
                                   {absensiStatusLabel[d.status as keyof typeof absensiStatusLabel] || d.status}
                                   <span className="mx-1">·</span>
                                   {d.checkIn} - {d.checkOut}
@@ -154,15 +196,9 @@ export default function DashboardPage() {
                   </ResponsiveContainer>
                 </div>
                 <div className="flex items-center justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-1)' }} /> Hadir
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-2)' }} /> Terlambat
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-3)' }} /> Pulang Cepat
-                  </span>
+                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.hadir }} /> Hadir</span>
+                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.terlambat }} /> Terlambat</span>
+                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.pulang_cepat || STATUS_COLORS_MAP.izin }} /> Pulang Cepat</span>
                 </div>
               </div>
             ) : (
@@ -205,9 +241,21 @@ export default function DashboardPage() {
                     <span className="font-medium">{hitungJam(todayAbsensi[0].checkIn, todayAbsensi[0].checkOut)}</span>
                   </div>
                 )}
+                {isCheckedIn && !isCheckedOut && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Sedang bekerja</span>
+                    <span className="font-medium text-green-600">{durasiRealTime(todayAbsensi[0].checkIn!)}</span>
+                  </div>
+                )}
               </>
             ) : (
-              <div className="text-center py-6 text-muted-foreground text-sm">Belum ada absensi hari ini</div>
+              <div className="flex flex-col items-center gap-3 py-6">
+                <Fingerprint className="h-10 w-10 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Belum ada absensi hari ini</p>
+                <Button size="sm" className="gap-2" onClick={() => navigate({ to: '/absensi' })}>
+                  <Fingerprint className="h-4 w-4" /> Absen Sekarang
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -220,7 +268,6 @@ export default function DashboardPage() {
               year={curYear}
               month={curMonth}
               data={monthData.data}
-
               onDayClick={setDetailDate}
             />
           ) : (
@@ -254,7 +301,10 @@ export default function DashboardPage() {
             <div className="space-y-1">
               {recent5.map((a) => (
                 <div key={a.id} className="flex items-center justify-between py-2.5 border-b last:border-0">
-                  <span className="text-sm">{new Date(a.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="size-2.5 rounded-full shrink-0" style={{ backgroundColor: STATUS_COLORS_MAP[a.status] || '#999' }} />
+                    <span className="text-sm">{new Date(a.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                  </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground">
                       {a.checkIn ? new Date(a.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}
