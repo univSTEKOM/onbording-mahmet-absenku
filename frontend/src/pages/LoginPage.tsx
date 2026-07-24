@@ -48,7 +48,7 @@ export default function LoginPage() {
       <img
         src="/login&register background.png"
         alt=""
-        className="absolute inset-0 h-full w-full object-cover object-bottom dark:brightness-[0.2] dark:grayscale"
+        className="absolute inset-0 h-full w-full object-cover object-bottom"
       />
       <div className="relative z-10 flex min-h-svh flex-col gap-4 p-6 md:p-10 lg:w-[420px] lg:bg-background/80 lg:backdrop-blur-sm">
         <div className="flex justify-center gap-2 md:justify-start">

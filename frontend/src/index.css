@@ -108,6 +108,13 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --color-chart-6: var(--chart-6);
+  --color-status-hadir: #10b981;
+  --color-status-terlambat: #f59e0b;
+  --color-status-pulang-cepat: #f97316;
+  --color-status-izin: #3b82f6;
+  --color-status-sakit: #8b5cf6;
+  --color-status-cuti: #64748b;
+  --color-status-tidakHadir: #ef4444;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);

@@ -189,6 +189,7 @@ export default function RiwayatPage() {
             status: dayDetail[0].status,
             checkIn: dayDetail[0].checkIn,
             checkOut: dayDetail[0].checkOut,
+            photos: dayDetail[0].photos,
           } : undefined}
           pengajuan={dayPengajuan || undefined}
           onClose={() => setDetailDate(null)}

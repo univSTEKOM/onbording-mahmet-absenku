@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from 'react'
 import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
 import { useMonthAttendance } from '@/hooks/useDashboard'
 import { useUsers } from '@/hooks/useUsers'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -10,7 +9,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
-import { AttendanceCalendar } from '@/components/AttendanceCalendar'
+import { CalendarCard } from '@/components/CalendarCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { UserLink } from '@/components/pengguna/UserLink'
@@ -117,17 +116,6 @@ export default function HrdRiwayatPage() {
     setPage(1)
   }, [])
 
-  const handleDayClick = useCallback((tgl: string) => {
-    if (tgl === calendarDate) {
-      setCalendarDate(null)
-      setQuickDate('hari_ini')
-    } else {
-      setCalendarDate(tgl)
-      setQuickDate(null)
-    }
-    setPage(1)
-  }, [calendarDate])
-
   const hasActiveFilter = calendarDate !== null || selectedStatuses.size > 0
 
   return (
@@ -152,34 +140,29 @@ export default function HrdRiwayatPage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          {monthData ? (
-            <AttendanceCalendar
-              year={curYear}
-              month={curMonth}
-              data={monthData.data}
-              totalKaryawan={monthData.totalKaryawan}
-              onDayClick={handleDayClick}
-            />
-          ) : (
-            <Skeleton className="h-[300px] w-full rounded-lg" />
-          )}
-        </CardContent>
-      </Card>
+      {monthData ? (
+        <CalendarCard
+          year={curYear}
+          month={curMonth}
+          data={monthData.data}
+          totalKaryawan={monthData.totalKaryawan}
+          selectedDate={calendarDate}
+          onSelectedDateChange={(tgl) => {
+            if (tgl === calendarDate) {
+              setCalendarDate(null)
+              setQuickDate('hari_ini')
+            } else {
+              setCalendarDate(tgl)
+              setQuickDate(null)
+            }
+            setPage(1)
+          }}
+        />
+      ) : (
+        <Skeleton className="h-[300px] w-full rounded-lg" />
+      )}
 
       <div className="space-y-4">
-        {calendarDate && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Tanggal dipilih:</span>
-            <Badge variant="secondary" className="text-sm px-3 py-1">
-              {new Date(calendarDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-              <button onClick={() => setCalendarDate(null)} className="ml-2 hover:text-foreground">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          </div>
-        )}
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground mr-1">Cepat:</span>

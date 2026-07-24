@@ -36,15 +36,12 @@ export function PengajuanCard({ pengajuan: p, variant, pengaju, onApprove, onRej
       onClick={() => onClick?.(p)}
     >
       <CardContent className="p-4 flex flex-col h-full">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="flex flex-col gap-3 flex-1 min-w-0">
           {variant === 'admin' && pengaju && (
-            <UserLink user={pengaju} className="shrink-0" />
+            <UserLink user={pengaju} />
           )}
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
-              {variant === 'admin' && pengaju && (
-                <UserLink user={pengaju} showAvatar={false} />
-              )}
               <Badge variant="secondary" className={pengajuanJenisBadge[p.jenis]}>
                 {pengajuanJenisLabel[p.jenis]}
               </Badge>

@@ -1,24 +1,36 @@
 import type { AbsensiStatus, PengajuanJenis, PengajuanStatus } from '@/types'
 
+export const STATUS_CONFIG = {
+  hadir:        { label: 'Hadir',        color: 'var(--color-status-hadir)' },
+  terlambat:    { label: 'Terlambat',    color: 'var(--color-status-terlambat)' },
+  pulang_cepat: { label: 'Pulang Cepat', color: 'var(--color-status-pulang-cepat)' },
+  izin:         { label: 'Izin',         color: 'var(--color-status-izin)' },
+  sakit:        { label: 'Sakit',        color: 'var(--color-status-sakit)' },
+  cuti:         { label: 'Cuti',         color: 'var(--color-status-cuti)' },
+  tidakHadir:   { label: 'Alfa',         color: 'var(--color-status-tidakHadir)' },
+} as const
+
+const s = (key: string) => `bg-[var(--color-status-${key})]/10 text-[var(--color-status-${key})] border-0`
+
 export const absensiStatusBadge: Record<AbsensiStatus, string> = {
-  hadir: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0',
-  terlambat: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-0',
-  pulang_cepat: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0',
-  izin: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-0',
-  sakit: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-0',
-  cuti: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400 border-0',
+  hadir: s('hadir'),
+  terlambat: s('terlambat'),
+  pulang_cepat: s('pulang_cepat'),
+  izin: s('izin'),
+  sakit: s('sakit'),
+  cuti: s('cuti'),
 }
 
 export const pengajuanStatusBadge: Record<PengajuanStatus, string> = {
-  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-0',
-  approved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0',
-  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-0',
+  pending:  'bg-[var(--color-status-terlambat)]/10 text-[var(--color-status-terlambat)] border-0',
+  approved: 'bg-[var(--color-status-hadir)]/10 text-[var(--color-status-hadir)] border-0',
+  rejected: 'bg-[var(--color-status-tidakHadir)]/10 text-[var(--color-status-tidakHadir)] border-0',
 }
 
 export const pengajuanJenisBadge: Record<PengajuanJenis, string> = {
-  cuti: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-0',
-  izin: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-0',
-  sakit: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0',
+  cuti:  s('sakit'),
+  izin:  s('izin'),
+  sakit: s('terlambat'),
 }
 
 export const pengajuanStatusLabel: Record<PengajuanStatus, string> = {
@@ -57,10 +69,11 @@ export const absensiStatusLabel: Record<AbsensiStatus, string> = {
 }
 
 export const STATUS_COLORS_MAP: Record<string, string> = {
-  hadir: '#22c55e',
-  terlambat: '#eab308',
-  izin: '#3b82f6',
-  sakit: '#a855f7',
-  cuti: '#6b7280',
-  tidakHadir: '#ef4444',
+  hadir:        'var(--color-status-hadir)',
+  terlambat:    'var(--color-status-terlambat)',
+  pulang_cepat: 'var(--color-status-pulang-cepat)',
+  izin:         'var(--color-status-izin)',
+  sakit:        'var(--color-status-sakit)',
+  cuti:         'var(--color-status-cuti)',
+  tidakHadir:   'var(--color-status-tidakHadir)',
 }

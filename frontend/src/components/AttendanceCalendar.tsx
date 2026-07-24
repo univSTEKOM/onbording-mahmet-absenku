@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from '@/components/ui/badge'
 import { absensiStatusBadge, absensiStatusLabel, pengajuanJenisLabel, pengajuanJenisBadge, APP_RELEASE_DATE } from '@/lib/constants'
 import type { DayAttendanceData } from '@/api/dashboard'
-import type { Pengajuan } from '@/types'
+import type { Pengajuan, Photo } from '@/types'
 
 interface Props {
   year: number
@@ -17,14 +17,14 @@ interface Props {
 const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
 const STATUS_COLORS: Record<string, string> = {
-  hadir: 'bg-green-200 dark:bg-green-800',
-  terlambat: 'bg-yellow-200 dark:bg-yellow-800',
-  pulang_cepat: 'bg-orange-200 dark:bg-orange-800',
-  izin: 'bg-blue-200 dark:bg-blue-800',
-  sakit: 'bg-purple-200 dark:bg-purple-800',
-  cuti: 'bg-gray-300 dark:bg-gray-600',
-  checkInOnly: 'bg-blue-200 dark:bg-blue-800',
-  tidakHadir: 'bg-red-200 dark:bg-red-800/60',
+  hadir: 'bg-[var(--color-status-hadir)]/15 dark:bg-[var(--color-status-hadir)]/25',
+  terlambat: 'bg-[var(--color-status-terlambat)]/15 dark:bg-[var(--color-status-terlambat)]/25',
+  pulang_cepat: 'bg-[var(--color-status-pulang-cepat)]/15 dark:bg-[var(--color-status-pulang-cepat)]/25',
+  izin: 'bg-[var(--color-status-izin)]/15 dark:bg-[var(--color-status-izin)]/25',
+  sakit: 'bg-[var(--color-status-sakit)]/15 dark:bg-[var(--color-status-sakit)]/25',
+  cuti: 'bg-[var(--color-status-cuti)]/15 dark:bg-[var(--color-status-cuti)]/25',
+  checkInOnly: 'bg-[var(--color-status-izin)]/15 dark:bg-[var(--color-status-izin)]/25',
+  tidakHadir: 'bg-[var(--color-status-tidakHadir)]/15 dark:bg-[var(--color-status-tidakHadir)]/25',
   sebelumRilis: 'bg-muted/20 dark:bg-muted/5',
   hariIni: 'bg-blue-100 dark:bg-blue-900/20',
   masaDepan: 'bg-muted/20 dark:bg-muted/5',
@@ -117,13 +117,13 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-base">{monthNames[month]} {year}</h3>
         <div className="flex flex-wrap gap-3 text-[11px]">
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-200" /> Hadir</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-orange-200" /> Pulang Cepat</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-200" /> Terlambat</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-200" /> Izin</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-purple-200" /> Sakit</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-gray-300 dark:bg-gray-600" /> Cuti</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-red-200" /> Alfa</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-hadir)' }} /> Hadir</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-pulang-cepat)' }} /> Pulang Cepat</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-terlambat)' }} /> Terlambat</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-izin)' }} /> Izin</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-sakit)' }} /> Sakit</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-cuti)' }} /> Cuti</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-tidakHadir)' }} /> Alfa</span>
         </div>
       </div>
 
@@ -132,7 +132,7 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
           <div key={day} className="text-center text-[11px] font-semibold text-muted-foreground py-1">{day}</div>
         ))}
         {calendarDays.map((day, i) => {
-          if (!day) return <div key={`empty-${i}`} />
+          if (!day) return <div key={`ec-${year}-${month}-${i}`} />
           const tgl = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
           const dayData = dataMap.get(tgl)
           const today = new Date().toISOString().split('T')[0] === tgl
@@ -167,7 +167,7 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
 
 interface DayDetailDialogProps {
   tanggal: string
-  userStatus?: { status: string; checkIn: string | null; checkOut: string | null }
+  userStatus?: { status: string; checkIn: string | null; checkOut: string | null; photos?: Photo[] }
   pengajuan?: Pengajuan | null
   allStatus?: { nama: string; status: string }[]
   onClose: () => void
@@ -203,6 +203,23 @@ export function DayDetailDialog({ tanggal, userStatus, pengajuan, allStatus, onC
               <span className="text-muted-foreground">Check-out</span>
               <span className="font-medium">{userStatus.checkOut ? new Date(userStatus.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</span>
             </div>
+            {userStatus.photos && userStatus.photos.length > 0 && (
+              <div>
+                <p className="text-sm font-medium mb-2">Foto Absensi</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {userStatus.photos.map((p) => (
+                    <div key={p.type + p.capturedAt}>
+                      <p className="text-xs text-muted-foreground mb-0.5 capitalize">
+                        {p.type === 'check_in' ? 'Check In' : 'Check Out'}
+                      </p>
+                      <div className="rounded-lg overflow-hidden border">
+                        <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : pengajuan ? (
           <div className="space-y-3">

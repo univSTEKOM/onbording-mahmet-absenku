@@ -124,7 +124,7 @@ export default function PengajuanListPage() {
               variant="karyawan"
               onEdit={(id) => {
                 const target = pengajuan?.find(x => x.id === id)
-                if (target) navigate({ to: '/pengajuan/baru' })
+                if (target) navigate({ to: '/pengajuan/baru', state: { edit: target } })
               }}
               onDelete={(id) => setDeleteConfirmId(id)}
               onClick={(p) => setDetailTarget(p)}

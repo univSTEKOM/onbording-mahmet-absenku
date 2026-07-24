@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { createFileRoute, Navigate, Outlet, useLocation } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
-import { FilterProvider } from '@/lib/filter-context'
+import { FilterProvider, useFilterContext } from '@/lib/filter-context'
+import { cn } from '@/lib/utils'
 import { AppSidebar } from '@/components/app-sidebar'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
@@ -9,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { Loader2 } from 'lucide-react'
+import WelcomePage from '@/pages/WelcomePage'
 
 export const Route = createFileRoute('/_authenticated')({
   component: AuthenticatedLayout,
@@ -23,7 +25,7 @@ function LoadingScreen({ timedOut }: { timedOut?: boolean }) {
         <Skeleton className="h-8 w-32" />
         <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-9 w-full rounded-lg" />
+            <Skeleton key={`sk-${i}`} className="h-9 w-full rounded-lg" />
           ))}
         </div>
         <div className="mt-auto flex items-center gap-3">
@@ -75,27 +77,38 @@ function AuthenticatedLayout() {
   }, [isLoading])
 
   if (isLoading) return <LoadingScreen timedOut={timedOut} />
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) {
+    if (location.pathname === '/') return <WelcomePage />
+    return <Navigate to="/login" replace />
+  }
+  if (location.pathname === '/') return <Navigate to="/dashboard" replace />
   if (['pending', 'rejected'].includes(user.status) && location.pathname !== '/status' && location.pathname !== '/profil') return <Navigate to="/status" replace />
 
   return (
     <ErrorBoundary>
       <FilterProvider>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset className="relative">
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              <div className="flex-1" />
-              <ThemeToggle />
-            </header>
-            <main className="flex-1 p-4 md:p-6 overflow-auto">
-              <Outlet />
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
+        <AuthenticatedLayoutContent />
       </FilterProvider>
     </ErrorBoundary>
+  )
+}
+
+function AuthenticatedLayoutContent() {
+  const { isFilterOpen } = useFilterContext()
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className={cn('relative', isFilterOpen && 'blur-sm transition-all duration-200')}>
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <div className="flex-1" />
+          <ThemeToggle />
+        </header>
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRecentAbsensi, useMonthAttendance } from '@/hooks/useDashboard'
 import { useAbsensiList } from '@/hooks/useAbsensi'
@@ -6,46 +6,24 @@ import { useAllPengajuan } from '@/hooks/usePengajuan'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
 import { useNavigate } from '@tanstack/react-router'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
-import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, X } from 'lucide-react'
-import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
+import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, ChevronsUpDown } from 'lucide-react'
+import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
+import { CardDescription } from '@/components/ui/card'
 
 const now = new Date()
 const curMonth = now.getMonth()
 const curYear = now.getFullYear()
 
-function hitungJam(checkIn: string | null, checkOut: string | null): string {
-  if (!checkIn || !checkOut) return '-'
-  const selisih = Math.max(0, new Date(checkOut).getTime() - new Date(checkIn).getTime())
-  const jam = Math.floor(selisih / (1000 * 60 * 60))
-  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
-  return `${jam}j ${menit}m`
-}
-
-function durasiRealTime(checkIn: string): string {
-  const selisih = Math.max(0, Date.now() - new Date(checkIn).getTime())
-  const jam = Math.floor(selisih / (1000 * 60 * 60))
-  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
-  return `${jam}j ${menit}m`
-}
-
 export default function DashboardPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [detailDate, setDetailDate] = useState<string | null>(null)
-  const [, setTick] = useState(0)
-
-  useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 60000)
-    return () => clearInterval(id)
-  }, [])
-
   const { data: recentAbsensi, isLoading: weekLoading } = useRecentAbsensi()
   const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: allAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
@@ -70,7 +48,8 @@ export default function DashboardPage() {
 
   const monthStats = {
     total: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`)).length || 0,
-    hadir: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && ['hadir', 'pulang_cepat'].includes(a.status)).length || 0,
+    hadir: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && a.status === 'hadir').length || 0,
+    pulangCepat: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && a.status === 'pulang_cepat').length || 0,
     terlambat: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && a.status === 'terlambat').length || 0,
     izinSakit: allAbsensi?.filter((a) => a.tanggal.startsWith(`${curYear}-${String(curMonth + 1).padStart(2, '0')}`) && ['izin', 'sakit', 'cuti'].includes(a.status)).length || 0,
   }
@@ -81,17 +60,35 @@ export default function DashboardPage() {
     return allAbsensi?.filter((a) => a.tanggal >= cutoffStr).slice(0, 5) || []
   }, [allAbsensi])
 
-  const chartData = (recentAbsensi || []).map((item) => ({
-    dayName: new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short' }),
-    tanggal: item.tanggal,
-    status: item.status,
-    hadir: item.status && ['hadir'].includes(item.status) ? 1 : 0,
-    terlambat: item.status === 'terlambat' ? 1 : 0,
-    pulangCepat: item.status === 'pulang_cepat' ? 1 : 0,
-    tidakHadir: !item.status ? 1 : 0,
-    checkIn: item.checkIn ? new Date(item.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-',
-    checkOut: item.checkOut ? new Date(item.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-',
-  }))
+  const pie7Data = useMemo(() => {
+    const counts: Record<string, number> = { hadir: 0, pulangCepat: 0, terlambat: 0, tidakHadir: 0 }
+    recentAbsensi?.forEach((item) => {
+      if (item.status === 'hadir') counts.hadir++
+      else if (item.status === 'pulang_cepat') counts.pulangCepat++
+      else if (item.status === 'terlambat') counts.terlambat++
+      else counts.tidakHadir++
+    })
+    return [
+      { name: 'hadir', value: counts.hadir, fill: 'var(--color-status-hadir)' },
+      { name: 'pulang_cepat', value: counts.pulangCepat, fill: 'var(--color-status-pulang-cepat)' },
+      { name: 'terlambat', value: counts.terlambat, fill: 'var(--color-status-terlambat)' },
+      { name: 'tidakHadir', value: counts.tidakHadir, fill: 'var(--color-status-tidakHadir)' },
+    ]
+  }, [recentAbsensi])
+
+  const total7 = pie7Data.reduce((s, d) => s + d.value, 0)
+  const hadir7 = pie7Data[0].value
+  const pct7 = total7 > 0 ? Math.round((hadir7 / total7) * 100) : 0
+
+  const totalMonth = monthStats.hadir + monthStats.pulangCepat + monthStats.terlambat + monthStats.izinSakit
+  const pctMonth = totalMonth > 0 ? Math.round((monthStats.hadir / totalMonth) * 100) : 0
+
+  const pieMonthData = useMemo(() => [
+    { name: 'hadir', value: monthStats.hadir, fill: 'var(--color-status-hadir)' },
+    { name: 'pulang_cepat', value: monthStats.pulangCepat, fill: 'var(--color-status-pulang-cepat)' },
+    { name: 'terlambat', value: monthStats.terlambat, fill: 'var(--color-status-terlambat)' },
+    { name: 'izin/sakit', value: monthStats.izinSakit, fill: 'var(--color-status-sakit)' },
+  ], [monthStats.hadir, monthStats.pulangCepat, monthStats.terlambat, monthStats.izinSakit])
 
   if (!user) return null
 
@@ -107,19 +104,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {detailDate && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Tanggal dipilih:</span>
-          <Badge variant="secondary" className="text-sm px-3 py-1">
-            {new Date(detailDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-            <button onClick={() => setDetailDate(null)} className="ml-2 hover:text-foreground">
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="relative lg:col-span-1">
           <CardContent className="py-5">
             <div className="flex items-center justify-between mb-2">
@@ -140,89 +125,56 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         <StatsCard label="Hadir (Bulan Ini)" value={`${monthStats.hadir} hari`} icon={CalendarDays} />
+        <StatsCard label="Pulang Cepat" value={`${monthStats.pulangCepat} kali`} icon={ChevronsUpDown} />
         <StatsCard label="Terlambat" value={`${monthStats.terlambat} kali`} icon={TrendingUp} />
-        <Card>
-          <CardContent className="py-5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground">Izin / Sakit</span>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <p className="text-2xl font-bold">{monthStats.izinSakit} hari</p>
-            <p className="text-xs text-muted-foreground mt-1">dari {monthStats.total} absensi</p>
-          </CardContent>
-        </Card>
+        <StatsCard label="Izin / Sakit" value={`${monthStats.izinSakit} hari`} icon={Clock} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Absensi 7 Hari Terakhir</CardTitle>
+        <Card className="flex flex-col">
+          <CardHeader className="flex-row items-start space-y-0 pb-0">
+            <div className="grid gap-1">
+              <CardTitle className="text-base">Absensi 7 Hari Terakhir</CardTitle>
+              <CardDescription>{new Date(Date.now() - 6 * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} — {now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</CardDescription>
+            </div>
           </CardHeader>
-          <CardContent>
-            <WeekAttendanceChart
-              data={chartData.map((d) => ({ ...d, name: d.dayName }))}
+          <CardContent className="flex flex-1 flex-col items-center justify-center pb-0">
+            <AttendancePieChart
+              id="pie-7hari"
+              data={pie7Data}
               config={{
-                tidakHadir: { label: 'Alfa', color: 'var(--chart-1)' },
-                hadir: { label: 'Hadir', color: 'var(--chart-2)' },
-                terlambat: { label: 'Terlambat', color: 'var(--chart-3)' },
-                pulangCepat: { label: 'Pulang Cepat', color: 'var(--chart-4)' },
-              } satisfies ChartConfig}
-              legendOrder={['pulangCepat', 'terlambat', 'hadir', 'tidakHadir']}
+                hadir: { label: 'Hadir', color: 'var(--color-status-hadir)' },
+                pulang_cepat: { label: 'Pulang Cepat', color: 'var(--color-status-pulang-cepat)' },
+                terlambat: { label: 'Terlambat', color: 'var(--color-status-terlambat)' },
+                tidakHadir: { label: 'Alfa', color: 'var(--color-status-tidakHadir)' },
+              }}
+              centerLabel={`${pct7}%`}
+              centerSub="hadir"
               loading={weekLoading}
             />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Status Absensi Hari Ini</CardTitle>
+        <Card className="flex flex-col">
+          <CardHeader className="flex-row items-start space-y-0 pb-0">
+            <div className="grid gap-1">
+              <CardTitle className="text-base">Absensi 1 Bulan Terakhir</CardTitle>
+              <CardDescription>{now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</CardDescription>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {todayAbsensi?.[0] ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <Badge variant="secondary" className={absensiStatusBadge[todayAbsensi[0].status]}>
-                    {absensiStatusLabel[todayAbsensi[0].status]}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Check-in</span>
-                  <span className="font-medium">
-                    {new Date(todayAbsensi[0].checkIn!).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                <Progress value={isCheckedOut ? 100 : 50} className="h-2" />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Check-out</span>
-                  <span className="font-medium">
-                    {isCheckedOut
-                      ? new Date(todayAbsensi[0].checkOut!).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-                      : 'Belum'}
-                  </span>
-                </div>
-                {isCheckedOut && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Durasi</span>
-                    <span className="font-medium">{hitungJam(todayAbsensi[0].checkIn, todayAbsensi[0].checkOut)}</span>
-                  </div>
-                )}
-                {isCheckedIn && !isCheckedOut && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Sedang bekerja</span>
-                    <span className="font-medium text-green-600">{durasiRealTime(todayAbsensi[0].checkIn!)}</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex flex-col items-center gap-3 py-6">
-                <Fingerprint className="h-10 w-10 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Belum ada absensi hari ini</p>
-                <Button size="sm" className="gap-2" onClick={() => navigate({ to: '/absensi' })}>
-                  <Fingerprint className="h-4 w-4" /> Absen Sekarang
-                </Button>
-              </div>
-            )}
+          <CardContent className="flex flex-1 flex-col items-center justify-center pb-0">
+            <AttendancePieChart
+              id="pie-bulan"
+              data={pieMonthData}
+              config={{
+                hadir: { label: 'Hadir', color: 'var(--color-status-hadir)' },
+                pulang_cepat: { label: 'Pulang Cepat', color: 'var(--color-status-pulang-cepat)' },
+                terlambat: { label: 'Terlambat', color: 'var(--color-status-terlambat)' },
+                'izin/sakit': { label: 'Izin/Sakit', color: 'var(--color-status-sakit)' },
+              }}
+              centerLabel={`${pctMonth}%`}
+              centerSub="hadir"
+            />
           </CardContent>
         </Card>
       </div>
@@ -249,6 +201,7 @@ export default function DashboardPage() {
             status: dayDetail[0].status,
             checkIn: dayDetail[0].checkIn,
             checkOut: dayDetail[0].checkOut,
+            photos: dayDetail[0].photos,
           } : undefined}
           pengajuan={dayPengajuan || undefined}
           onClose={() => setDetailDate(null)}

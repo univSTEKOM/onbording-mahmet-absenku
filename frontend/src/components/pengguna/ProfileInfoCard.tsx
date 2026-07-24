@@ -78,8 +78,8 @@ export function ProfileInfoCard({ user }: ProfileInfoCardProps) {
             <div>
               <p className="text-muted-foreground text-xs mb-2">Catatan Penolakan</p>
               <div className="space-y-2">
-                {user.rejectionNotes.map((note, i) => (
-                  <div key={i} className="text-sm p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+                {user.rejectionNotes.map((note) => (
+                  <div key={note.createdAt + note.note.slice(0, 10)} className="text-sm p-3 rounded-lg bg-destructive/5 border border-destructive/20">
                     <p>{note.note}</p>
                     <p className="text-xs text-muted-foreground mt-1">{formatTanggal(note.createdAt)}</p>
                   </div>

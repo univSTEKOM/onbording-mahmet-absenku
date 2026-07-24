@@ -5,11 +5,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AttendanceCalendar } from '@/components/AttendanceCalendar'
+import { CalendarCard } from '@/components/CalendarCard'
 import { StatsCard } from '@/components/shared/StatsCard'
+import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
-import { Pie, PieChart, Label } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartStyle, type ChartConfig } from '@/components/ui/chart'
+import { type ChartConfig } from '@/components/ui/chart'
 import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
 import api from '@/api/axios'
 import type { User } from '@/types'
@@ -152,8 +152,7 @@ export default function HrdDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card data-chart={pieId} className="flex flex-col">
-          <ChartStyle id={pieId} config={pieChartConfig} />
+        <Card className="flex flex-col">
           <CardHeader className="flex-row items-start space-y-0 pb-0">
             <div className="grid gap-1">
               <CardTitle>Kehadiran Bulan Ini</CardTitle>
@@ -161,65 +160,28 @@ export default function HrdDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="flex flex-1 flex-col items-center justify-center pb-0">
-            {monthLoading ? (
-              <Skeleton className="h-[250px] w-full rounded-lg" />
-            ) : donutData.length > 0 && totalAbsen > 0 ? (
-              <>
-                <ChartContainer id={pieId} config={pieChartConfig} className="mx-auto aspect-square w-full max-w-[250px]">
-                  <PieChart>
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                    <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={1}
-                      stroke="hsl(var(--border))"
-                      shape={renderPieShape}
-                      activeIndex={activeIndex}
-                      onMouseEnter={(_, index) => setActiveIndex(index)}
-                      onMouseLeave={() => setActiveIndex(undefined)}
-                    >
-                      <Label
-                        content={({ viewBox }) => {
-                          if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                            return (
-                              <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                                <tspan x={viewBox.cx} y={(viewBox.cy || 0) - 8} className="fill-foreground text-2xl font-bold">{hadirPct}%</tspan>
-                                <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 16} className="fill-muted-foreground text-xs">hadir</tspan>
-                              </text>
-                            )
-                          }
-                        }}
-                      />
-                    </Pie>
-                  </PieChart>
-                </ChartContainer>
-                <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground mt-2">
-                  {donutData.map((d) => (
-                    <span key={d.name} className="flex items-center gap-1.5">
-                      <span className="size-3 rounded-sm" style={{ backgroundColor: `var(--color-${d.name})` }} />
-                      {d.name === 'tidakHadir' ? 'Alfa' : d.name.charAt(0).toUpperCase() + d.name.slice(1)}
-                    </span>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
-            )}
+            <AttendancePieChart
+              id={pieId}
+              data={donutData}
+              config={pieChartConfig}
+              centerLabel={`${hadirPct}%`}
+              centerSub="hadir"
+              loading={monthLoading}
+            />
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          {monthLoading ? (
-            <Skeleton className="h-[300px] w-full rounded-lg" />
-          ) : (
-            <AttendanceCalendar
-              year={currentYear}
-              month={currentMonth}
-              data={monthData?.data || []}
-              totalKaryawan={monthData?.totalKaryawan || totalKaryawan}
-            />
-          )}
-        </CardContent>
-      </Card>
+      {monthLoading ? (
+        <Skeleton className="h-[300px] w-full rounded-lg" />
+      ) : (
+        <CalendarCard
+          year={currentYear}
+          month={currentMonth}
+          data={monthData?.data || []}
+          totalKaryawan={monthData?.totalKaryawan || totalKaryawan}
+        />
+      )}
     </div>
   )
 }

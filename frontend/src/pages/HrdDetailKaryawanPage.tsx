@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from '@tanstack/react-router'
-import { useUsers } from '@/hooks/useUsers'
 import { useMonthAttendance } from '@/hooks/useDashboard'
 import { useAbsensiList, useAbsensiListPaginated } from '@/hooks/useAbsensi'
 import { useAllPengajuan } from '@/hooks/usePengajuan'
 import { ProfileInfoCard } from '@/components/pengguna/ProfileInfoCard'
 import { StatsCard } from '@/components/shared/StatsCard'
-import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
+import { DayDetailDialog } from '@/components/AttendanceCalendar'
+import { CalendarCard } from '@/components/CalendarCard'
 import { Pagination } from '@/components/shared/Pagination'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PengajuanCard } from '@/components/pengajuan/PengajuanCard'
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, FileText, CalendarDays, Clock, CheckCircle2, ChevronsUpDown, AlertTriangle, X } from 'lucide-react'
+import { ArrowLeft, FileText, CalendarDays, Clock, CheckCircle2, ChevronsUpDown, AlertTriangle } from 'lucide-react'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import type { User, Pengajuan } from '@/types'
 
@@ -47,7 +47,6 @@ export default function HrdDetailKaryawanPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const stateUser = (location.state as { user?: User })?.user
-  const { data: users } = useUsers()
   const user = stateUser || null
 
   const now = new Date()
@@ -124,24 +123,13 @@ export default function HrdDetailKaryawanPage() {
           {monthLoading ? (
             <Skeleton className="h-[300px] w-full rounded-lg" />
           ) : (
-            <AttendanceCalendar
+            <CalendarCard
               year={curYear}
               month={curMonth}
               data={monthData?.data || []}
-              onDayClick={setDetailDate}
+              selectedDate={detailDate}
+              onSelectedDateChange={(tgl) => setDetailDate(tgl || null)}
             />
-          )}
-
-          {detailDate && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Tanggal dipilih:</span>
-              <Badge variant="secondary" className="text-sm px-3 py-1">
-                {new Date(detailDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                <button onClick={() => setDetailDate(null)} className="ml-2 hover:text-foreground">
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            </div>
           )}
 
           <div>
@@ -152,7 +140,7 @@ export default function HrdDetailKaryawanPage() {
             {absensiLoading ? (
               <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-full rounded-lg" />
+                  <Skeleton key={`abs-sk-${i}`} className="h-10 w-full rounded-lg" />
                 ))}
               </div>
             ) : absensiData?.data?.length ? (
@@ -233,6 +221,7 @@ export default function HrdDetailKaryawanPage() {
                 status: dayDetail[0].status,
                 checkIn: dayDetail[0].checkIn,
                 checkOut: dayDetail[0].checkOut,
+                photos: dayDetail[0].photos,
               } : undefined}
               pengajuan={dayPengajuan || undefined}
               onClose={() => setDetailDate(null)}
