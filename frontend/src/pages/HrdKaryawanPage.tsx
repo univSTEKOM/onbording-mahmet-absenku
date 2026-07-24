@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { useUsers } from '@/hooks/useUsers'
 import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_PHONE_DIGITS, MIN_PHONE_DIGITS, MAX_ALAMAT_LENGTH } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { User } from '@/types'
 
 export default function HrdKaryawanPage() {
+  const navigate = useNavigate()
   const { user: currentUser } = useAuth()
   const { data: users, isLoading, refetch, isFetching } = useUsers()
   const queryClient = useQueryClient()
@@ -162,14 +164,14 @@ export default function HrdKaryawanPage() {
           </TableHeader>
           <TableBody>
             {filtered.map((u) => (
-              <TableRow key={u.id}>
+              <TableRow key={u.id} className="cursor-pointer" onClick={() => navigate({ to: '/hrd/profile', state: { user: u } })}>
                 <TableCell>
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
                     <AvatarFallback className="text-xs">{u.nama?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
                   </Avatar>
                 </TableCell>
-                <TableCell className="font-medium">{u.nama || '-'}</TableCell>
+                <TableCell className="font-medium hover:text-primary transition-colors">{u.nama || '-'}</TableCell>
                 <TableCell>{u.email}</TableCell>
                 <TableCell>{u.jabatan || '-'}</TableCell>
                 <TableCell>
@@ -179,11 +181,11 @@ export default function HrdKaryawanPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(u)}>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(u) }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                     {u.id !== currentUser?.id && (
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(u)}>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDeleteTarget(u) }}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     )}

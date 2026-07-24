@@ -43,6 +43,7 @@ export async function getHrdWeek(): Promise<HrdWeekData> {
 export interface DayAttendanceData {
   tanggal: string
   hadir: number
+  pulangCepat: number
   terlambat: number
   checkInOnly: number
   izin: number

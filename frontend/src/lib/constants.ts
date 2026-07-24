@@ -55,3 +55,12 @@ export const absensiStatusLabel: Record<AbsensiStatus, string> = {
   sakit: 'Sakit',
   cuti: 'Cuti',
 }
+
+export const STATUS_COLORS_MAP: Record<string, string> = {
+  hadir: '#22c55e',
+  terlambat: '#eab308',
+  izin: '#3b82f6',
+  sakit: '#a855f7',
+  cuti: '#6b7280',
+  tidakHadir: '#ef4444',
+}

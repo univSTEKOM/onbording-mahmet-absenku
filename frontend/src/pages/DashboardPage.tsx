@@ -12,19 +12,13 @@ import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCale
 import { useNavigate } from '@tanstack/react-router'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
+import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
 import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight } from 'lucide-react'
 import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 const now = new Date()
 const curMonth = now.getMonth()
 const curYear = now.getFullYear()
-
-const STATUS_BAR_COLORS: Record<string, string> = {
-  hadir: 'var(--chart-1)',
-  terlambat: 'var(--chart-2)',
-  pulang_cepat: 'var(--chart-3)',
-}
 
 function hitungJam(checkIn: string | null, checkOut: string | null): string {
   if (!checkIn || !checkOut) return '-'
@@ -81,8 +75,8 @@ export default function DashboardPage() {
   }))
 
   const chartBarColor = (entry: typeof chartData[number]) => {
-    if (entry.status && STATUS_BAR_COLORS[entry.status]) return STATUS_BAR_COLORS[entry.status]
-    return 'var(--muted-foreground)'
+    if (entry.status && STATUS_COLORS_MAP[entry.status]) return STATUS_COLORS_MAP[entry.status]
+    return '#999'
   }
 
   if (!user) return null

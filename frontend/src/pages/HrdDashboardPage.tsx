@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceCalendar } from '@/components/AttendanceCalendar'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
+import { STATUS_COLORS_MAP } from '@/lib/constants'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import api from '@/api/axios'
 import type { User } from '@/types'
@@ -17,7 +18,7 @@ const today = new Date()
 const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
 
-const DONUT_COLORS = ['#22c55e', '#eab308', '#3b82f6', '#a855f7', '#6b7280', '#ef4444']
+const DONUT_ORDER = ['hadir', 'terlambat', 'izin', 'sakit', 'cuti', 'tidakHadir']
 
 export default function HrdDashboardPage() {
   const navigate = useNavigate()
@@ -149,11 +150,11 @@ export default function HrdDashboardPage() {
                         )
                       }}
                     />
-                    <Bar dataKey="hadir" fill="var(--chart-1)" radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="terlambat" fill="var(--chart-2)" radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="izin" fill="var(--chart-3)" radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="sakit" fill="var(--chart-4)" radius={[4, 4, 0, 0]} stackId="a" />
-                    <Bar dataKey="cuti" fill="var(--chart-5)" radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="hadir" fill={STATUS_COLORS_MAP.hadir} radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="terlambat" fill={STATUS_COLORS_MAP.terlambat} radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="izin" fill={STATUS_COLORS_MAP.izin} radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="sakit" fill={STATUS_COLORS_MAP.sakit} radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="cuti" fill={STATUS_COLORS_MAP.cuti} radius={[4, 4, 0, 0]} stackId="a" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -161,11 +162,11 @@ export default function HrdDashboardPage() {
               <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
             )}
             <div className="flex items-center justify-center gap-x-4 gap-y-1 mt-2 text-[11px] text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-1)' }} /> Hadir</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-2)' }} /> Terlambat</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-3)' }} /> Izin</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-4)' }} /> Sakit</span>
-              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-5)' }} /> Cuti</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.hadir }} /> Hadir</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.terlambat }} /> Terlambat</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.izin }} /> Izin</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.sakit }} /> Sakit</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.cuti }} /> Cuti</span>
             </div>
           </CardContent>
         </Card>
@@ -184,8 +185,8 @@ export default function HrdDashboardPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={donutData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value" paddingAngle={2}>
-                        {donutData.map((_, i) => (
-                          <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                        {donutData.map((d, i) => (
+                          <Cell key={i} fill={STATUS_COLORS_MAP[DONUT_ORDER[i]] || '#ccc'} />
                         ))}
                       </Pie>
                     </PieChart>
@@ -200,7 +201,7 @@ export default function HrdDashboardPage() {
                 <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 mt-2 text-xs">
                   {donutData.map((d, i) => (
                     <div key={d.name} className="flex items-center gap-2">
-                      <span className="size-2.5 rounded-sm" style={{ backgroundColor: DONUT_COLORS[i] }} />
+                      <span className="size-2.5 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP[DONUT_ORDER[i]] || '#ccc' }} />
                       <span className="text-muted-foreground">{d.name}</span>
                       <span className="font-medium ml-auto">{d.value}</span>
                     </div>
