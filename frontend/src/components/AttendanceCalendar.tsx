@@ -114,17 +114,8 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div>
         <h3 className="font-semibold text-base">{monthNames[month]} {year}</h3>
-        <div className="flex flex-wrap gap-3 text-[11px]">
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-hadir)' }} /> Hadir</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-pulang-cepat)' }} /> Pulang Cepat</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-terlambat)' }} /> Terlambat</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-izin)' }} /> Izin</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-sakit)' }} /> Sakit</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-cuti)' }} /> Cuti</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-tidakHadir)' }} /> Alfa</span>
-        </div>
       </div>
 
       <div className="grid grid-cols-7 gap-1">
@@ -160,6 +151,16 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
             </button>
           )
         })}
+      </div>
+
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-hadir)' }} /> Hadir</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-pulang-cepat)' }} /> Pulang Cepat</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-terlambat)' }} /> Terlambat</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-izin)' }} /> Izin</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-sakit)' }} /> Sakit</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-cuti)' }} /> Cuti</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-tidakHadir)' }} /> Alfa</span>
       </div>
     </div>
   )

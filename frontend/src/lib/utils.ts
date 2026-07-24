@@ -64,3 +64,11 @@ export function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: str
     }
   }
 }
+
+interface ApiErrorResponse {
+  response?: { data?: { message?: string } }
+}
+
+export function getApiErrorMessage(err: unknown, fallback = 'Terjadi kesalahan'): string {
+  return (err as ApiErrorResponse)?.response?.data?.message || fallback
+}

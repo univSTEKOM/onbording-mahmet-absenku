@@ -37,6 +37,7 @@ import { useAuth } from '@/hooks/useAuth'
 import api from '@/api/axios'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
+import { getApiErrorMessage } from '@/lib/utils'
 import type { User } from '@/types'
 
 export default function AdminKaryawanPage() {
@@ -107,7 +108,7 @@ export default function AdminKaryawanPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setModalOpen(false)
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal menyimpan'
+      const msg = getApiErrorMessage(err, 'Gagal menyimpan')
       setFormError(msg)
     } finally {
       setSaving(false)
