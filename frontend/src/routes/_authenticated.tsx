@@ -84,22 +84,20 @@ function AuthenticatedLayout() {
   return (
     <ErrorBoundary>
       <FilterProvider>
-        <AuthContextProvider value={{ user }}>
-          <SidebarProvider>
-            <TourProvider role={user.role}>
-              <SidebarContent />
-            </TourProvider>
-          </SidebarProvider>
-        </AuthContextProvider>
+        <TourProvider role={user.role}>
+          <AuthContextProvider value={{ user }}>
+            <AuthenticatedLayoutContent />
+          </AuthContextProvider>
+        </TourProvider>
       </FilterProvider>
     </ErrorBoundary>
   )
 }
 
-function SidebarContent() {
+function AuthenticatedLayoutContent() {
   const { isFilterOpen } = useFilterContext()
   return (
-    <>
+    <SidebarProvider>
       <AppSidebar />
       <SidebarInset className={cn('relative', isFilterOpen && 'blur-sm transition-all duration-200')}>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
@@ -114,6 +112,6 @@ function SidebarContent() {
           </ErrorBoundary>
         </main>
       </SidebarInset>
-    </>
+    </SidebarProvider>
   )
 }

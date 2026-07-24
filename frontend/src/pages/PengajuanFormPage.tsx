@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/select'
 import { MAX_ALASAN_LENGTH, MIN_ALASAN_LENGTH, MAX_PENGAJUAN_DURATION_DAYS } from '@/lib/constants'
 import { Loader2 } from 'lucide-react'
-import { getApiErrorMessage } from '@/lib/utils'
 import type { Pengajuan } from '@/types'
 
 export default function PengajuanFormPage() {
@@ -68,7 +67,7 @@ export default function PengajuanFormPage() {
         {
           onSuccess: () => navigate({ to: '/pengajuan' }),
           onError: (err) => {
-            const msg = getApiErrorMessage(err, 'Gagal memperbarui')
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal memperbarui'
             setApiError(msg)
           },
         }
@@ -79,7 +78,7 @@ export default function PengajuanFormPage() {
         {
           onSuccess: () => navigate({ to: '/pengajuan' }),
           onError: (err) => {
-            const msg = getApiErrorMessage(err, 'Gagal mengajukan')
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengajukan'
             setApiError(msg)
           },
         }

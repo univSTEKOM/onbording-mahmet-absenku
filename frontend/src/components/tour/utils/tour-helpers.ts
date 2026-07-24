@@ -7,7 +7,6 @@ export interface TourStepDef {
   icon?: string
   position?: 'top' | 'bottom' | 'left' | 'right' | 'auto'
   route?: string
-  requiresSidebar?: boolean
 }
 
 export type TourRole = 'admin' | 'karyawan'

@@ -9,7 +9,6 @@ import { TourTooltip } from './TourTooltip'
 import { TourModal } from './TourModal'
 import { TourPaused } from './TourPaused'
 import { useElementTracker } from './hooks/useElementTracker'
-import { useSidebar } from '@/components/ui/sidebar'
 
 interface TourProviderProps {
   children: ReactNode
@@ -20,7 +19,6 @@ interface TourProviderProps {
 export function TourProvider({ children, role, autoStart = true }: TourProviderProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { setOpen, setOpenMobile, isMobile } = useSidebar()
   const [currentStep, setCurrentStep] = useState(0)
   const [isActive, setIsActive] = useState(false)
   const [paused, setPaused] = useState(false)
@@ -36,22 +34,17 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
     setCurrentStep(0)
     setIsActive(true)
     setPaused(false)
-    if (steps[0]?.requiresSidebar) {
-      if (isMobile) setOpenMobile(true)
-      else setOpen(true)
-    }
-  }, [steps, isMobile, setOpen, setOpenMobile])
+  }, [])
 
   const complete = useCallback(() => {
     markTourCompleted()
     setIsActive(false)
     setPaused(false)
-    if (isMobile) setOpenMobile(false)
     const target = role === 'admin' ? '/admin/dashboard' : '/dashboard'
     if (location.pathname !== target) {
       navigate({ to: target as any })
     }
-  }, [navigate, location.pathname, role, isMobile, setOpenMobile])
+  }, [navigate, location.pathname, role])
 
   const skip = useCallback(() => {
     markTourSkipped()
@@ -83,10 +76,6 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
       return
     }
     const step = steps[nextIndex]
-    if (step.requiresSidebar) {
-      if (isMobile) setOpenMobile(true)
-      else setOpen(true)
-    }
     if (step.route && step.route !== location.pathname) {
       navigate({ to: step.route as any })
     }
@@ -94,7 +83,7 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
       scrollToElement(step.targetSelector)
     }
     setCurrentStep(nextIndex)
-  }, [currentStep, total, steps, complete, navigate, location.pathname, isMobile, setOpen, setOpenMobile])
+  }, [currentStep, total, steps, complete, navigate, location.pathname])
 
   useEffect(() => {
     if (autoStart && !isActive && !isTourCompleted()) {

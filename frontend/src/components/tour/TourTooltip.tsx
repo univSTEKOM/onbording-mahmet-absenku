@@ -33,7 +33,7 @@ function computePosition(
   const gap = 16
   const vw = window.innerWidth
   const vh = window.innerHeight
-  const tw = vw < 480 ? vw - 32 : 360
+  const tw = 360
 
   const candidates = [
     {
@@ -68,7 +68,7 @@ function computePosition(
     if (fitsX && fitsY) return { style: c.style, placement: c.name }
   }
 
-  return { style: { left: 16, top: 16 }, placement: 'bottom-left' }
+  return { style: { left: 16, top: vh - 250 }, placement: 'bottom-left' }
 }
 
 export function TourTooltip({

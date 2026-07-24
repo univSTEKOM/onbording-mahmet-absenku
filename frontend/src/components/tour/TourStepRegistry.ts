@@ -16,7 +16,6 @@ export const karyawanSteps: TourStepDef[] = [
     description: 'Ini navigasi utama kamu. Akses absensi, riwayat, pengajuan, dan profil kapan pun.',
     icon: 'Menu',
     position: 'right',
-    requiresSidebar: true,
   },
   {
     id: 'dashboard-summary',
@@ -46,7 +45,6 @@ export const karyawanSteps: TourStepDef[] = [
     description: 'Mau cek riwayat absensi? Semua tersimpan rapi — bisa dicari pakai filter.',
     icon: 'History',
     position: 'right',
-    requiresSidebar: true,
   },
   {
     id: 'leave-nav',
@@ -56,7 +54,6 @@ export const karyawanSteps: TourStepDef[] = [
     description: 'Mau cuti atau izin? Ajukan di sini dan pantau status persetujuan.',
     icon: 'FileText',
     position: 'right',
-    requiresSidebar: true,
   },
   {
     id: 'profile-nav',
@@ -66,7 +63,6 @@ export const karyawanSteps: TourStepDef[] = [
     description: 'Pastikan data kamu selalu update. Di sini juga bisa daftar ulang verifikasi wajah.',
     icon: 'User',
     position: 'top',
-    requiresSidebar: true,
   },
   {
     id: 'completion',
@@ -96,7 +92,6 @@ const adminExtraSteps: TourStepDef[] = [
     description: 'Setujui atau tolak pendaftaran karyawan baru dengan cepat.',
     icon: 'UserCheck',
     position: 'right',
-    requiresSidebar: true,
   },
 ]
 

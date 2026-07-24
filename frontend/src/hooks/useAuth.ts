@@ -13,6 +13,7 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
   return {
     id: String(p.id ?? base.id),
     email: (p.email as string) ?? (base.email as string) ?? '',
+    password: '',
     nama: (p.nama as string) ?? (base.name as string) ?? '',
     jabatan: (p.jabatan as string) ?? (base.jabatan as string) ?? '',
     role: (p.role as User['role']) ?? (base.role as User['role']) ?? 'karyawan',
