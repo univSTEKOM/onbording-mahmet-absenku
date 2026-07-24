@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceCalendar } from '@/components/AttendanceCalendar'
 import { StatsCard } from '@/components/shared/StatsCard'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
-import { STATUS_COLORS_MAP } from '@/lib/constants'
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Label } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle, type ChartConfig } from '@/components/ui/chart'
 import api from '@/api/axios'
@@ -19,21 +18,21 @@ const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
 
 const barChartConfig = {
-  tidakHadir: { label: 'Alfa', color: STATUS_COLORS_MAP.tidakHadir },
-  hadir: { label: 'Hadir', color: STATUS_COLORS_MAP.hadir },
-  izin: { label: 'Izin', color: STATUS_COLORS_MAP.izin },
-  terlambat: { label: 'Terlambat', color: STATUS_COLORS_MAP.terlambat },
-  sakit: { label: 'Sakit', color: STATUS_COLORS_MAP.sakit },
-  cuti: { label: 'Cuti', color: STATUS_COLORS_MAP.cuti },
+  tidakHadir: { label: 'Alfa', color: 'var(--chart-1)' },
+  hadir: { label: 'Hadir', color: 'var(--chart-2)' },
+  izin: { label: 'Izin', color: 'var(--chart-3)' },
+  terlambat: { label: 'Terlambat', color: 'var(--chart-4)' },
+  sakit: { label: 'Sakit', color: 'var(--chart-5)' },
+  cuti: { label: 'Cuti', color: 'var(--chart-6)' },
 } satisfies ChartConfig
 
 const pieChartConfig = {
-  hadir: { label: 'Hadir', color: STATUS_COLORS_MAP.hadir },
-  terlambat: { label: 'Terlambat', color: STATUS_COLORS_MAP.terlambat },
-  izin: { label: 'Izin', color: STATUS_COLORS_MAP.izin },
-  sakit: { label: 'Sakit', color: STATUS_COLORS_MAP.sakit },
-  cuti: { label: 'Cuti', color: STATUS_COLORS_MAP.cuti },
-  tidakHadir: { label: 'Alfa', color: STATUS_COLORS_MAP.tidakHadir },
+  hadir: { label: 'Hadir', color: 'var(--chart-1)' },
+  terlambat: { label: 'Terlambat', color: 'var(--chart-2)' },
+  izin: { label: 'Izin', color: 'var(--chart-3)' },
+  sakit: { label: 'Sakit', color: 'var(--chart-4)' },
+  cuti: { label: 'Cuti', color: 'var(--chart-5)' },
+  tidakHadir: { label: 'Alfa', color: 'var(--chart-6)' },
 } satisfies ChartConfig
 
 const pieId = 'pie-kehadiran'
@@ -182,29 +181,36 @@ export default function HrdDashboardPage() {
               <Skeleton className="h-[250px] w-full rounded-lg" />
             ) : donutData.length > 0 && totalAbsen > 0 ? (
               <ChartContainer id={pieId} config={pieChartConfig} className="mx-auto aspect-square w-full max-w-[250px]">
-                <PieChart>
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                  <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={2}>
-                    <Label
-                      content={({ viewBox }) => {
-                        if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                          return (
-                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                              <tspan x={viewBox.cx} y={(viewBox.cy || 0) - 8} className="fill-foreground text-2xl font-bold">{hadirPct}%</tspan>
-                              <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 16} className="fill-muted-foreground text-xs">hadir</tspan>
-                            </text>
-                          )
-                        }
-                      }}
-                    />
-                  </Pie>
-                </PieChart>
+                <div className="flex flex-col items-center">
+                  <PieChart>
+                    <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                    <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={60} strokeWidth={2}>
+                      <Label
+                        content={({ viewBox }) => {
+                          if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                            return (
+                              <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                                <tspan x={viewBox.cx} y={(viewBox.cy || 0) - 8} className="fill-foreground text-2xl font-bold">{hadirPct}%</tspan>
+                                <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 16} className="fill-muted-foreground text-xs">hadir</tspan>
+                              </text>
+                            )
+                          }
+                        }}
+                      />
+                    </Pie>
+                  </PieChart>
+                  <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground mt-2">
+                    {donutData.map((d) => (
+                      <span key={d.name} className="flex items-center gap-1.5">
+                        <span className="size-3 rounded-sm" style={{ backgroundColor: `var(--color-${d.name})` }} />
+                        {d.name === 'tidakHadir' ? 'Alfa' : d.name.charAt(0).toUpperCase() + d.name.slice(1)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </ChartContainer>
             ) : (
               <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
-            )}
-            {donutData.length > 0 && totalAbsen > 0 && (
-              <ChartLegend content={<ChartLegendContent payload={donutData.map((d) => ({ value: d.name }))} />} />
             )}
           </CardContent>
         </Card>

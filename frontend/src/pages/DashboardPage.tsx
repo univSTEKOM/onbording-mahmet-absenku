@@ -169,10 +169,10 @@ export default function DashboardPage() {
               <Skeleton className="h-44 w-full rounded-lg" />
             ) : chartData.length > 0 ? (
                 <ChartContainer config={{
-                  tidakHadir: { label: 'Alfa', color: STATUS_COLORS_MAP.tidakHadir },
-                  hadir: { label: 'Hadir', color: STATUS_COLORS_MAP.hadir },
-                  terlambat: { label: 'Terlambat', color: STATUS_COLORS_MAP.terlambat },
-                  pulangCepat: { label: 'Pulang Cepat', color: STATUS_COLORS_MAP.pulang_cepat || STATUS_COLORS_MAP.izin },
+                  tidakHadir: { label: 'Alfa', color: 'var(--chart-1)' },
+                  hadir: { label: 'Hadir', color: 'var(--chart-2)' },
+                  terlambat: { label: 'Terlambat', color: 'var(--chart-3)' },
+                  pulangCepat: { label: 'Pulang Cepat', color: 'var(--chart-4)' },
                 } satisfies ChartConfig} className="h-44">
                   <BarChart accessibilityLayer data={chartData}>
                     <CartesianGrid vertical={false} />
