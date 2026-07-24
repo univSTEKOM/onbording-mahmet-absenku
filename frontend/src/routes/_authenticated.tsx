@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { Loader2 } from 'lucide-react'
 import WelcomePage from '@/pages/WelcomePage'
+import { TourProvider } from '@/components/tour/TourProvider'
 
 export const Route = createFileRoute('/_authenticated')({
   component: AuthenticatedLayout,
@@ -87,7 +88,9 @@ function AuthenticatedLayout() {
   return (
     <ErrorBoundary>
       <FilterProvider>
-        <AuthenticatedLayoutContent />
+        <TourProvider role={user.role}>
+          <AuthenticatedLayoutContent />
+        </TourProvider>
       </FilterProvider>
     </ErrorBoundary>
   )

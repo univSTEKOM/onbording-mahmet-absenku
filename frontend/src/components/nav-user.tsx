@@ -26,7 +26,7 @@ export function NavUser() {
   const fotoSrc = user?.foto && !user.foto.startsWith('[') ? user.foto : undefined
 
   return (
-    <SidebarMenu>
+    <SidebarMenu data-slot="nav-user">
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger className="group flex w-full items-center gap-2 rounded-md p-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground aria-expanded:bg-muted [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate">

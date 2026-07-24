@@ -22,7 +22,15 @@ export function NavMain({
     <SidebarGroup>
       <SidebarMenu>
         {items.map((item) => (
-          <SidebarMenuItem key={item.title}>
+          <SidebarMenuItem
+            key={item.title}
+            data-slot={
+              item.title === 'Riwayat' ? 'nav-riwayat' :
+              item.title === 'Pengajuan' ? 'nav-pengajuan' :
+              item.title === 'Verifikasi Karyawan' ? 'nav-verifikasi' :
+              undefined
+            }
+          >
             <SidebarMenuButton
               isActive={item.isActive}
               render={<Link to={item.url} />}

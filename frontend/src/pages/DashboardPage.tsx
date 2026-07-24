@@ -104,7 +104,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4" data-slot="summary-cards">
         <Card className="relative lg:col-span-1">
           <CardContent className="py-5">
             <div className="flex items-center justify-between mb-2">
@@ -119,7 +119,7 @@ export default function DashboardPage() {
                 {absensiStatusLabel[todayAbsensi[0].status]}
               </Badge>
             )}
-            <Button size="sm" className="w-full gap-2 mt-2" onClick={() => navigate({ to: '/absensi' })}>
+            <Button size="sm" className="w-full gap-2 mt-2" data-slot="absen-button" onClick={() => navigate({ to: '/absensi' })}>
               <Fingerprint className="h-4 w-4" /> {isCheckedIn ? 'Lihat Absensi' : 'Absen Sekarang'}
             </Button>
           </CardContent>
