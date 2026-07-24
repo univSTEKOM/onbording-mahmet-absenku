@@ -84,6 +84,7 @@ export default function DashboardPage() {
     hadir: item.status && ['hadir'].includes(item.status) ? 1 : 0,
     terlambat: item.status === 'terlambat' ? 1 : 0,
     pulangCepat: item.status === 'pulang_cepat' ? 1 : 0,
+    tidakHadir: !item.status ? 1 : 0,
     checkIn: item.checkIn ? new Date(item.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-',
     checkOut: item.checkOut ? new Date(item.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-',
   }))
@@ -192,6 +193,7 @@ export default function DashboardPage() {
                           <Cell key={i} fill={chartBarColor(entry)} />
                         ))}
                       </Bar>
+                      <Bar dataKey="tidakHadir" fill={STATUS_COLORS_MAP.tidakHadir} stackId="a" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -199,6 +201,7 @@ export default function DashboardPage() {
                   <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.hadir }} /> Hadir</span>
                   <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.terlambat }} /> Terlambat</span>
                   <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.pulang_cepat || STATUS_COLORS_MAP.izin }} /> Pulang Cepat</span>
+                  <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.tidakHadir }} /> Alfa</span>
                 </div>
               </div>
             ) : (

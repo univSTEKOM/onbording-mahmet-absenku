@@ -136,7 +136,6 @@ export default function HrdDashboardPage() {
                       content={({ active, payload }) => {
                         if (!active || !payload?.length) return null
                         const d = payload[0].payload
-                        const total = (d.hadir || 0) + (d.terlambat || 0) + (d.izin || 0) + (d.sakit || 0) + (d.cuti || 0)
                         return (
                           <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
                             <p className="font-medium mb-1">{d.name}</p>
@@ -145,7 +144,8 @@ export default function HrdDashboardPage() {
                             {d.izin > 0 && <p className="text-muted-foreground">Izin: {d.izin}</p>}
                             {d.sakit > 0 && <p className="text-muted-foreground">Sakit: {d.sakit}</p>}
                             {d.cuti > 0 && <p className="text-muted-foreground">Cuti: {d.cuti}</p>}
-                            <p className="text-muted-foreground text-xs mt-1">{d.persen}% kehadiran ({total} dari {d.hadir + d.terlambat + d.izin + d.sakit + d.cuti || 0})</p>
+                            {d.tidakHadir > 0 && <p className="text-muted-foreground">Tidak Hadir: {d.tidakHadir}</p>}
+                            <p className="text-muted-foreground text-xs mt-1">{d.persen}% kehadiran</p>
                           </div>
                         )
                       }}
@@ -155,6 +155,7 @@ export default function HrdDashboardPage() {
                     <Bar dataKey="izin" fill={STATUS_COLORS_MAP.izin} radius={[4, 4, 0, 0]} stackId="a" />
                     <Bar dataKey="sakit" fill={STATUS_COLORS_MAP.sakit} radius={[4, 4, 0, 0]} stackId="a" />
                     <Bar dataKey="cuti" fill={STATUS_COLORS_MAP.cuti} radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="tidakHadir" fill={STATUS_COLORS_MAP.tidakHadir} radius={[4, 4, 0, 0]} stackId="a" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -167,6 +168,7 @@ export default function HrdDashboardPage() {
               <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.izin }} /> Izin</span>
               <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.sakit }} /> Sakit</span>
               <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.cuti }} /> Cuti</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS_MAP.tidakHadir }} /> Alfa</span>
             </div>
           </CardContent>
         </Card>

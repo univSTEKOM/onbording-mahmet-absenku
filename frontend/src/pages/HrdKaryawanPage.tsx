@@ -164,7 +164,7 @@ export default function HrdKaryawanPage() {
           </TableHeader>
           <TableBody>
             {filtered.map((u) => (
-              <TableRow key={u.id} className="cursor-pointer" onClick={() => navigate({ to: '/hrd/profile', state: { user: u } })}>
+              <TableRow key={u.id} className={currentUser?.role === 'admin' ? 'cursor-pointer' : ''} onClick={() => { if (currentUser?.role === 'admin') navigate({ to: '/hrd/profile', state: { user: u } }) }}>
                 <TableCell>
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
