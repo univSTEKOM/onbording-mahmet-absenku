@@ -97,12 +97,12 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-base">{monthNames[month]} {year}</h3>
         <div className="flex flex-wrap gap-3 text-[11px]">
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-200" /> H</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-200" /> T</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-200" /> I</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-purple-200" /> S</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-gray-300 dark:bg-gray-600" /> C</span>
-          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-red-200" /> A</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-green-200" /> Hadir</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-yellow-200" /> Terlambat</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-blue-200" /> Izin</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-purple-200" /> Sakit</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-gray-300 dark:bg-gray-600" /> Cuti</span>
+          <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-red-200" /> Alfa</span>
         </div>
       </div>
 
