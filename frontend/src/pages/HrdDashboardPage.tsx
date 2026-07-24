@@ -35,12 +35,12 @@ export default function HrdDashboardPage() {
 
   const donutData = useMemo(() => {
     if (!monthData?.data) return []
-    const hadirTotal = monthData.data.reduce((sum, d) => sum + d.hadir, 0)
-    const terlambatTotal = monthData.data.reduce((sum, d) => sum + d.terlambat, 0)
-    const izinTotal = monthData.data.reduce((sum, d) => sum + d.izin, 0)
-    const sakitTotal = monthData.data.reduce((sum, d) => sum + d.sakit, 0)
-    const cutiTotal = monthData.data.reduce((sum, d) => sum + d.cuti, 0)
-    const alfaTotal = monthData.data.reduce((sum, d) => sum + d.tidakHadir, 0)
+    const hadirTotal = monthData.data.reduce((sum, d) => sum + (d.hadir || 0), 0)
+    const terlambatTotal = monthData.data.reduce((sum, d) => sum + (d.terlambat || 0), 0)
+    const izinTotal = monthData.data.reduce((sum, d) => sum + (d.izin || 0), 0)
+    const sakitTotal = monthData.data.reduce((sum, d) => sum + (d.sakit || 0), 0)
+    const cutiTotal = monthData.data.reduce((sum, d) => sum + (d.cuti || 0), 0)
+    const alfaTotal = monthData.data.reduce((sum, d) => sum + (d.tidakHadir || 0), 0)
     return [
       { name: 'Hadir', value: hadirTotal },
       { name: 'Terlambat', value: terlambatTotal },
