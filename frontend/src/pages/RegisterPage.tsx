@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { Logo } from '@/components/Logo'
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { PasswordInput } from '@/components/shared/PasswordInput'
 import { validateEmail, validatePassword, validateNama, validateJabatan, validatePhone } from '@/lib/validation'
 
 export default function RegisterPage() {
@@ -104,33 +105,21 @@ export default function RegisterPage() {
 
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
-                    id="password" name="password" type="password"
+                  <PasswordInput
+                    id="password" name="password"
                     value={form.password} onChange={handleChange}
-                    className={errors.password ? 'border-destructive bg-background' : 'bg-background'} required
+                    error={errors.password}
                   />
-                  {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
                 </Field>
 
                 <Field>
                   <FieldLabel htmlFor="konfirmasiPassword">Konfirmasi Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id="konfirmasiPassword" name="konfirmasiPassword" type="password"
-                      value={form.konfirmasiPassword} onChange={handleChange}
-                      className={errors.konfirmasiPassword ? 'border-destructive bg-background' : 'bg-background'} required
-                    />
-                    {form.konfirmasiPassword && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        {form.konfirmasiPassword === form.password ? (
-                          <CheckCircle2 className="size-4 text-green-500" />
-                        ) : (
-                          <XCircle className="size-4 text-destructive" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {errors.konfirmasiPassword && <p className="text-xs text-destructive mt-1">{errors.konfirmasiPassword}</p>}
+                  <PasswordInput
+                    id="konfirmasiPassword" name="konfirmasiPassword"
+                    value={form.konfirmasiPassword} onChange={handleChange}
+                    error={errors.konfirmasiPassword}
+                    matchValue={form.password}
+                  />
                 </Field>
 
                 <Field>

@@ -1,37 +1,19 @@
-# AbsenKu — Sistem Absensi Karyawan
+# Dokumentasi AbsenKu
 
-AbsenKu adalah aplikasi manajemen kehadiran dan HRD berbasis web yang dirancang untuk memudahkan pencatatan absensi, pengajuan cuti/izin, serta monitoring kehadiran karyawan secara real-time.
+Selamat datang di dokumentasi AbsenKu — Sistem Absensi Karyawan.
 
-## Struktur Proyek
+## Daftar Dokumen
 
-```
-on-boarding-trials/
-├── frontend/          # Frontend lama (React + React Router)
-├── frontend-v2/       # Frontend baru (better-t-stack + TanStack Router)
-├── mock-api/          # API mock untuk development
-└── docs/              # Dokumentasi proyek
-```
+| Dokumen | Deskripsi | Estimasi Baca |
+|---------|-----------|---------------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Tech stack, struktur folder, alur data, role flow | 3 menit |
+| [SETUP.md](SETUP.md) | Instalasi, konfigurasi, menjalankan project, troubleshooting | 5 menit |
+| [API.md](API.md) | Dokumentasi lengkap endpoint API, request/response, curl examples | 10 menit |
+| [GUIDE.md](GUIDE.md) | Fitur aplikasi per role, alur navigasi, workflow umum | 5 menit |
 
-## Tech Stack
+## Cara Membaca
 
-### Frontend
-| Komponen | Frontend (lama) | Frontend-v2 (baru) |
-|---|---|---|---|
-| Framework | React 19 + Vite 8 | React 19 + Vite 8 |
-| Routing | React Router v7 | TanStack Router |
-| Data Fetching | TanStack Query | TanStack Query |
-| HTTP Client | Axios | Axios |
-| Styling | Tailwind CSS v4 | Tailwind CSS v4 |
-| UI Kit | shadcn/ui (base-ui) | shadcn/ui |
-| Auth | better-auth | better-auth |
-| Package Manager | npm | bun |
-| Linter | oxlint | oxlint |
-
-### Mock API
-| Komponen | Detail |
-|---|---|
-| Server | json-server + Express |
-| Auth | better-auth (SQLite) |
-| Database | db.json (JSON file) |
-| Port | 3001 |
-| Package Manager | npm |
+1. **Pertama kali?** Mulai dari [ARCHITECTURE.md](ARCHITECTURE.md) untuk memahami gambaran besar.
+2. **Mau menjalankan project?** Langsung ke [SETUP.md](SETUP.md).
+3. **Butuh referensi API?** Buka [API.md](API.md).
+4. **Mau tahu fitur-fitur?** Baca [GUIDE.md](GUIDE.md).

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Logo } from '@/components/Logo'
 import { Loader2 } from 'lucide-react'
+import { PasswordInput } from '@/components/shared/PasswordInput'
 import { validateEmail, validatePassword } from '@/lib/validation'
 
 export default function LoginPage() {
@@ -82,15 +83,13 @@ export default function LoginPage() {
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
+                    name="password"
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); setErrors((p) => ({ ...p, password: '' })) }}
-                    className={errors.password ? 'border-destructive bg-background' : 'bg-background'}
-                    required
+                    error={errors.password}
                   />
-                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
                 </Field>
                 <Field>
                   <Button type="submit" className="w-full" size="lg" disabled={loading}>

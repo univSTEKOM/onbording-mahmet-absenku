@@ -10,7 +10,6 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { Loader2 } from 'lucide-react'
-import WelcomePage from '@/pages/WelcomePage'
 import { TourProvider } from '@/components/tour/TourProvider'
 
 export const Route = createFileRoute('/_authenticated')({
@@ -78,11 +77,7 @@ function AuthenticatedLayout() {
   }, [isLoading])
 
   if (isLoading) return <LoadingScreen timedOut={timedOut} />
-  if (!user) {
-    if (location.pathname === '/') return <WelcomePage />
-    return <Navigate to="/login" replace />
-  }
-  if (location.pathname === '/') return <Navigate to="/dashboard" replace />
+  if (!user) return <Navigate to="/login" replace />
   if (['pending', 'rejected'].includes(user.status) && location.pathname !== '/status' && location.pathname !== '/profil') return <Navigate to="/status" replace />
 
   return (
