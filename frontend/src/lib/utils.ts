@@ -42,6 +42,10 @@ export function hitungJam(checkIn: string | null, checkOut: string | null): stri
 
 export const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
+export function getApiErrorMessage(err: unknown, fallback: string): string {
+  return (err as { response?: { data?: { message?: string } } })?.response?.data?.message || (err instanceof Error ? err.message : fallback)
+}
+
 export type QuickDate = 'hari_ini' | 'kemarin' | '7_hari' | 'bulan_ini' | null
 
 export function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } | null {

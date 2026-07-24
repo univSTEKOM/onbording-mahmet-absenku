@@ -8,12 +8,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth()
 
   if (isLoading) return (
-    <div className="min-h-svh flex items-center justify-center bg-muted p-4">
+    <div className="min-h-svh flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5">
       <div className="flex flex-col items-center gap-4">
         <Logo className="h-8" />
-        <Skeleton className="h-10 w-80 rounded-lg" />
-        <Skeleton className="h-10 w-80 rounded-lg" />
-        <Skeleton className="h-10 w-80 rounded-lg" />
+        <Skeleton className="h-10 w-72 rounded-lg" />
+        <Skeleton className="h-10 w-72 rounded-lg" />
       </div>
     </div>
   )
@@ -23,10 +22,5 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     return <Navigate to={isOnboarding ? '/status' : user.role === 'admin' ? '/admin/dashboard' : '/dashboard'} replace />
   }
 
-  return (
-    <div className="min-h-svh flex items-center justify-center bg-muted p-4">
-      {children}
-    </div>
-  )
+  return <>{children}</>
 }
-
