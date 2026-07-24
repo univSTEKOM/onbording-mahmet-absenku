@@ -519,7 +519,7 @@ server.get('/api/dashboard/recent', (req, res) => {
   res.json({ data })
 })
 
-server.get('/api/dashboard/hrd/week', (req, res) => {
+server.get('/api/dashboard/admin/week', (req, res) => {
   const a = router.db.get('absensi').value()
   const u = router.db.get('users').value()
   const k = u.filter((x) => x.role === 'karyawan')

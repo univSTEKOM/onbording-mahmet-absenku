@@ -24,10 +24,10 @@ const karyawanItems = [
 ]
 
 const adminItems = [
-  { title: 'Admin', url: '/hrd/dashboard', icon: <LayoutDashboard /> },
-  { title: 'Riwayat', url: '/hrd/riwayat', icon: <History /> },
-  { title: 'Pengajuan', url: '/hrd/pengajuan', icon: <FileText /> },
-  { title: 'Kelola Karyawan', url: '/hrd/karyawan', icon: <Users /> },
+  { title: 'Admin', url: '/admin/dashboard', icon: <LayoutDashboard /> },
+  { title: 'Riwayat', url: '/admin/riwayat', icon: <History /> },
+  { title: 'Pengajuan', url: '/admin/pengajuan', icon: <FileText /> },
+  { title: 'Kelola Karyawan', url: '/admin/karyawan', icon: <Users /> },
 ]
 
 const onboardingItems = [
@@ -60,7 +60,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const items = isAdmin
     ? [
         ...baseItems.slice(0, 1),
-        { title: 'Verifikasi Karyawan', url: '/hrd/verifikasi', icon: <UserCheck />, badge: pendingCount > 0 ? pendingCount : undefined },
+        { title: 'Verifikasi Karyawan', url: '/admin/verifikasi', icon: <UserCheck />, badge: pendingCount > 0 ? pendingCount : undefined },
         ...baseItems.slice(1).map((item) => {
           const extended = { ...item }
           if (item.title === 'Pengajuan' && pendingPengajuanCount > 0) extended.badge = pendingPengajuanCount
@@ -95,3 +95,4 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
+

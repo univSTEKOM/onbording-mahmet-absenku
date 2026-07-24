@@ -21,7 +21,7 @@ const datePresets = [
   { label: 'Bulan Ini', get: () => { const d = new Date(); d.setDate(1); return d.toISOString().split('T')[0] } },
 ]
 
-export default function HrdPengajuanPage() {
+export default function AdminPengajuanPage() {
   const { data: users } = useUsers()
   const { data: allPengajuan, isLoading, refetch, isFetching } = useAllPengajuan()
   const updateStatus = useUpdatePengajuanStatus()

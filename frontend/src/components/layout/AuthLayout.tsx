@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   if (isLoading) return null
   if (user) {
     const isOnboarding = user.status === 'pending' || user.status === 'rejected'
-    return <Navigate to={isOnboarding ? '/status' : user.role === 'admin' ? '/hrd/dashboard' : '/dashboard'} replace />
+    return <Navigate to={isOnboarding ? '/status' : user.role === 'admin' ? '/admin/dashboard' : '/dashboard'} replace />
   }
 
   return (
@@ -17,3 +17,4 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     </div>
   )
 }
+

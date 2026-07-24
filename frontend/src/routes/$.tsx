@@ -9,6 +9,7 @@ function CatchAllRedirect() {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
   if (['pending', 'rejected'].includes(user.status)) return <Navigate to="/status" replace />
-  if (user.role === 'admin') return <Navigate to="/hrd/dashboard" replace />
+  if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />
   return <Navigate to="/dashboard" replace />
 }
+

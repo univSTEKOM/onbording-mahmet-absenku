@@ -16,7 +16,7 @@ export function UserLink({ user, showAvatar = true, className, children }: UserL
   const { isAdmin } = useAuth()
 
   function handleClick() {
-    if (isAdmin) navigate({ to: '/hrd/profile', state: { user } })
+    if (isAdmin) navigate({ to: '/admin/profile', state: { user } })
   }
 
   const initials = user.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -39,3 +39,4 @@ export function UserLink({ user, showAvatar = true, className, children }: UserL
     </span>
   )
 }
+

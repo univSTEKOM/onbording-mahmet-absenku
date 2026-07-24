@@ -19,7 +19,7 @@ import api from '@/api/axios'
 import type { User } from '@/types'
 import { CheckCircle2, XCircle, RefreshCw, Trash2, ChevronRight, Ban } from 'lucide-react'
 
-export default function HrdVerifikasiPage() {
+export default function AdminVerifikasiPage() {
   const queryClient = useQueryClient()
   const [rejectTarget, setRejectTarget] = useState<User | null>(null)
   const [rejectNote, setRejectNote] = useState('')

@@ -1,8 +1,8 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import HrdDetailKaryawanPage from '@/pages/HrdDetailKaryawanPage'
+import AdminDetailKaryawanPage from '@/pages/AdminDetailKaryawanPage'
 import api from '@/api/axios'
 
-export const Route = createFileRoute('/_authenticated/_admin/hrd/profile')({
+export const Route = createFileRoute('/_authenticated/_admin/admin/profile')({
   beforeLoad: async () => {
     try {
       const res = await api.get('/api/auth/get-session')
@@ -12,5 +12,5 @@ export const Route = createFileRoute('/_authenticated/_admin/hrd/profile')({
       throw redirect({ to: '/login' })
     }
   },
-  component: HrdDetailKaryawanPage,
+  component: AdminDetailKaryawanPage,
 })

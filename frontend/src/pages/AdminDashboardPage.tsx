@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { useHrdWeek, useMonthAttendance } from '@/hooks/useDashboard'
+import { useAdminWeek, useMonthAttendance } from '@/hooks/useDashboard'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -38,17 +38,17 @@ const pieChartConfig = {
 
 const pieId = 'pie-kehadiran'
 
-export default function HrdDashboardPage() {
+export default function AdminDashboardPage() {
   const navigate = useNavigate()
-  const { data: hrdData, isLoading, refetch, isFetching } = useHrdWeek()
+  const { data: adminData, isLoading, refetch, isFetching } = useAdminWeek()
   const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
   const { data: pendingUsers } = useQuery({
     queryKey: ['users', 'pending'],
     queryFn: () => api.get('/api/users/pending').then((r) => r.data as User[]),
   })
 
-  const s = hrdData?.summary
-  const chart = hrdData?.chart || []
+  const s = adminData?.summary
+  const chart = adminData?.chart || []
   const pendingCount = pendingUsers?.length || 0
   const totalKaryawan = s?.totalKaryawan || 0
 
@@ -109,7 +109,7 @@ export default function HrdDashboardPage() {
             </div>
             <p className="text-3xl font-bold text-yellow-600">{isLoading ? '-' : s?.terlambatHariIni || 0}</p>
             {s?.terlambatHariIni && s.terlambatHariIni > 0 && (
-              <Button variant="link" size="sm" className="h-5 p-0 text-xs text-muted-foreground" onClick={() => navigate({ to: '/hrd/riwayat' })}>
+              <Button variant="link" size="sm" className="h-5 p-0 text-xs text-muted-foreground" onClick={() => navigate({ to: '/admin/riwayat' })}>
                 Lihat detail →
               </Button>
             )}
@@ -124,7 +124,7 @@ export default function HrdDashboardPage() {
             <p className="text-3xl font-bold text-blue-600">{pendingCount}</p>
             <p className="text-xs text-muted-foreground mt-1">karyawan perlu verifikasi</p>
             {pendingCount > 0 && (
-              <Button size="sm" variant="ghost" className="absolute bottom-2 right-2 gap-1 text-xs text-blue-600 h-7" onClick={() => navigate({ to: '/hrd/verifikasi' })}>
+              <Button size="sm" variant="ghost" className="absolute bottom-2 right-2 gap-1 text-xs text-blue-600 h-7" onClick={() => navigate({ to: '/admin/verifikasi' })}>
                 Verifikasi <ArrowRight className="h-3 w-3" />
               </Button>
             )}
@@ -185,3 +185,4 @@ export default function HrdDashboardPage() {
     </div>
   )
 }
+

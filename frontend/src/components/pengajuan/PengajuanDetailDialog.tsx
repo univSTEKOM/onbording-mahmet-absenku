@@ -92,7 +92,7 @@ export function PengajuanDetailDialog({
             <>
               <Separator />
               <div>
-                <p className="text-muted-foreground text-xs mb-1">Catatan HRD</p>
+                <p className="text-muted-foreground text-xs mb-1">Catatan Admin</p>
                 <div className="max-h-[200px] overflow-y-auto text-sm p-3 rounded-lg bg-muted whitespace-pre-wrap">{p.catatan}</div>
               </div>
             </>

@@ -78,10 +78,11 @@ export default function StatusAkunPage() {
       )}
 
       {user.status === 'approved' && (
-        <Button className="w-full gap-2" size="lg" onClick={() => navigate({ to: user.role === 'admin' ? '/hrd/dashboard' : '/dashboard' })}>
+        <Button className="w-full gap-2" size="lg" onClick={() => navigate({ to: user.role === 'admin' ? '/admin/dashboard' : '/dashboard' })}>
           Buka Dashboard <ArrowRight className="h-4 w-4" />
         </Button>
       )}
     </div>
   )
 }
+

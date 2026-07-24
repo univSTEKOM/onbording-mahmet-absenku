@@ -49,12 +49,12 @@ export default function WelcomePage() {
     if (user.status === 'pending' || user.status === 'rejected') {
       navigate({ to: '/status', replace: true })
     } else {
-      navigate({ to: isAdmin ? '/hrd/dashboard' : '/dashboard', replace: true })
+      navigate({ to: isAdmin ? '/admin/dashboard' : '/dashboard', replace: true })
     }
   }, [user, isLoading, isAdmin, navigate])
 
   function goToDashboard() {
-    navigate({ to: isAdmin ? '/hrd/dashboard' : '/dashboard' })
+    navigate({ to: isAdmin ? '/admin/dashboard' : '/dashboard' })
   }
 
   return (
@@ -101,7 +101,7 @@ export default function WelcomePage() {
             </div>
             <div style={{ opacity: 1 }}>
               <p className="text-lg text-muted-foreground max-w-2xl mb-12">
-                Sistem manajemen kehadiran dan HRD premium untuk tim berkinerja tinggi. 
+                Sistem manajemen kehadiran dan administrasi premium untuk tim berkinerja tinggi. 
                 Rasakan presisi logistik tenaga kerja modern.
               </p>
             </div>
@@ -258,3 +258,4 @@ export default function WelcomePage() {
     </div>
   )
 }
+

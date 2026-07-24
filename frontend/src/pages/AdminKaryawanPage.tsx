@@ -39,7 +39,7 @@ import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import type { User } from '@/types'
 
-export default function HrdKaryawanPage() {
+export default function AdminKaryawanPage() {
   const navigate = useNavigate()
   const { user: currentUser } = useAuth()
   const { data: users, isLoading, refetch, isFetching } = useUsers()
@@ -164,7 +164,7 @@ export default function HrdKaryawanPage() {
           </TableHeader>
           <TableBody>
             {filtered.map((u) => (
-              <TableRow key={u.id} className={currentUser?.role === 'admin' ? 'cursor-pointer' : ''} onClick={() => { if (currentUser?.role === 'admin') navigate({ to: '/hrd/profile', state: { user: u } }) }}>
+              <TableRow key={u.id} className={currentUser?.role === 'admin' ? 'cursor-pointer' : ''} onClick={() => { if (currentUser?.role === 'admin') navigate({ to: '/admin/profile', state: { user: u } }) }}>
                 <TableCell>
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
@@ -271,3 +271,4 @@ export default function HrdKaryawanPage() {
     </div>
   )
 }
+

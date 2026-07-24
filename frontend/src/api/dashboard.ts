@@ -7,14 +7,14 @@ export interface RecentAbsensiItem {
   status: string | null
 }
 
-export interface HrdWeekChartItem {
+export interface AdminWeekChartItem {
   name: string
   hadir: number
   terlambat: number
   persen: number
 }
 
-export interface HrdWeekSummary {
+export interface AdminWeekSummary {
   totalKaryawan: number
   hadirHariIni: number
   terlambatHariIni: number
@@ -25,9 +25,9 @@ export interface HrdWeekSummary {
   bestDay: { name: string; persen: number } | null
 }
 
-export interface HrdWeekData {
-  chart: HrdWeekChartItem[]
-  summary: HrdWeekSummary
+export interface AdminWeekData {
+  chart: AdminWeekChartItem[]
+  summary: AdminWeekSummary
 }
 
 export async function getRecentAbsensi(userId: string): Promise<RecentAbsensiItem[]> {
@@ -35,8 +35,8 @@ export async function getRecentAbsensi(userId: string): Promise<RecentAbsensiIte
   return res.data.data
 }
 
-export async function getHrdWeek(): Promise<HrdWeekData> {
-  const res = await api.get('/api/dashboard/hrd/week')
+export async function getAdminWeek(): Promise<AdminWeekData> {
+  const res = await api.get('/api/dashboard/admin/week')
   return res.data
 }
 

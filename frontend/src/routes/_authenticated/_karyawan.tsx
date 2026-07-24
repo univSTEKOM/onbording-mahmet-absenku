@@ -7,6 +7,7 @@ export const Route = createFileRoute('/_authenticated/_karyawan')({
 
 function KaryawanGuard() {
   const { user } = useAuth()
-  if (user?.role === 'admin') return <Navigate to="/hrd/dashboard" replace />
+  if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />
   return <Outlet />
 }
+

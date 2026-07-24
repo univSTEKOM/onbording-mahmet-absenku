@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getRecentAbsensi, getHrdWeek, getMonthAttendance } from '@/api/dashboard'
+import { getRecentAbsensi, getAdminWeek, getMonthAttendance } from '@/api/dashboard'
 import { useAuth } from './useAuth'
 
 export function useRecentAbsensi() {
@@ -11,10 +11,10 @@ export function useRecentAbsensi() {
   })
 }
 
-export function useHrdWeek() {
+export function useAdminWeek() {
   return useQuery({
-    queryKey: ['dashboard', 'hrd', 'week'],
-    queryFn: getHrdWeek,
+    queryKey: ['dashboard', 'admin', 'week'],
+    queryFn: getAdminWeek,
   })
 }
 

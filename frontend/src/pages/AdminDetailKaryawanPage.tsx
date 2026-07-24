@@ -43,7 +43,7 @@ function formatTanggal(date: string) {
   return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function HrdDetailKaryawanPage() {
+export default function AdminDetailKaryawanPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const stateUser = (location.state as { user?: User })?.user
@@ -96,7 +96,7 @@ export default function HrdDetailKaryawanPage() {
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <AlertTriangle className="h-12 w-12 text-muted-foreground" />
         <p className="text-muted-foreground">User tidak ditemukan</p>
-        <Button variant="outline" onClick={() => navigate({ to: '/hrd/karyawan' })}>
+        <Button variant="outline" onClick={() => navigate({ to: '/admin/karyawan' })}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Kembali
         </Button>
       </div>
@@ -105,7 +105,7 @@ export default function HrdDetailKaryawanPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" className="gap-2 -ml-2" onClick={() => navigate({ to: '/hrd/karyawan' })}>
+      <Button variant="ghost" size="sm" className="gap-2 -ml-2" onClick={() => navigate({ to: '/admin/karyawan' })}>
         <ArrowLeft className="h-4 w-4" /> Kembali ke Kelola Karyawan
       </Button>
 
@@ -238,3 +238,4 @@ export default function HrdDetailKaryawanPage() {
     </div>
   )
 }
+

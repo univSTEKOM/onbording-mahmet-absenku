@@ -53,7 +53,7 @@ function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } |
   }
 }
 
-export default function HrdRiwayatPage() {
+export default function AdminRiwayatPage() {
   const { data: users } = useUsers()
   const [page, setPage] = useState(1)
   const [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
