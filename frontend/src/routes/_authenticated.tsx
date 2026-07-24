@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { createFileRoute, Navigate, Outlet, useLocation } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
 import { FilterProvider, useFilterContext } from '@/lib/filter-context'
+import { AuthContextProvider } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 import { AppSidebar } from '@/components/app-sidebar'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -84,7 +85,9 @@ function AuthenticatedLayout() {
     <ErrorBoundary>
       <FilterProvider>
         <TourProvider role={user.role}>
-          <AuthenticatedLayoutContent />
+          <AuthContextProvider value={{ user }}>
+            <AuthenticatedLayoutContent />
+          </AuthContextProvider>
         </TourProvider>
       </FilterProvider>
     </ErrorBoundary>
@@ -104,7 +107,9 @@ function AuthenticatedLayoutContent() {
           <ThemeToggle />
         </header>
         <main className="flex-1 p-4 md:p-6 overflow-auto">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </SidebarInset>
     </SidebarProvider>

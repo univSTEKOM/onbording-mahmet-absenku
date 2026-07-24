@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [videoError, setVideoError] = useState(false)
 
   function validate() {
     const errs: Record<string, string> = {}
@@ -46,11 +47,23 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-svh w-full overflow-hidden">
-      <img
-        src="/login&register background.png"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover object-bottom"
-      />
+      {videoError ? (
+        <img
+          src="/login&register background.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-bottom"
+        />
+      ) : (
+        <video
+          src="/videos/login-register-video-background.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          onError={() => setVideoError(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
       <div className="relative z-10 flex min-h-svh flex-col gap-4 p-6 md:p-10 lg:w-[420px] lg:bg-background/80 lg:backdrop-blur-sm">
         <div className="flex justify-center gap-2 md:justify-start">
           <Logo className="h-8" />
