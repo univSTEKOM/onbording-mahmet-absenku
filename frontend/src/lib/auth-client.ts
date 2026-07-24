@@ -31,7 +31,7 @@ try {
       credentials: "include",
     },
   })
-} catch (e) {
+} catch {
   // silent fallback to stub client
 }
 

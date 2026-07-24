@@ -67,12 +67,16 @@ function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } |
 export default function RiwayatPage() {
   const { user } = useAuth()
   const [page, setPage] = useState(1)
-  const [quickDate, setQuickDate] = useState<QuickDate>(null)
+  const [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
+  const [calendarDate, setCalendarDate] = useState<string | null>(null)
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set())
   const [detail, setDetail] = useState<Absensi | null>(null)
   const [detailDate, setDetailDate] = useState<string | null>(null)
 
-  const dateRange = useMemo(() => getDateRange(quickDate), [quickDate])
+  const dateRange = useMemo(() => {
+    if (calendarDate) return { dateFrom: calendarDate, dateTo: calendarDate }
+    return getDateRange(quickDate)
+  }, [quickDate, calendarDate])
 
   const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: allPengajuan } = useAllPengajuan()
@@ -117,17 +121,29 @@ export default function RiwayatPage() {
   }, [])
 
   const clearAll = useCallback(() => {
-    setQuickDate(null)
+    setQuickDate('hari_ini')
+    setCalendarDate(null)
     setSelectedStatuses(new Set())
     setPage(1)
   }, [])
 
   const setQuickDateAndReset = useCallback((preset: QuickDate) => {
     setQuickDate(preset)
+    setCalendarDate(null)
     setPage(1)
   }, [])
 
-  const hasActiveFilter = quickDate !== null || selectedStatuses.size > 0
+  const handleDayClick = useCallback((tgl: string) => {
+    setCalendarDate(tgl === calendarDate ? null : tgl)
+    setQuickDate(null)
+    setPage(1)
+  }, [calendarDate])
+
+  const activeDateLabel = calendarDate
+    ? new Date(calendarDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null
+
+  const hasActiveFilter = calendarDate !== null || selectedStatuses.size > 0
 
   return (
     <div className="space-y-6">
@@ -158,7 +174,7 @@ export default function RiwayatPage() {
               year={curYear}
               month={curMonth}
               data={monthData.data}
-              onDayClick={(tgl) => setDetailDate(tgl)}
+              onDayClick={handleDayClick}
             />
           ) : (
             <Skeleton className="h-[300px] w-full rounded-lg" />
@@ -180,8 +196,20 @@ export default function RiwayatPage() {
       )}
 
       <div className="space-y-4">
+        {calendarDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Tanggal dipilih:</span>
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              {activeDateLabel}
+              <button onClick={() => setCalendarDate(null)} className="ml-2 hover:text-foreground">
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground mr-1">Tanggal:</span>
+          <span className="text-sm font-medium text-muted-foreground mr-1">Cepat:</span>
           {([
             { label: 'Hari Ini', value: 'hari_ini' as const },
             { label: 'Kemarin', value: 'kemarin' as const },
@@ -190,16 +218,21 @@ export default function RiwayatPage() {
           ]).map((preset) => (
             <Button
               key={preset.value}
-              variant={quickDate === preset.value ? 'default' : 'outline'}
+              variant={quickDate === preset.value && !calendarDate ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setQuickDateAndReset(quickDate === preset.value ? null : preset.value)}
+              onClick={() => setQuickDateAndReset(quickDate === preset.value && !calendarDate ? null : preset.value)}
             >
               {preset.label}
             </Button>
           ))}
-          {quickDate !== null && (
+          {quickDate !== null && !calendarDate && (
             <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={() => setQuickDateAndReset(null)}>
               <X className="h-3 w-3" /> Hapus
+            </Button>
+          )}
+          {calendarDate && (
+            <Button variant="ghost" size="sm" onClick={() => setCalendarDate(null)}>
+              <X className="h-3 w-3" /> Hapus tanggal
             </Button>
           )}
         </div>

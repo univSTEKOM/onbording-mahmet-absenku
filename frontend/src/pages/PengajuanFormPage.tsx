@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { useCreatePengajuan } from '@/hooks/usePengajuan'
+import { useNavigate, useLocation } from '@tanstack/react-router'
+import { useCreatePengajuan, useUpdatePengajuan } from '@/hooks/usePengajuan'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,11 +10,24 @@ import {
 } from '@/components/ui/select'
 import { MAX_ALASAN_LENGTH, MIN_ALASAN_LENGTH, MAX_PENGAJUAN_DURATION_DAYS } from '@/lib/constants'
 import { Loader2 } from 'lucide-react'
+import type { Pengajuan } from '@/types'
 
 export default function PengajuanFormPage() {
   const navigate = useNavigate()
-  const mutation = useCreatePengajuan()
-  const [form, setForm] = useState({ jenis: 'cuti', tanggalMulai: '', tanggalSelesai: '', alasan: '' })
+  const location = useLocation()
+  const editData = (location.state as { edit?: Pengajuan })?.edit
+  const isEdit = !!editData
+
+  const createMutation = useCreatePengajuan()
+  const updateMutation = useUpdatePengajuan()
+  const mutation = isEdit ? updateMutation : createMutation
+
+  const [form, setForm] = useState({
+    jenis: editData?.jenis || 'cuti',
+    tanggalMulai: editData?.tanggalMulai || '',
+    tanggalSelesai: editData?.tanggalSelesai || '',
+    alasan: editData?.alasan || '',
+  })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
 
@@ -46,23 +59,38 @@ export default function PengajuanFormPage() {
     e.preventDefault()
     setApiError('')
     if (!validate()) return
-    mutation.mutate(
-      { jenis: form.jenis, tanggalMulai: form.tanggalMulai, tanggalSelesai: form.tanggalSelesai, alasan: form.alasan },
-      {
-        onSuccess: () => navigate({ to: '/pengajuan' }),
-        onError: (err) => {
-          const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengajukan'
-          setApiError(msg)
-        },
-      }
-    )
+    const data = { jenis: form.jenis, tanggalMulai: form.tanggalMulai, tanggalSelesai: form.tanggalSelesai, alasan: form.alasan }
+
+    if (isEdit && editData) {
+      updateMutation.mutate(
+        { id: editData.id, data },
+        {
+          onSuccess: () => navigate({ to: '/pengajuan' }),
+          onError: (err) => {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal memperbarui'
+            setApiError(msg)
+          },
+        }
+      )
+    } else {
+      createMutation.mutate(
+        data,
+        {
+          onSuccess: () => navigate({ to: '/pengajuan' }),
+          onError: (err) => {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengajukan'
+            setApiError(msg)
+          },
+        }
+      )
+    }
   }
 
   return (
     <div className="space-y-6 max-w-xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Ajukan Izin / Cuti</h1>
-        <p className="text-muted-foreground">Isi form di bawah untuk mengajukan</p>
+        <h1 className="text-2xl font-bold tracking-tight">{isEdit ? 'Edit Pengajuan' : 'Ajukan Izin / Cuti'}</h1>
+        <p className="text-muted-foreground">{isEdit ? 'Ubah data pengajuan Anda' : 'Isi form di bawah untuk mengajukan'}</p>
       </div>
 
       <Card>
@@ -111,7 +139,7 @@ export default function PengajuanFormPage() {
             <div className="flex gap-3">
               <Button type="button" variant="outline" className="flex-1" onClick={() => navigate({ to: '/pengajuan' })}>Batal</Button>
               <Button type="submit" className="flex-1" disabled={mutation.isPending}>
-                {mutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Mengirim...</> : 'Ajukan'}
+                {mutation.isPending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Menyimpan...</> : isEdit ? 'Simpan' : 'Ajukan'}
               </Button>
             </div>
           </form>

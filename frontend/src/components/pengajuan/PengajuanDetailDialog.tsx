@@ -85,7 +85,7 @@ export function PengajuanDetailDialog({
 
           <div>
             <p className="text-muted-foreground text-xs mb-1">Alasan</p>
-            <p className="text-sm">{p.alasan}</p>
+            <div className="max-h-[200px] overflow-y-auto text-sm whitespace-pre-wrap">{p.alasan}</div>
           </div>
 
           {p.catatan && (
@@ -93,7 +93,7 @@ export function PengajuanDetailDialog({
               <Separator />
               <div>
                 <p className="text-muted-foreground text-xs mb-1">Catatan HRD</p>
-                <p className="text-sm p-3 rounded-lg bg-muted">{p.catatan}</p>
+                <div className="max-h-[200px] overflow-y-auto text-sm p-3 rounded-lg bg-muted whitespace-pre-wrap">{p.catatan}</div>
               </div>
             </>
           )}

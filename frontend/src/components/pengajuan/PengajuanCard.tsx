@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { CalendarDays, CheckCircle2, XCircle, Trash2 } from 'lucide-react'
+import { CalendarDays, CheckCircle2, XCircle, Trash2, Pencil } from 'lucide-react'
 import { pengajuanJenisLabel, pengajuanStatusLabel, pengajuanJenisBadge, pengajuanStatusBadge } from '@/lib/constants'
 import type { Pengajuan } from '@/types'
 import type { User } from '@/types'
@@ -13,6 +13,7 @@ interface PengajuanCardProps {
   pengaju?: User
   onApprove?: (id: number) => void
   onReject?: (id: number) => void
+  onEdit?: (id: number) => void
   onDelete?: (id: number) => void
   onClick?: (p: Pengajuan) => void
 }
@@ -26,7 +27,7 @@ function formatTanggal(date: string) {
   return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export function PengajuanCard({ pengajuan: p, variant, pengaju, onApprove, onReject, onDelete, onClick }: PengajuanCardProps) {
+export function PengajuanCard({ pengajuan: p, variant, pengaju, onApprove, onReject, onEdit, onDelete, onClick }: PengajuanCardProps) {
   const hari = durasiHari(p.tanggalMulai, p.tanggalSelesai)
 
   return (
@@ -96,7 +97,15 @@ export function PengajuanCard({ pengajuan: p, variant, pengaju, onApprove, onRej
             <Button
               size="sm"
               variant="outline"
-              className="w-full gap-1.5 text-destructive hover:text-destructive"
+              className="flex-1 gap-1.5"
+              onClick={(e) => { e.stopPropagation(); onEdit?.(p.id) }}
+            >
+              <Pencil className="h-4 w-4" /> Edit
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 gap-1.5 text-destructive hover:text-destructive"
               onClick={(e) => { e.stopPropagation(); onDelete?.(p.id) }}
             >
               <Trash2 className="h-4 w-4" /> Hapus
