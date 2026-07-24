@@ -135,27 +135,37 @@ export default function HrdDashboardPage() {
                       content={({ active, payload }) => {
                         if (!active || !payload?.length) return null
                         const d = payload[0].payload
+                        const total = (d.hadir || 0) + (d.terlambat || 0) + (d.izin || 0) + (d.sakit || 0) + (d.cuti || 0)
                         return (
                           <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-sm">
                             <p className="font-medium mb-1">{d.name}</p>
-                            <p className="text-muted-foreground">Hadir: {d.hadir} orang</p>
-                            <p className="text-muted-foreground">Terlambat: {d.terlambat} orang</p>
-                            <p className="text-muted-foreground text-xs mt-1">{d.persen}% kehadiran</p>
+                            {d.hadir > 0 && <p className="text-muted-foreground">Hadir: {d.hadir}</p>}
+                            {d.terlambat > 0 && <p className="text-muted-foreground">Terlambat: {d.terlambat}</p>}
+                            {d.izin > 0 && <p className="text-muted-foreground">Izin: {d.izin}</p>}
+                            {d.sakit > 0 && <p className="text-muted-foreground">Sakit: {d.sakit}</p>}
+                            {d.cuti > 0 && <p className="text-muted-foreground">Cuti: {d.cuti}</p>}
+                            <p className="text-muted-foreground text-xs mt-1">{d.persen}% kehadiran ({total} dari {d.hadir + d.terlambat + d.izin + d.sakit + d.cuti || 0})</p>
                           </div>
                         )
                       }}
                     />
                     <Bar dataKey="hadir" fill="var(--chart-1)" radius={[4, 4, 0, 0]} stackId="a" />
                     <Bar dataKey="terlambat" fill="var(--chart-2)" radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="izin" fill="var(--chart-3)" radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="sakit" fill="var(--chart-4)" radius={[4, 4, 0, 0]} stackId="a" />
+                    <Bar dataKey="cuti" fill="var(--chart-5)" radius={[4, 4, 0, 0]} stackId="a" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : (
               <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">Belum ada data</div>
             )}
-            <div className="flex items-center justify-center gap-4 mt-2 text-[11px] text-muted-foreground">
+            <div className="flex items-center justify-center gap-x-4 gap-y-1 mt-2 text-[11px] text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-1)' }} /> Hadir</span>
               <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-2)' }} /> Terlambat</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-3)' }} /> Izin</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-4)' }} /> Sakit</span>
+              <span className="flex items-center gap-1.5"><span className="size-3 rounded-sm" style={{ backgroundColor: 'var(--chart-5)' }} /> Cuti</span>
             </div>
           </CardContent>
         </Card>

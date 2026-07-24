@@ -531,18 +531,26 @@ server.get('/api/dashboard/hrd/week', (req, res) => {
   const monday = new Date(today)
   monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
 
+  const pengajuan = router.db.get('pengajuan').value()
   const chart = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday); d.setDate(monday.getDate() + i)
     const tgl = d.toISOString().split('T')[0]
     const da = a.filter((x) => x.tanggal === tgl)
+    const dp = pengajuan.filter((x) => x.status === 'approved' && x.tanggalMulai <= tgl && x.tanggalSelesai >= tgl)
     const hadir = da.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
     const terlambat = da.filter((x) => x.status === 'terlambat').length
+    const izin = da.filter((x) => x.status === 'izin').length + dp.filter((x) => x.jenis === 'izin').length
+    const sakit = da.filter((x) => x.status === 'sakit').length + dp.filter((x) => x.jenis === 'sakit').length
+    const cuti = da.filter((x) => x.status === 'cuti').length + dp.filter((x) => x.jenis === 'cuti').length
     const totalAktif = hadir + terlambat
     chart.push({
       name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
       hadir,
       terlambat,
+      izin,
+      sakit,
+      cuti,
       persen: Math.round(totalAktif / (k.length || 1) * 100),
     })
   }
