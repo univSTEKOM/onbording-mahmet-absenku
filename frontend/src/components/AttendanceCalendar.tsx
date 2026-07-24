@@ -32,23 +32,35 @@ const STATUS_COLORS: Record<string, string> = {
 
 const todayStr = new Date().toISOString().split('T')[0]
 
-function getDominantStatus(dayData: DayAttendanceData): string {
-  if (dayData.hadir > 0) return 'hadir'
-  if (dayData.terlambat > 0) return 'terlambat'
-  if (dayData.checkInOnly > 0) return 'checkInOnly'
-  if (dayData.izin > 0) return 'izin'
-  if (dayData.sakit > 0) return 'sakit'
-  if (dayData.cuti > 0) return 'cuti'
-  return 'tidakHadir'
+function getAdminDominant(dayData: DayAttendanceData): string {
+  const counts = [
+    { key: 'hadir', val: dayData.hadir },
+    { key: 'terlambat', val: dayData.terlambat },
+    { key: 'izin', val: dayData.izin },
+    { key: 'sakit', val: dayData.sakit },
+    { key: 'cuti', val: dayData.cuti },
+    { key: 'checkInOnly', val: dayData.checkInOnly },
+    { key: 'tidakHadir', val: dayData.tidakHadir },
+  ]
+  return counts.reduce((a, b) => (a.val >= b.val ? a : b)).key
 }
 
-function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined): string {
+function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean): string {
   if (tanggal < APP_RELEASE_DATE) return STATUS_COLORS.sebelumRilis
   if (tanggal > todayStr) return STATUS_COLORS.masaDepan
   if (tanggal === todayStr && !dayData) return STATUS_COLORS.hariIni
   if (!dayData) return STATUS_COLORS.tidakHadir
-  const dominant = getDominantStatus(dayData)
-  return STATUS_COLORS[dominant] || STATUS_COLORS.tidakHadir
+  if (isAdmin) {
+    const dominant = getAdminDominant(dayData)
+    return STATUS_COLORS[dominant] || STATUS_COLORS.tidakHadir
+  }
+  if (dayData.hadir > 0) return STATUS_COLORS.hadir
+  if (dayData.terlambat > 0) return STATUS_COLORS.terlambat
+  if (dayData.checkInOnly > 0) return STATUS_COLORS.checkInOnly
+  if (dayData.izin > 0) return STATUS_COLORS.izin
+  if (dayData.sakit > 0) return STATUS_COLORS.sakit
+  if (dayData.cuti > 0) return STATUS_COLORS.cuti
+  return STATUS_COLORS.tidakHadir
 }
 
 function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean, total?: number): string {
