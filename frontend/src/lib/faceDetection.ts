@@ -1,8 +1,16 @@
-import * as faceapi from 'face-api.js'
-
 const MODEL_URL = '/models'
 
+let faceapiRef: typeof import('face-api.js') | null = null
+
+async function getFaceapi(): Promise<typeof import('face-api.js')> {
+  if (!faceapiRef) {
+    faceapiRef = await import('face-api.js')
+  }
+  return faceapiRef
+}
+
 export async function loadModels() {
+  const faceapi = await getFaceapi()
   await Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -13,7 +21,8 @@ export async function loadModels() {
 export async function detectFace(
   input: HTMLVideoElement | HTMLCanvasElement,
   timeoutMs = 10000
-): Promise<faceapi.WithFaceDescriptor<faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }>> | null> {
+): Promise<import('face-api.js').WithFaceDescriptor<import('face-api.js').WithFaceLandmarks<{ detection: import('face-api.js').FaceDetection }>> | null> {
+  const faceapi = await getFaceapi()
   let timedOut = false
   const timer = setTimeout(() => { timedOut = true }, timeoutMs)
 
@@ -34,6 +43,7 @@ export async function detectFace(
 
 export async function countFaces(input: HTMLVideoElement | HTMLCanvasElement): Promise<number> {
   try {
+    const faceapi = await getFaceapi()
     const results = await faceapi.detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
     return results.length
   } catch {
@@ -73,18 +83,16 @@ export function drawFaceOverlay(
   }
 }
 
-function computeDistance(
-  descriptor1: Float32Array,
-  descriptor2: Float32Array
-): number {
-  return faceapi.euclideanDistance(descriptor1, descriptor2)
+function computeDistance(descriptor1: Float32Array, descriptor2: Float32Array): number {
+  let sum = 0
+  for (let i = 0; i < descriptor1.length; i++) {
+    const diff = descriptor1[i] - descriptor2[i]
+    sum += diff * diff
+  }
+  return Math.sqrt(sum)
 }
 
-export function isMatch(
-  descriptor1: Float32Array,
-  descriptor2: Float32Array,
-  threshold = 0.5
-): boolean {
+export function isMatch(descriptor1: Float32Array, descriptor2: Float32Array, threshold = 0.5): boolean {
   return computeDistance(descriptor1, descriptor2) < threshold
 }
 

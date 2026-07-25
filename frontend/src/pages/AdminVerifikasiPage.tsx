@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -26,7 +26,7 @@ interface VerifikasiUserCardProps {
   isApproving: boolean
 }
 
-function VerifikasiUserCard(p: VerifikasiUserCardProps) {
+const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCardProps) {
   var u = p.user
   var nameRef = useRef<HTMLParagraphElement>(null)
   var [isOverflow, setIsOverflow] = useState(false)
@@ -156,7 +156,7 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
       </div>
     </div>
   )
-}
+})
 
 export default function AdminVerifikasiPage() {
   var queryClient = useQueryClient()

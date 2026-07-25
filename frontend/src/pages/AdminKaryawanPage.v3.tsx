@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, memo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useUsers } from '@/hooks/useUsers'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -35,7 +35,7 @@ interface KaryawanUserCardProps {
   onClick: (user: User) => void
 }
 
-function KaryawanUserCard(p: KaryawanUserCardProps) {
+const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps) {
   var u = p.user
   var nameRef = useRef<HTMLParagraphElement>(null)
   var [isOverflow, setIsOverflow] = useState(false)
@@ -133,7 +133,7 @@ function KaryawanUserCard(p: KaryawanUserCardProps) {
       </div>
     </div>
   )
-}
+})
 
 export default function AdminKaryawanPageV3() {
   var navigate = useNavigate()
