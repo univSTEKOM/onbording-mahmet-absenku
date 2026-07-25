@@ -42,6 +42,8 @@ export async function checkIn(data: CheckInData): Promise<Absensi> {
     tanggal: data.tanggal,
     checkIn: data.checkIn,
     status: 'hadir',
+    mainCategory: 'physical_present',
+    subCategory: 'physical_standard',
     faceVerified: false,
     photos: data.photos || [],
     keterangan: '',
