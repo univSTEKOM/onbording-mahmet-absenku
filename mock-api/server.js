@@ -427,8 +427,9 @@ server.post('/absensi', (req, res, next) => {
     if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
     if (router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()) return res.status(400).json({ message: 'Sudah absen hari ini' })
     const status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'
-    const CATEGORY_MAP = { hadir: { main: 'physical_present', sub: 'physical_standard' }, terlambat: { main: 'physical_present', sub: 'physical_violation' } }
-    const cat = CATEGORY_MAP[status] || { main: 'physical_present', sub: 'physical_standard' }
+    const STATUS_CAT = { hadir: { main: 'physical_present', sub: 'physical_standard' }, terlambat: { main: 'physical_present', sub: 'physical_violation' } }
+    const cat = STATUS_CAT[status] || { main: 'physical_present', sub: 'physical_standard' }
+    if (!STATUS_CAT[status]) console.warn('[absensi] Unknown status for category map:', status)
     req.body = {
       userId: req.body.userId,
       tanggal: req.body.tanggal,
@@ -760,9 +761,10 @@ server.get('/api/attendance-categories', function(req, res) {
 server.get('/api/absensi/search', async (req, res) => {
   try {
     const query = (req.query.q || '').toLowerCase()
-    const statusFilter = req.query.status || ''
-    const tanggalGte = req.query.tanggal_gte || ''
-    const tanggalLte = req.query.tanggal_lte || ''
+    var rawStatus = req.query.status
+    var statusFilter = Array.isArray(rawStatus) && rawStatus.length === 0 ? '' : (rawStatus || '')
+    var tanggalGte = req.query.tanggal_gte || ''
+    var tanggalLte = req.query.tanggal_lte || ''
     const page = parseInt(req.query._page) || 1
     const limit = parseInt(req.query._limit) || 15
 

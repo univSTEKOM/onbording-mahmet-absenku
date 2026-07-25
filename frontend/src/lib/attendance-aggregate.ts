@@ -1,24 +1,24 @@
-import type { AttendanceType } from '@/types'
 import { CATEGORY_MAP } from './attendance-categories'
+import type { Absensi } from '@/types'
 
-export interface AttendanceRecord {
-  mainCategory: string
-  subCategory: string
-  checkIn?: string | null
-  checkOut?: string | null
-}
+export type AttendanceRecord = Pick<Absensi, 'mainCategory' | 'subCategory'> & { checkIn?: string | null; checkOut?: string | null }
 
 export interface CategoryCount {
   id: string
   label: string
   count: number
-  type: AttendanceType
+  type: string
   color: string
 }
 
 export interface TypeCount {
-  type: AttendanceType
+  type: string
   count: number
+}
+
+function getType(mainCat: string, subCat: string): string {
+  var cat = CATEGORY_MAP[subCat] || CATEGORY_MAP[mainCat]
+  return cat?.type || 'present'
 }
 
 export function aggregateByMainCategory(records: AttendanceRecord[]): CategoryCount[] {
@@ -32,7 +32,7 @@ export function aggregateByMainCategory(records: AttendanceRecord[]): CategoryCo
       id: e[0],
       label: cat?.label || e[0],
       count: e[1],
-      type: (cat?.type || 'present') as AttendanceType,
+      type: cat?.type || 'present',
       color: cat?.color || 'var(--color-status-hadir)',
     }
   })
@@ -49,22 +49,24 @@ export function aggregateBySubCategory(records: AttendanceRecord[]): CategoryCou
       id: e[0],
       label: cat?.label || e[0],
       count: e[1],
-      type: (cat?.type || 'present') as AttendanceType,
+      type: cat?.type || 'present',
       color: cat?.color || 'var(--color-status-hadir)',
     }
   })
 }
 
 export function aggregateByType(records: AttendanceRecord[]): TypeCount[] {
-  var map: Record<string, number> = { present: 0, absent_permit: 0, absent_unpermit: 0 }
+  var present = 0; var permit = 0; var unpermit = 0
   records.forEach(function(r) {
-    var cat = CATEGORY_MAP[r.subCategory] || CATEGORY_MAP[r.mainCategory]
-    if (cat) map[cat.type] = (map[cat.type] || 0) + 1
+    var t = getType(r.mainCategory, r.subCategory)
+    if (t === 'present') present++
+    else if (t === 'absent_permit') permit++
+    else if (t === 'absent_unpermit') unpermit++
   })
   return [
-    { type: 'present' as AttendanceType, count: map.present },
-    { type: 'absent_permit' as AttendanceType, count: map.absent_permit },
-    { type: 'absent_unpermit' as AttendanceType, count: map.absent_unpermit },
+    { type: 'present', count: present },
+    { type: 'absent_permit', count: permit },
+    { type: 'absent_unpermit', count: unpermit },
   ]
 }
 

@@ -1,4 +1,5 @@
 import type { ChartConfig } from '@/components/ui/chart'
+import { CATEGORY_COLORS_MAP, CATEGORY_LABEL } from './constants'
 
 const OPACITY = '50%'
 
@@ -27,8 +28,6 @@ export type StatusKey = keyof typeof absensiChartConfig
 export function categoryColor(colorVar: string): string {
   return `color-mix(in srgb, ${colorVar} ${OPACITY}, transparent)`
 }
-
-import { CATEGORY_COLORS_MAP, CATEGORY_LABEL } from './constants'
 
 export const categoryChartConfig: ChartConfig = Object.fromEntries(
   Object.entries(CATEGORY_LABEL).map(function(e) {

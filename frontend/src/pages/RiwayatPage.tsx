@@ -18,8 +18,7 @@ import { Download, RefreshCw, CheckCircle2, History, CalendarDays, X } from 'luc
 import type { Absensi } from '@/types'
 
 const PAGE_SIZE = 10
-const curMonth = new Date().getMonth()
-const curYear = new Date().getFullYear()
+/* Note: curMonth/curYear computed inside component to stay fresh */
 
 const STATUS_OPTIONS = [
   { value: 'hadir', label: 'Hadir' },
@@ -68,6 +67,9 @@ function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } |
 
 export default function RiwayatPage() {
   const { user } = useAuth()
+  const now = new Date()
+  const curMonth = now.getMonth()
+  const curYear = now.getFullYear()
   const [page, setPage] = useState(1)
   const [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
   const [calendarDate, setCalendarDate] = useState<string | null>(null)

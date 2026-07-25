@@ -42,6 +42,7 @@ export async function checkIn(data: CheckInData): Promise<Absensi> {
     tanggal: data.tanggal,
     checkIn: data.checkIn,
     status: 'hadir',
+    /* Note: mainCategory/subCategory di-override oleh server */
     mainCategory: 'physical_present',
     subCategory: 'physical_standard',
     faceVerified: false,

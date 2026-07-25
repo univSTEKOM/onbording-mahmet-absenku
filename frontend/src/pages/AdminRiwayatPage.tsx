@@ -18,7 +18,7 @@ import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
 import type { Absensi } from '@/types'
 
-var PAGE_SIZE = 15
+var PAGE_SIZE = 15 /* Admin sees more rows than employee (10) */
 var curMonth = new Date().getMonth()
 var curYear = new Date().getFullYear()
 
