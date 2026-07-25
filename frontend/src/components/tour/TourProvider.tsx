@@ -22,6 +22,7 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
   const navigate = useNavigate()
   const location = useLocation()
   const { setOpen, setOpenMobile, openMobile: _openMobile, isMobile } = useSidebar()
+
   const [currentStep, setCurrentStep] = useState(0)
   const [isActive, setIsActive] = useState(false)
   const [paused, setPaused] = useState(false)
@@ -95,11 +96,11 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
   }, [currentStep, total, steps, complete, navigate, location.pathname, currentStepDef, isMobile, setOpen, setOpenMobile])
 
   useEffect(() => {
-    if (autoStart && !isActive && !isTourCompleted()) {
+    if (autoStart && !isActive && !isTourCompleted() && !isMobile) {
       const id = setTimeout(() => setIsActive(true), 800)
       return () => clearTimeout(id)
     }
-  }, [autoStart, isActive])
+  }, [autoStart, isActive, isMobile])
 
   useEffect(() => {
     if (!isActive) return

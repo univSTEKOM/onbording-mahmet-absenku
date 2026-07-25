@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
 import { useMonthAttendance } from '@/hooks/useDashboard'
 import { useUsers } from '@/hooks/useUsers'
@@ -34,107 +34,106 @@ type QuickDate = 'hari_ini' | 'kemarin' | '7_hari' | 'bulan_ini' | null
 
 function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } | null {
   if (!preset) return null
-  const today = new Date().toISOString().split('T')[0]
+  var today = new Date().toISOString().split('T')[0]
   switch (preset) {
     case 'hari_ini':
       return { dateFrom: today, dateTo: today }
     case 'kemarin': {
-      const d = new Date(); d.setDate(d.getDate() - 1)
+      var d = new Date(); d.setDate(d.getDate() - 1)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: d.toISOString().split('T')[0] }
     }
     case '7_hari': {
-      const d = new Date(); d.setDate(d.getDate() - 7)
+      var d = new Date(); d.setDate(d.getDate() - 7)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: today }
     }
     case 'bulan_ini': {
-      const d = new Date(); d.setDate(1)
+      var d = new Date(); d.setDate(1)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: today }
     }
   }
 }
 
+function formatJam(iso: string | null): string {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+}
+
 export default function AdminRiwayatPage() {
-  const { data: users } = useUsers()
-  const [page, setPage] = useState(1)
-  const [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
-  const [calendarDate, setCalendarDate] = useState<string | null>(null)
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set())
-  const [search, setSearch] = useState('')
+  var { data: users } = useUsers()
+  var [page, setPage] = useState(1)
+  var [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
+  var [calendarDate, setCalendarDate] = useState<string | null>(null)
+  var [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set())
+  var [search, setSearch] = useState('')
 
-  const { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
+  var { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
 
-  const dateRange = useMemo(() => {
+  var dateRange = useMemo(function() {
     if (calendarDate) return { dateFrom: calendarDate, dateTo: calendarDate }
     return getDateRange(quickDate)
   }, [quickDate, calendarDate])
 
-  const { data, isLoading, refetch, isFetching } = useAbsensiListPaginated({
+  var { data, isLoading, refetch, isFetching } = useAbsensiListPaginated({
     _sort: 'tanggal', _order: 'desc',
     _page: page, _limit: PAGE_SIZE,
     ...(dateRange ? { tanggal_gte: dateRange.dateFrom } : {}),
     ...(dateRange ? { tanggal_lte: dateRange.dateTo } : {}),
   })
 
-  const absensi = data?.data
-  const totalPages = data?.totalPages || 1
+  var absensi = data?.data
+  var totalPages = data?.totalPages || 1
 
-  const filtered = useMemo(() => {
-    let result = absensi
+  var filtered = useMemo(function() {
+    var result = absensi
     if (selectedStatuses.size > 0) {
-      result = result?.filter((a) => selectedStatuses.has(a.status))
+      result = result?.filter(function(a) { return selectedStatuses.has(a.status) })
     }
     if (search.trim()) {
-      result = result?.filter((a) => {
-        const nama = users?.find((u) => u.id === a.userId)?.nama || ''
+      result = result?.filter(function(a) {
+        var nama = users?.find(function(u) { return u.id === a.userId })?.nama || ''
         return nama.toLowerCase().includes(search.toLowerCase())
       })
     }
     return result
   }, [absensi, selectedStatuses, search, users])
 
-  const toggleStatus = useCallback((status: string) => {
-    setSelectedStatuses((prev) => {
-      const next = new Set(prev)
-      if (next.has(status)) next.delete(status)
-      else next.add(status)
-      return next
-    })
+  function toggleStatus(status: string) {
+    var next = new Set(selectedStatuses)
+    if (next.has(status)) next.delete(status)
+    else next.add(status)
+    setSelectedStatuses(next)
     setPage(1)
-  }, [])
+  }
 
-  const clearAll = useCallback(() => {
+  function clearAll() {
     setQuickDate('hari_ini')
     setCalendarDate(null)
     setSelectedStatuses(new Set())
     setSearch('')
     setPage(1)
-  }, [])
+  }
 
-  const setQuickDateAndReset = useCallback((preset: QuickDate) => {
-    setQuickDate(preset)
-    setCalendarDate(null)
-    setPage(1)
-  }, [])
-
-  const hasActiveFilter = calendarDate !== null || selectedStatuses.size > 0
+  var hasActiveFilter = calendarDate !== null || selectedStatuses.size > 0 || search.trim() !== ''
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Riwayat Kehadiran</h1>
-          <p className="text-muted-foreground">Seluruh karyawan</p>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Riwayat Kehadiran</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Seluruh karyawan</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => {
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" size="sm" className="gap-2" onClick={function() {
             if (!filtered?.length) return
             exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0],
               ['Karyawan', 'Tanggal', 'Masuk', 'Pulang', 'Status'],
-              filtered.map((a) => [users?.find((u) => u.id === a.userId)?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status]))
+              filtered.map(function(a) {
+                return [users?.find(function(u) { return u.id === a.userId })?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status]
+              }))
           }}>
             <Download className="h-4 w-4" /> CSV
           </Button>
-          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
+          <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
             <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
           </Button>
         </div>
@@ -147,7 +146,7 @@ export default function AdminRiwayatPage() {
           data={monthData.data}
           totalKaryawan={monthData.totalKaryawan}
           selectedDate={calendarDate}
-          onSelectedDateChange={(tgl) => {
+          onSelectedDateChange={function(tgl) {
             if (tgl === calendarDate) {
               setCalendarDate(null)
               setQuickDate('hari_ini')
@@ -159,65 +158,70 @@ export default function AdminRiwayatPage() {
           }}
         />
       ) : (
-        <Skeleton className="h-[300px] w-full rounded-lg" />
+        <Skeleton className="h-[260px] md:h-[300px] w-full rounded-lg" />
       )}
 
-      <div className="space-y-4">
-
+      <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground mr-1">Cepat:</span>
           {([
             { label: 'Hari Ini', value: 'hari_ini' as const },
             { label: 'Kemarin', value: 'kemarin' as const },
             { label: '7 Hari', value: '7_hari' as const },
             { label: 'Bulan Ini', value: 'bulan_ini' as const },
-          ]).map((preset) => (
-            <Button
-              key={preset.value}
-              variant={quickDate === preset.value && !calendarDate ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setQuickDateAndReset(quickDate === preset.value && !calendarDate ? null : preset.value)}
-            >
-              {preset.label}
-            </Button>
-          ))}
+          ]).map(function(preset) {
+            return (
+              <Button
+                key={preset.value}
+                variant={quickDate === preset.value && !calendarDate ? 'default' : 'outline'}
+                size="xs"
+                onClick={function() { setQuickDate(quickDate === preset.value && !calendarDate ? null : preset.value); setCalendarDate(null); setPage(1) }}
+              >
+                {preset.label}
+              </Button>
+            )
+          })}
           {calendarDate && (
-            <Button variant="ghost" size="sm" onClick={() => setCalendarDate(null)}>
-              <X className="h-3 w-3" /> Hapus tanggal
+            <Button variant="ghost" size="xs" onClick={function() { setCalendarDate(null) }}>
+              <X className="h-3 w-3" />
             </Button>
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground mr-1">Status:</span>
-          {STATUS_OPTIONS.map((opt) => (
-            <Button
-              key={opt.value}
-              variant={selectedStatuses.has(opt.value) ? 'secondary' : 'outline'}
-              size="sm"
-              className={selectedStatuses.has(opt.value) ? absensiStatusBadge[opt.value] : ''}
-              onClick={() => toggleStatus(opt.value)}
-            >
-              {opt.label}
-              {selectedStatuses.has(opt.value) && <X className="h-3 w-3 ml-1" />}
-            </Button>
-          ))}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {STATUS_OPTIONS.map(function(opt) {
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={function() { toggleStatus(opt.value) }}
+                className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
+                  selectedStatuses.has(opt.value)
+                    ? (absensiStatusBadge[opt.value] + ' border-transparent')
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                <span className={'w-1.5 h-1.5 rounded-full ' + (selectedStatuses.has(opt.value) ? 'bg-current' : 'bg-muted-foreground/40')} />
+                {opt.label}
+                {selectedStatuses.has(opt.value) && <X className="h-3 w-3" />}
+              </button>
+            )
+          })}
         </div>
 
         <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Cari nama karyawan..."
-            className="pl-9"
+            className="pl-9 h-9 text-sm"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            onChange={function(e) { setSearch(e.target.value); setPage(1) }}
           />
         </div>
 
         {hasActiveFilter && (
-          <div className="flex items-center gap-2 text-sm">
-            <Button variant="ghost" size="sm" onClick={clearAll} className="gap-1">
-              <X className="h-3 w-3" /> Hapus semua filter
+          <div className="flex items-center gap-2 text-xs">
+            <Button variant="ghost" size="xs" onClick={clearAll} className="gap-1 text-muted-foreground">
+              <X className="h-3 w-3" /> Hapus filter
             </Button>
             <span className="text-muted-foreground">{filtered?.length || 0} hasil</span>
           </div>
@@ -226,45 +230,52 @@ export default function AdminRiwayatPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 5 }, (_, i) => ({ id: 'hr-sk-' + i })).map((item) => <Skeleton key={item.id} className="h-12 w-full rounded-lg" />)}
+          {Array.from({ length: 5 }, function(_, i) { return { id: 'hr-sk-' + i } }).map(function(item) {
+            return <Skeleton key={item.id} className="h-12 w-full rounded-lg" />
+          })}
         </div>
-      ) : filtered?.length ? (
-        <>
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Karyawan</TableHead>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Masuk</TableHead>
-                  <TableHead>Pulang</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((a) => {
-                  const user = users?.find((u) => u.id === a.userId)
-                  const nama = user?.nama || '-'
-                  return (
-                    <TableRow key={a.id}>
-                      <TableCell>
-                        {user ? <UserLink user={user} showAvatar={false} /> : <span className="font-medium">{nama}</span>}
-                      </TableCell>
-                      <TableCell>{new Date(a.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
-                      <TableCell className="text-muted-foreground">{a.checkIn ? new Date(a.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</TableCell>
-                      <TableCell className="text-muted-foreground">{a.checkOut ? new Date(a.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</TableCell>
-                      <TableCell><Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge></TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+      ) : filtered && filtered.length > 0 ? (
+        <div className="overflow-x-auto -mx-4 md:-mx-6">
+          <div className="min-w-[600px] px-4 md:px-6">
+            <div className="rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Karyawan</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Masuk</TableHead>
+                    <TableHead>Pulang</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map(function(a) {
+                    var user = users?.find(function(u) { return u.id === a.userId })
+                    var nama = user?.nama || '-'
+                    return (
+                      <TableRow key={a.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell>
+                          {user ? <UserLink user={user} showAvatar={false} /> : <span className="font-medium">{nama}</span>}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{new Date(a.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                        <TableCell className="text-muted-foreground whitespace-nowrap">{formatJam(a.checkIn)}</TableCell>
+                        <TableCell className="text-muted-foreground whitespace-nowrap">{formatJam(a.checkOut)}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </>
+        </div>
       ) : (
         <EmptyState message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada data absensi'} />
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   )
 }

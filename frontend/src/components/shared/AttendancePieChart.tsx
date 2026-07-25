@@ -69,7 +69,7 @@ export function AttendancePieChart({ id, data, config, centerLabel, centerSub, l
           const cfg = config[d.name]
           return (
             <span key={d.name} className="flex items-center gap-1.5">
-              <span className="size-3 rounded-sm" style={{ backgroundColor: cfg?.color || d.fill || 'var(--chart-1)' }} />
+              <span className="size-3 rounded-sm" style={{ backgroundColor: cfg?.color || d.fill || 'var(--color-status-hadir)' }} />
               {d.name === 'tidakHadir' ? 'Alfa' : d.name.charAt(0).toUpperCase() + d.name.slice(1)}
             </span>
           )
