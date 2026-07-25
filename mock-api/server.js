@@ -425,12 +425,16 @@ server.post('/absensi', (req, res, next) => {
     if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
     if (router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()) return res.status(400).json({ message: 'Sudah absen hari ini' })
     const status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'
+    const CATEGORY_MAP = { hadir: { main: 'physical_present', sub: 'physical_standard' }, terlambat: { main: 'physical_present', sub: 'physical_violation' } }
+    const cat = CATEGORY_MAP[status] || { main: 'physical_present', sub: 'physical_standard' }
     req.body = {
       userId: req.body.userId,
       tanggal: req.body.tanggal,
       checkIn: req.body.checkIn || null,
       checkOut: null,
       status,
+      mainCategory: cat.main,
+      subCategory: cat.sub,
       faceVerified: req.body.faceVerified || false,
       photos: req.body.photos || [],
       keterangan: req.body.keterangan || '',
@@ -458,6 +462,8 @@ server.patch('/absensi/:id', (req, res, next) => {
       checkIn: existing.checkIn,
       checkOut: req.body.checkOut,
       status: status || existing.status,
+      mainCategory: existing.mainCategory || 'physical_present',
+      subCategory: existing.subCategory || 'physical_standard',
       faceVerified: existing.faceVerified || false,
       photos: req.body.photos || existing.photos || [],
       keterangan: existing.keterangan || '',

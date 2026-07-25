@@ -64,13 +64,13 @@ dbJson.users = createdUsers.map((u) => ({
 const [andika, rudi, siti, budi] = createdUsers
 
 dbJson.absensi = [
-  { id: 1, userId: rudi.id, tanggal: "2026-07-13", checkIn: "2026-07-13T08:00:00Z", checkOut: "2026-07-13T17:00:00Z", status: "hadir", faceVerified: true, keterangan: "", createdAt: "2026-07-13T08:00:00Z" },
-  { id: 2, userId: rudi.id, tanggal: "2026-07-14", checkIn: "2026-07-14T08:15:00Z", checkOut: "2026-07-14T17:00:00Z", status: "terlambat", faceVerified: true, keterangan: "", createdAt: "2026-07-14T08:15:00Z" },
-  { id: 3, userId: siti.id, tanggal: "2026-07-13", checkIn: "2026-07-13T07:55:00Z", checkOut: "2026-07-13T16:30:00Z", status: "hadir", faceVerified: true, keterangan: "", createdAt: "2026-07-13T07:55:00Z" },
-  { id: 4, userId: siti.id, tanggal: "2026-07-14", checkIn: "2026-07-14T08:00:00Z", checkOut: null, status: "hadir", faceVerified: false, keterangan: "", createdAt: "2026-07-14T08:00:00Z" },
-  { id: 5, userId: rudi.id, tanggal: "2026-07-15", checkIn: "2026-07-15T08:00:00Z", checkOut: "2026-07-15T17:00:00Z", status: "hadir", faceVerified: true, keterangan: "", createdAt: "2026-07-15T08:00:00Z" },
-  { id: 6, userId: rudi.id, tanggal: "2026-07-16", checkIn: "2026-07-16T08:00:00Z", checkOut: "2026-07-16T17:00:00Z", status: "hadir", faceVerified: true, keterangan: "", createdAt: "2026-07-16T08:00:00Z" },
-  { id: 7, userId: rudi.id, tanggal: "2026-07-17", checkIn: "2026-07-17T08:00:00Z", checkOut: "2026-07-17T17:00:00Z", status: "hadir", faceVerified: true, keterangan: "", createdAt: "2026-07-17T08:00:00Z" },
+  { id: 1,  userId: rudi.id, tanggal: "2026-07-13", checkIn: "2026-07-13T08:00:00Z", checkOut: "2026-07-13T17:00:00Z", status: "hadir", mainCategory: "physical_present", subCategory: "physical_standard", faceVerified: true, keterangan: "", createdAt: "2026-07-13T08:00:00Z" },
+  { id: 2,  userId: rudi.id, tanggal: "2026-07-14", checkIn: "2026-07-14T08:15:00Z", checkOut: "2026-07-14T17:00:00Z", status: "terlambat", mainCategory: "physical_present", subCategory: "physical_violation", faceVerified: true, keterangan: "", createdAt: "2026-07-14T08:15:00Z" },
+  { id: 3,  userId: siti.id, tanggal: "2026-07-13", checkIn: "2026-07-13T07:55:00Z", checkOut: "2026-07-13T16:30:00Z", status: "hadir", mainCategory: "physical_present", subCategory: "physical_standard", faceVerified: true, keterangan: "", createdAt: "2026-07-13T07:55:00Z" },
+  { id: 4,  userId: siti.id, tanggal: "2026-07-14", checkIn: "2026-07-14T08:00:00Z", checkOut: null, status: "hadir", mainCategory: "physical_present", subCategory: "physical_standard", faceVerified: false, keterangan: "", createdAt: "2026-07-14T08:00:00Z" },
+  { id: 5,  userId: rudi.id, tanggal: "2026-07-15", checkIn: "2026-07-15T08:00:00Z", checkOut: "2026-07-15T17:00:00Z", status: "hadir", mainCategory: "physical_present", subCategory: "physical_standard", faceVerified: true, keterangan: "", createdAt: "2026-07-15T08:00:00Z" },
+  { id: 6,  userId: rudi.id, tanggal: "2026-07-16", checkIn: "2026-07-16T08:00:00Z", checkOut: "2026-07-16T17:00:00Z", status: "hadir", mainCategory: "physical_present", subCategory: "physical_standard", faceVerified: true, keterangan: "", createdAt: "2026-07-16T08:00:00Z" },
+  { id: 7,  userId: rudi.id, tanggal: "2026-07-17", checkIn: "2026-07-17T08:00:00Z", checkOut: "2026-07-17T17:00:00Z", status: "hadir", mainCategory: "physical_present", subCategory: "physical_standard", faceVerified: true, keterangan: "", createdAt: "2026-07-17T08:00:00Z" },
 ]
 
 dbJson.pengajuan = [

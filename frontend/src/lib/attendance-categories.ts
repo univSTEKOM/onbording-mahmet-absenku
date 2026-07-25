@@ -1,4 +1,4 @@
-import type { AttendanceType, AttendanceCategory } from '@/types'
+import type { AttendanceCategory } from '@/types'
 
 /* ── Main Categories ── */
 
