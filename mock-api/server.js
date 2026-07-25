@@ -591,6 +591,19 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
   const monday = new Date(today)
   monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
 
+  /* ── Category type helper ── */
+  function catType(record) {
+    var m = record.mainCategory || ''
+    if (m === 'physical_present') return 'present'
+    if (m === 'absent_permit') return 'absent_permit'
+    if (m === 'absent_unpermit') return 'absent_unpermit'
+    /* Fallback: map legacy status */
+    var s = record.status || ''
+    if (['hadir', 'terlambat', 'pulang_cepat'].includes(s)) return 'present'
+    if (['izin', 'sakit', 'cuti'].includes(s)) return 'absent_permit'
+    return 'absent_unpermit'
+  }
+
   const pengajuan = router.db.get('pengajuan').value()
   const chart = []
   for (let i = 0; i < 7; i++) {
@@ -604,6 +617,10 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
     const sakit = da.filter((x) => x.status === 'sakit').length + dp.filter((x) => x.jenis === 'sakit').length
     const cuti = da.filter((x) => x.status === 'cuti').length + dp.filter((x) => x.jenis === 'cuti').length
     const totalAktif = hadir + terlambat
+    /* Category-type counts */
+    var present = da.filter((x) => catType(x) === 'present').length
+    var absentPermit = da.filter((x) => catType(x) === 'absent_permit').length + dp.length
+    var absentUnpermit = da.filter((x) => catType(x) === 'absent_unpermit').length
     chart.push({
       name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
       hadir,
@@ -612,16 +629,23 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
       sakit,
       cuti,
       tidakHadir: Math.max(0, k.length - hadir - terlambat - izin - sakit - cuti),
+      present,
+      absentPermit,
+      absentUnpermit,
       persen: Math.round(totalAktif / (k.length || 1) * 100),
     })
   }
 
-  const ta = a.filter((x) => x.tanggal === todayStr)
-  const hadirHariIni = ta.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
-  const terlambatHariIni = ta.filter((x) => x.status === 'terlambat').length
-  const izinHariIni = ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
-  const sudahAbsen = ta.filter((x) => x.checkIn).length
-  const weekAvg = chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0
+  var ta = a.filter((x) => x.tanggal === todayStr)
+  var hadirHariIni = ta.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
+  var terlambatHariIni = ta.filter((x) => x.status === 'terlambat').length
+  var izinHariIni = ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
+  var sudahAbsen = ta.filter((x) => x.checkIn).length
+  var weekAvg = chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0
+  var totalThisMonth = a.filter((x) => x.tanggal >= msStr).length
+  var presentMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'present').length
+  var permitMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'absent_permit').length
+  var unpermitMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'absent_unpermit').length
 
   res.json({
     chart,
@@ -631,9 +655,13 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
       terlambatHariIni,
       izinHariIni,
       belumAbsen: k.length - sudahAbsen,
-      totalAbsensiBulanIni: a.filter((x) => x.tanggal >= msStr).length,
+      totalAbsensiBulanIni: totalThisMonth,
       weekAvg,
-      bestDay: chart.length ? chart.reduce((a, b) => a.persen > b.persen ? a : b) : null,
+      bestDay: chart.length ? chart.reduce(function(a, b) { return a.persen > b.persen ? a : b }) : null,
+      /* Category-based stats */
+      presentMonth,
+      permitMonth,
+      unpermitMonth,
     },
   })
 })
