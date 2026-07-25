@@ -27,13 +27,19 @@ function computePosition(
   rect: DOMRect | null,
   preferred: TourStepDef['position'],
 ): { style: PositionStyle; placement: string } {
-  const defaultStyle: PositionStyle = { left: 16, top: 16 }
-  if (!rect) return { style: defaultStyle, placement: 'bottom-left' }
-
-  const gap = 16
   const vw = window.innerWidth
   const vh = window.innerHeight
-  const tw = 360
+  const isMobile = vw < 768
+
+  if (!rect) {
+    if (isMobile) {
+      return { style: { left: 16, right: 16, bottom: 24 }, placement: 'bottom-center' }
+    }
+    return { style: { left: 16, top: 16 }, placement: 'bottom-left' }
+  }
+
+  const gap = 16
+  const tw = vw < 480 ? vw - 32 : 360
 
   const candidates = [
     {
@@ -68,7 +74,7 @@ function computePosition(
     if (fitsX && fitsY) return { style: c.style, placement: c.name }
   }
 
-  return { style: { left: 16, top: vh - 250 }, placement: 'bottom-left' }
+  return { style: { left: 16, top: 16 }, placement: 'bottom-left' }
 }
 
 export function TourTooltip({
@@ -89,7 +95,7 @@ export function TourTooltip({
 
   return (
     <div
-      className="fixed z-50 tour-slide-up"
+      className="fixed tour-slide-up"
       role="dialog"
       aria-label={`Langkah ${currentIndex + 1} dari ${total}: ${step.title}`}
       style={{ maxWidth: 360, width: 'calc(100vw - 32px)', ...style }}

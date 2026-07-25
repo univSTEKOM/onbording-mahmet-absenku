@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import { TourContext } from './hooks/useTour'
 import { karyawanSteps, adminSteps } from './TourStepRegistry'
@@ -9,6 +10,7 @@ import { TourTooltip } from './TourTooltip'
 import { TourModal } from './TourModal'
 import { TourPaused } from './TourPaused'
 import { useElementTracker } from './hooks/useElementTracker'
+import { useSidebar } from '@/components/ui/sidebar'
 
 interface TourProviderProps {
   children: ReactNode
@@ -19,6 +21,7 @@ interface TourProviderProps {
 export function TourProvider({ children, role, autoStart = true }: TourProviderProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { setOpen, setOpenMobile, openMobile: _openMobile, isMobile } = useSidebar()
   const [currentStep, setCurrentStep] = useState(0)
   const [isActive, setIsActive] = useState(false)
   const [paused, setPaused] = useState(false)
@@ -76,6 +79,12 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
       return
     }
     const step = steps[nextIndex]
+    if (step.requiresSidebar) {
+      if (isMobile) setOpenMobile(true)
+      else setOpen(true)
+    } else if (currentStepDef?.requiresSidebar) {
+      if (isMobile) setOpenMobile(false)
+    }
     if (step.route && step.route !== location.pathname) {
       navigate({ to: step.route as any })
     }
@@ -83,7 +92,7 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
       scrollToElement(step.targetSelector)
     }
     setCurrentStep(nextIndex)
-  }, [currentStep, total, steps, complete, navigate, location.pathname])
+  }, [currentStep, total, steps, complete, navigate, location.pathname, currentStepDef, isMobile, setOpen, setOpenMobile])
 
   useEffect(() => {
     if (autoStart && !isActive && !isTourCompleted()) {
@@ -139,22 +148,36 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
   return (
     <TourContext.Provider value={value}>
       {children}
-      {showSpotlight && currentStepDef?.targetSelector && spotlightRect && (
-        <>
-          <TourSpotlight selector={currentStepDef.targetSelector} />
-          <TourTooltip
-            step={currentStepDef}
-            currentIndex={currentStep}
-            total={total}
-            isFirst={isFirst}
-            isLast={isLast}
-            spotlightRect={spotlightRect}
-            onNext={next}
-            onPrev={prev}
-            onSkip={skip}
-          />
-        </>
-      )      }
+      {isActive && createPortal(
+        <div className="fixed inset-0 z-[60] pointer-events-none">
+          {showSpotlight && (
+            <>
+              {!isMobile && spotlightRect && (
+                <TourSpotlight selector={currentStepDef.targetSelector!} />
+              )}
+              <div className="pointer-events-auto">
+                <TourTooltip
+                  step={currentStepDef}
+                  currentIndex={currentStep}
+                  total={total}
+                  isFirst={isFirst}
+                  isLast={isLast}
+                  spotlightRect={isMobile ? null : spotlightRect}
+                  onNext={next}
+                  onPrev={prev}
+                  onSkip={skip}
+                />
+              </div>
+            </>
+          )}
+          {isActive && paused && (
+            <div className="pointer-events-auto">
+              <TourPaused onResume={resume} onSkip={skip} />
+            </div>
+          )}
+        </div>,
+        document.body,
+      )}
       {isActive && !paused && currentStepDef?.type === 'welcome' && (
         <TourModal
           type="welcome"
@@ -173,9 +196,6 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
           icon={currentStepDef.icon}
           onComplete={complete}
         />
-      )}
-      {isActive && paused && (
-        <TourPaused onResume={resume} onSkip={skip} />
       )}
     </TourContext.Provider>
   )

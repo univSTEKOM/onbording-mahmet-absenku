@@ -11,7 +11,7 @@ export function TourSpotlight({ selector, padding = 8 }: TourSpotlightProps) {
   if (!rect) return null
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none tour-fade-in" role="dialog" aria-label="Panduan aplikasi AbsenKu">
+    <div className="fixed inset-0 pointer-events-none tour-fade-in" role="dialog" aria-label="Panduan aplikasi AbsenKu">
       <div
         className="absolute rounded-xl border-2 border-primary"
         style={{
