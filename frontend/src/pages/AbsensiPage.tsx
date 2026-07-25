@@ -46,7 +46,7 @@ export default function AbsensiPage() {
 
   const today = clock.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const currentTime = clock.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-  const checkInGate = useMemo(() => canCheckIn(), [])
+  const checkInGate = useMemo(() => canCheckIn(), [clock])
 
   const isCheckedIn = !!absensi?.checkIn
   const isCheckedOut = !!absensi?.checkOut

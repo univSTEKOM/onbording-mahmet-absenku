@@ -17,6 +17,7 @@ export const absensiStatusBadge: Record<AbsensiStatus, string> = {
   izin:         'bg-[var(--color-status-izin)] text-black border-0',
   sakit:        'bg-[var(--color-status-sakit)] text-white border-0',
   cuti:         'bg-[var(--color-status-cuti)] text-black border-0',
+  tidakHadir:   'bg-[var(--color-status-tidakHadir)] text-white border-0',
 }
 
 export const pengajuanStatusBadge: Record<PengajuanStatus, string> = {
@@ -64,6 +65,7 @@ export const absensiStatusLabel: Record<AbsensiStatus, string> = {
   izin: 'Izin',
   sakit: 'Sakit',
   cuti: 'Cuti',
+  tidakHadir: 'Alfa',
 }
 
 export const STATUS_COLORS_MAP: Record<string, string> = {

@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
             {today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
+        <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
           <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
         </Button>
       </div>

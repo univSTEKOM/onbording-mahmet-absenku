@@ -192,7 +192,7 @@ export default function AdminVerifikasiPage() {
           <h1 className="text-xl md:text-2xl font-bold tracking-tight">Verifikasi Karyawan</h1>
           <p className="text-xs md:text-sm text-muted-foreground">Tinjau dan setujui pendaftaran karyawan baru</p>
         </div>
-        <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
+        <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
           <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
         </Button>
       </div>

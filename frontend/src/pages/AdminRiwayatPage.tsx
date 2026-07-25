@@ -139,7 +139,7 @@ exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0]
           }}>
             <Download className="h-4 w-4" /> CSV
           </Button>
-          <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
+          <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
             <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
           </Button>
         </div>

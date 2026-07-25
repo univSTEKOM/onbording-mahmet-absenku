@@ -135,22 +135,23 @@ export default function ProfilPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Nama</Label>
-                  <Input value={form.nama} maxLength={MAX_NAMA_LENGTH} onChange={(e) => setForm({ ...form, nama: e.target.value })} className={errors.nama ? 'border-destructive' : ''} />
+                  <Label htmlFor="edit-nama">Nama</Label>
+                  <Input id="edit-nama" value={form.nama} maxLength={MAX_NAMA_LENGTH} onChange={(e) => setForm({ ...form, nama: e.target.value })} className={errors.nama ? 'border-destructive' : ''} />
                   {errors.nama && <p className="text-xs text-destructive">{errors.nama}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input value={form.email} disabled />
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input id="edit-email" value={form.email} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label>Jabatan</Label>
-                  <Input value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className={errors.jabatan ? 'border-destructive' : ''} />
+                  <Label htmlFor="edit-jabatan">Jabatan</Label>
+                  <Input id="edit-jabatan" value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className={errors.jabatan ? 'border-destructive' : ''} />
                   {errors.jabatan && <p className="text-xs text-destructive">{errors.jabatan}</p>}
                 </div>
                 <div className="sm:col-span-2 space-y-2">
-                  <Label>Telepon</Label>
+                  <Label htmlFor="edit-phone">Telepon</Label>
                   <PhoneInput
+                    id="edit-phone"
                     value={form.phone}
                     onChange={(v) => { setForm({ ...form, phone: v }); setErrors((p) => ({ ...p, phone: '' })) }}
                     error={errors.phone}
@@ -159,8 +160,8 @@ export default function ProfilPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Alamat</Label>
-                <textarea className={`flex min-h-[60px] w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${errors.alamat ? 'border-destructive' : 'border-input'}`}
+                <Label htmlFor="edit-alamat">Alamat</Label>
+                <textarea id="edit-alamat" className={`flex min-h-[60px] w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${errors.alamat ? 'border-destructive' : 'border-input'}`}
                   value={form.alamat} maxLength={MAX_ALAMAT_LENGTH} onChange={(e) => { setForm({ ...form, alamat: e.target.value }); setErrors((p) => ({ ...p, alamat: '' })) }} />
                 {errors.alamat && <p className="text-xs text-destructive">{errors.alamat}</p>}
               </div>
