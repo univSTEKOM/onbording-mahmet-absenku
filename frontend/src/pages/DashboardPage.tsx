@@ -211,10 +211,10 @@ export default function DashboardPage() {
               id="pie-7hari"
               data={pie7Data}
               config={{
-                hadir: { label: 'Hadir', color: 'var(--color-status-hadir)' },
-                pulang_cepat: { label: 'Pulang Cepat', color: 'var(--color-status-pulang-cepat)' },
-                terlambat: { label: 'Terlambat', color: 'var(--color-status-terlambat)' },
-                tidakHadir: { label: 'Alfa', color: 'var(--color-status-tidakHadir)' },
+                hadir: { label: 'Hadir', color: 'color-mix(in srgb, var(--color-status-hadir) 50%, transparent)' },
+                pulang_cepat: { label: 'Pulang Cepat', color: 'color-mix(in srgb, var(--color-status-pulang-cepat) 50%, transparent)' },
+                terlambat: { label: 'Terlambat', color: 'color-mix(in srgb, var(--color-status-terlambat) 50%, transparent)' },
+                tidakHadir: { label: 'Alfa', color: 'color-mix(in srgb, var(--color-status-tidakHadir) 50%, transparent)' },
               }}
               centerLabel={pct7 + '%'}
               centerSub="kehadiran"
@@ -237,10 +237,10 @@ export default function DashboardPage() {
               id="pie-bulan"
               data={pieMonthData}
               config={{
-                hadir: { label: 'Hadir', color: 'var(--color-status-hadir)' },
-                pulang_cepat: { label: 'Pulang Cepat', color: 'var(--color-status-pulang-cepat)' },
-                terlambat: { label: 'Terlambat', color: 'var(--color-status-terlambat)' },
-                'izin/sakit': { label: 'Izin/Sakit', color: 'var(--color-status-sakit)' },
+                hadir: { label: 'Hadir', color: 'color-mix(in srgb, var(--color-status-hadir) 50%, transparent)' },
+                pulang_cepat: { label: 'Pulang Cepat', color: 'color-mix(in srgb, var(--color-status-pulang-cepat) 50%, transparent)' },
+                terlambat: { label: 'Terlambat', color: 'color-mix(in srgb, var(--color-status-terlambat) 50%, transparent)' },
+                'izin/sakit': { label: 'Izin/Sakit', color: 'color-mix(in srgb, var(--color-status-sakit) 50%, transparent)' },
               }}
               centerLabel={pctMonth + '%'}
               centerSub="kehadiran"
