@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from '@tanstack/react-router'
+import { cn } from '@/lib/utils'
 import { TourContext } from './hooks/useTour'
 import { karyawanSteps, adminSteps } from './TourStepRegistry'
 import { scrollToElement, type TourRole } from './utils/tour-helpers'
@@ -26,6 +27,7 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
   const [currentStep, setCurrentStep] = useState(0)
   const [isActive, setIsActive] = useState(false)
   const [paused, setPaused] = useState(false)
+  const [exiting, setExiting] = useState(false)
 
   const steps = useMemo(() => role === 'admin' ? adminSteps : karyawanSteps, [role])
 
@@ -54,15 +56,47 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
     markTourSkipped()
     setIsActive(false)
     setPaused(false)
+    setExiting(false)
   }, [])
+
+  const changeStep = useCallback((nextIndex: number) => {
+    setExiting(true)
+    setTimeout(() => {
+      setExiting(false)
+      const step = steps[nextIndex]
+      if (!isMobile && step.requiresSidebar) {
+        if (isMobile) setOpenMobile(true)
+        else setOpen(true)
+      } else if (!isMobile && currentStepDef?.requiresSidebar) {
+        if (isMobile) setOpenMobile(false)
+      }
+      if (step.route && step.route !== location.pathname) {
+        navigate({ to: step.route as any })
+      }
+      if (step.targetSelector) {
+        scrollToElement(step.targetSelector)
+      }
+      setCurrentStep(nextIndex)
+    }, 150)
+  }, [steps, currentStepDef, isMobile, setOpen, setOpenMobile, navigate, location.pathname])
+
+  const next = useCallback(() => {
+    const nextIndex = currentStep + 1
+    if (nextIndex >= total) {
+      complete()
+      return
+    }
+    changeStep(nextIndex)
+  }, [currentStep, total, complete, changeStep])
 
   const prev = useCallback(() => {
-    setCurrentStep((s) => Math.max(0, s - 1))
-  }, [])
+    const nextIndex = Math.max(0, currentStep - 1)
+    if (nextIndex !== currentStep) changeStep(nextIndex)
+  }, [currentStep, changeStep])
 
   const goToStep = useCallback((index: number) => {
-    setCurrentStep(Math.max(0, Math.min(index, total - 1)))
-  }, [total])
+    changeStep(Math.max(0, Math.min(index, total - 1)))
+  }, [total, changeStep])
 
   const resume = useCallback(() => {
     const route = currentStepDef?.route
@@ -73,34 +107,12 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
     setPaused(false)
   }, [currentStepDef, location.pathname, navigate])
 
-  const next = useCallback(() => {
-    const nextIndex = currentStep + 1
-    if (nextIndex >= total) {
-      complete()
-      return
-    }
-    const step = steps[nextIndex]
-    if (step.requiresSidebar) {
-      if (isMobile) setOpenMobile(true)
-      else setOpen(true)
-    } else if (currentStepDef?.requiresSidebar) {
-      if (isMobile) setOpenMobile(false)
-    }
-    if (step.route && step.route !== location.pathname) {
-      navigate({ to: step.route as any })
-    }
-    if (step.targetSelector) {
-      scrollToElement(step.targetSelector)
-    }
-    setCurrentStep(nextIndex)
-  }, [currentStep, total, steps, complete, navigate, location.pathname, currentStepDef, isMobile, setOpen, setOpenMobile])
-
   useEffect(() => {
-    if (autoStart && !isActive && !isTourCompleted() && !isMobile) {
+    if (autoStart && !isActive && !isTourCompleted()) {
       const id = setTimeout(() => setIsActive(true), 800)
       return () => clearTimeout(id)
     }
-  }, [autoStart, isActive, isMobile])
+  }, [autoStart, isActive])
 
   useEffect(() => {
     if (!isActive) return
@@ -125,7 +137,7 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
     }
   }, [location.pathname, isActive, currentStepDef, paused])
 
-  const showSpotlight = isActive && !paused && currentStepDef?.type === 'spotlight'
+  const showSpotlight = isActive && !paused && currentStepDef?.type === 'spotlight' && !isMobile
   const spotlight = useElementTracker(
     showSpotlight ? currentStepDef?.targetSelector : undefined,
   )
@@ -150,7 +162,7 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
     <TourContext.Provider value={value}>
       {children}
       {isActive && createPortal(
-        <div className="fixed inset-0 z-[60] pointer-events-none">
+        <div className={cn('fixed inset-0 z-[60] pointer-events-none', exiting && 'tour-slide-down')}>
           {showSpotlight && (
             <>
               {!isMobile && spotlightRect && (

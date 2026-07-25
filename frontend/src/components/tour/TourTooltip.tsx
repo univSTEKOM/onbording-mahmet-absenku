@@ -88,10 +88,25 @@ export function TourTooltip({
   onPrev,
   onSkip,
 }: TourTooltipProps) {
-  const { style } = useMemo(
+  const { style, placement } = useMemo(
     () => computePosition(spotlightRect, step.position),
     [spotlightRect, step.position],
   )
+
+  const arrowStyle = useMemo((): PositionStyle => {
+    switch (placement) {
+      case 'right':
+        return { left: -6, top: 16 }
+      case 'left':
+        return { right: -6, top: 16 }
+      case 'bottom':
+        return { left: 16, top: -6 }
+      case 'top':
+        return { left: 16, bottom: -6 }
+      default:
+        return { left: 16, top: -6 }
+    }
+  }, [placement])
 
   return (
     <div
@@ -100,8 +115,12 @@ export function TourTooltip({
       aria-label={`Langkah ${currentIndex + 1} dari ${total}: ${step.title}`}
       style={{ maxWidth: 360, width: 'calc(100vw - 32px)', ...style }}
     >
-      <Card className="shadow-lg border-border">
-        <CardContent className="p-4 space-y-3">
+      <div className="relative">
+        <div className="absolute size-3 bg-card border border-border rotate-45 z-10"
+          style={{ ...arrowStyle }}
+        />
+        <Card className="shadow-lg border-border relative z-20">
+          <CardContent className="p-4 space-y-3">
           <div className="space-y-1">
             <p className="text-base font-semibold">{step.title}</p>
             <p className="text-sm text-muted-foreground">{step.description}</p>
@@ -117,7 +136,8 @@ export function TourTooltip({
             onSkip={onSkip}
           />
         </CardContent>
-      </Card>
-    </div>
-  )
-}
+          </Card>
+        </div>
+      </div>
+    )
+  }

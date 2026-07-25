@@ -18,21 +18,21 @@ const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
 
 const barChartConfig = {
-  tidakHadir: { label: 'Alfa', color: 'var(--color-status-tidakHadir)' },
-  hadir: { label: 'Hadir', color: 'var(--color-status-hadir)' },
-  izin: { label: 'Izin', color: 'var(--color-status-izin)' },
-  terlambat: { label: 'Terlambat', color: 'var(--color-status-terlambat)' },
-  sakit: { label: 'Sakit', color: 'var(--color-status-sakit)' },
-  cuti: { label: 'Cuti', color: 'var(--color-status-cuti)' },
+  tidakHadir: { label: 'Alfa', color: 'color-mix(in srgb, var(--color-status-tidakHadir) 30%, transparent)' },
+  hadir: { label: 'Hadir', color: 'color-mix(in srgb, var(--color-status-hadir) 30%, transparent)' },
+  izin: { label: 'Izin', color: 'color-mix(in srgb, var(--color-status-izin) 30%, transparent)' },
+  terlambat: { label: 'Terlambat', color: 'color-mix(in srgb, var(--color-status-terlambat) 30%, transparent)' },
+  sakit: { label: 'Sakit', color: 'color-mix(in srgb, var(--color-status-sakit) 30%, transparent)' },
+  cuti: { label: 'Cuti', color: 'color-mix(in srgb, var(--color-status-cuti) 30%, transparent)' },
 } satisfies ChartConfig
 
 const pieChartConfig = {
-  hadir: { label: 'Hadir', color: 'var(--color-status-hadir)' },
-  terlambat: { label: 'Terlambat', color: 'var(--color-status-terlambat)' },
-  izin: { label: 'Izin', color: 'var(--color-status-izin)' },
-  sakit: { label: 'Sakit', color: 'var(--color-status-sakit)' },
-  cuti: { label: 'Cuti', color: 'var(--color-status-cuti)' },
-  tidakHadir: { label: 'Alfa', color: 'var(--color-status-tidakHadir)' },
+  hadir: { label: 'Hadir', color: 'color-mix(in srgb, var(--color-status-hadir) 30%, transparent)' },
+  terlambat: { label: 'Terlambat', color: 'color-mix(in srgb, var(--color-status-terlambat) 30%, transparent)' },
+  izin: { label: 'Izin', color: 'color-mix(in srgb, var(--color-status-izin) 30%, transparent)' },
+  sakit: { label: 'Sakit', color: 'color-mix(in srgb, var(--color-status-sakit) 30%, transparent)' },
+  cuti: { label: 'Cuti', color: 'color-mix(in srgb, var(--color-status-cuti) 30%, transparent)' },
+  tidakHadir: { label: 'Alfa', color: 'color-mix(in srgb, var(--color-status-tidakHadir) 30%, transparent)' },
 } satisfies ChartConfig
 
 const pieId = 'pie-kehadiran'

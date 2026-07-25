@@ -8,7 +8,7 @@ interface TourPausedProps {
 
 export function TourPaused({ onResume, onSkip }: TourPausedProps) {
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
       <Card className="shadow-lg border-border">
         <CardContent className="p-3 flex items-center gap-3">
           <p className="text-sm text-muted-foreground">
