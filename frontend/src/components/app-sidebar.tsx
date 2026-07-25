@@ -14,7 +14,7 @@ import { LayoutDashboard, History, FileText, Users, ShieldCheck, UserCheck } fro
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/api/axios'
-import type { User } from '@/types'
+import type { User, Pengajuan } from '@/types'
 
 const karyawanItems = [
   { title: 'Dashboard', url: '/dashboard', icon: <LayoutDashboard /> },
@@ -47,7 +47,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const { data: pendingPengajuanCount = 0 } = useQuery({
     queryKey: ['pengajuan', 'pending', 'count'],
-    queryFn: () => api.get('/pengajuan?status=pending').then((r) => (r.data as any[]).length),
+    queryFn: () => api.get('/pengajuan?status=pending').then((r) => (r.data as Pengajuan[]).length),
     enabled: isAdmin,
   })
 

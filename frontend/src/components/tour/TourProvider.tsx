@@ -58,7 +58,7 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
     if (!isOnboarding) {
       const target = role === 'admin' ? '/admin/dashboard' : '/dashboard'
       if (location.pathname !== target) {
-        navigate({ to: target as any })
+        navigate({ to: target as string })
       }
     }
   }, [isOnboarding, role, navigate, location.pathname])
@@ -83,7 +83,7 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
         if (isMobile) setOpenMobile(false)
       }
       if (step.route && step.route !== location.pathname) {
-        navigate({ to: step.route as any })
+        navigate({ to: step.route as string })
       }
       if (step.targetSelector) {
         scrollToElement(step.targetSelector)
@@ -113,7 +113,7 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
   const resume = useCallback(() => {
     const route = currentStepDef?.route
     if (route && location.pathname !== route) {
-      navigate({ to: route as any })
+      navigate({ to: route as string })
       return
     }
     setPaused(false)
