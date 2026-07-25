@@ -3,10 +3,13 @@ export function exportToCsv(filename: string, headers: string[], rows: string[][
     headers.join(','),
     ...rows.map((row) =>
       row.map((cell) => {
-        const escaped = cell.replace(/"/g, '""')
-        return cell.includes(',') || cell.includes('"') || cell.includes('\n')
-          ? `"${escaped}"`
-          : cell
+        /* Prevent CSV formula injection */
+        var safe = cell
+        if (/^[=+\-@]/.test(safe)) safe = "'" + safe
+        var escaped = safe.replace(/"/g, '""')
+        return safe.includes(',') || safe.includes('"') || safe.includes('\n')
+          ? '"' + escaped + '"'
+          : safe
       }).join(',')
     ),
   ].join('\n')

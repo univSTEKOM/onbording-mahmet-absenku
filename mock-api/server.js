@@ -169,6 +169,9 @@ server.post('/api/register', async (req, res) => {
     if (!email || !password || !nama) return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'Format email tidak valid' })
     if (password.length < 8) return res.status(400).json({ message: 'Password minimal 8 karakter' })
+    if (!/[A-Z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kapital' })
+    if (!/[a-z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kecil' })
+    if (!/[0-9]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung angka' })
     if (nama.length > 100) return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
     if (jabatan && jabatan.length > 100) return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
 
@@ -182,8 +185,7 @@ server.post('/api/register', async (req, res) => {
       asResponse: true,
     })
     if (response.status !== 200) {
-      const err = await response.json()
-      return res.status(400).json({ message: err.message || 'Gagal mendaftar' })
+      return res.status(400).json({ message: 'Gagal mendaftar' })
     }
     const data = await response.json()
     const profile = {
