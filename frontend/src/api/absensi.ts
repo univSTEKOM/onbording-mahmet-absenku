@@ -56,7 +56,7 @@ export async function checkOut(id: number, data?: CheckOutData): Promise<Absensi
   const currentPhotos = existing.data?.photos || []
   const photos = data?.photos?.length ? [...currentPhotos, ...data.photos] : currentPhotos
   const res = await api.patch(`/absensi/${id}`, {
-    checkOut: new Date().toISOString(),
+    checkOut: data?.checkOut || new Date().toISOString(),
     photos,
   })
   return res.data
