@@ -1,3 +1,14 @@
+export type AttendanceType = 'present' | 'absent_permit' | 'absent_unpermit'
+
+export interface AttendanceCategory {
+  id: string
+  parentId: string | null
+  label: string
+  type: AttendanceType
+  color: string
+  requiresApproval: boolean
+}
+
 export type Role = 'admin' | 'karyawan'
 
 export type UserStatus = 'pending' | 'approved' | 'rejected'
@@ -41,6 +52,8 @@ export interface Absensi {
   tanggal: string
   checkIn: string | null
   checkOut: string | null
+  mainCategory: string
+  subCategory: string
   status: AbsensiStatus
   faceVerified: boolean
   photos?: Photo[]
@@ -76,6 +89,8 @@ export interface AbsensiFilters {
   tanggal?: string
   tanggal_gte?: string
   tanggal_lte?: string
+  mainCategory?: string | string[]
+  subCategory?: string | string[]
   status?: string | string[]
   _sort?: string
   _order?: string
