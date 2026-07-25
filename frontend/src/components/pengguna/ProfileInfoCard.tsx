@@ -2,6 +2,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { RoleBadge } from '@/components/shared/RoleBadge'
 import type { User } from '@/types'
 
 interface ProfileInfoCardProps {
@@ -12,7 +13,6 @@ function formatTanggal(date: string) {
   return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-const roleLabel: Record<string, string> = { admin: 'Admin', karyawan: 'Karyawan' }
 const statusLabel: Record<string, string> = { pending: 'Pending', approved: 'Terverifikasi', rejected: 'Ditolak' }
 const statusBadge: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-0',
@@ -34,9 +34,7 @@ export function ProfileInfoCard({ user }: ProfileInfoCardProps) {
           <div className="text-center sm:text-left flex-1 min-w-0">
             <h2 className="text-xl font-semibold truncate">{user.nama}</h2>
             <div className="flex items-center gap-2 mt-1 justify-center sm:justify-start flex-wrap">
-              <Badge variant="secondary" className={user.role === 'admin' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-0' : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 border-0'}>
-                {roleLabel[user.role] || user.role}
-              </Badge>
+              <RoleBadge role={user.role} size="md" />
               <Badge variant="secondary" className={statusBadge[user.status] || ''}>
                 {statusLabel[user.status] || user.status}
               </Badge>

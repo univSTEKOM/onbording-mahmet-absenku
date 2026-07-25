@@ -21,6 +21,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { RoleBadge } from '@/components/shared/RoleBadge'
 import { Search, PlusCircle, Pencil, Trash2, RefreshCw, Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/api/axios'
@@ -177,12 +178,7 @@ export default function AdminKaryawanPageV1() {
                         <TableCell className="text-sm">{u.email}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{u.jabatan || '-'}</TableCell>
                         <TableCell>
-                          <Badge variant="secondary" className={u.role === 'admin'
-                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                            : 'bg-muted text-muted-foreground'
-                          }>
-                            {u.role}
-                          </Badge>
+                          <RoleBadge role={u.role} />
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">

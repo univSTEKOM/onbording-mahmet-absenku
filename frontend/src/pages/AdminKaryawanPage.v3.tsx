@@ -17,7 +17,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { Search, PlusCircle, Pencil, Trash2, RefreshCw, Users, Briefcase, CalendarDays, Shield } from 'lucide-react'
+import { RoleBadge } from '@/components/shared/RoleBadge'
+import { Search, PlusCircle, Pencil, Trash2, RefreshCw, Users, Briefcase, CalendarDays } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/api/axios'
 import { toast } from 'sonner'
@@ -30,20 +31,6 @@ interface KaryawanUserCardProps {
   onEdit: (user: User) => void
   onDelete: (user: User) => void
   onClick: (user: User) => void
-}
-
-function BadgeMini(p: { role: string }) {
-  return (
-    <span className={
-      'inline-flex items-center gap-1 rounded-full text-[10px] font-medium px-2 py-0.5 border-0 shrink-0 ' +
-      (p.role === 'admin'
-        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400')
-    }>
-      <Shield className="h-2.5 w-2.5" />
-      {p.role === 'admin' ? 'Admin' : 'Karyawan'}
-    </span>
-  )
 }
 
 function KaryawanUserCard(p: KaryawanUserCardProps) {
@@ -70,7 +57,7 @@ function KaryawanUserCard(p: KaryawanUserCardProps) {
         <div className="flex items-start gap-2.5 p-3.5 flex-1 min-w-0">
           <Avatar className="h-9 w-9 ring-2 ring-border/50 shrink-0">
             <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
-            <AvatarFallback className={u.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 text-xs' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400 text-xs'}>
+            <AvatarFallback className={u.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 text-xs' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400 text-xs'}>
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -86,7 +73,7 @@ function KaryawanUserCard(p: KaryawanUserCardProps) {
                   {u.nama || '-'}
                 </p>
               </div>
-              <BadgeMini role={u.role} />
+              <RoleBadge role={u.role} />
             </div>
             <p className="text-xs text-muted-foreground truncate">{u.email}</p>
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
