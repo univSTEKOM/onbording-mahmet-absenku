@@ -341,9 +341,15 @@ server.patch('/api/users/:id', async (req, res) => {
     if (body.alamat !== undefined && body.alamat && body.alamat.length > 500) return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
     if (body.foto !== undefined && body.foto && body.foto.length > 512000) return res.status(400).json({ message: 'Ukuran foto maksimal 500KB' })
     if (body.faceDescriptor !== undefined && body.faceDescriptor && body.faceDescriptor.length > 10240) return res.status(400).json({ message: 'Data wajah tidak valid' })
+    if (body.role !== undefined && !['admin', 'karyawan'].includes(body.role)) return res.status(400).json({ message: 'Role tidak valid' })
 
     const existing = router.db.get('users').find({ id: req.params.id }).value()
     if (!existing) return res.status(404).json({ message: 'User tidak ditemukan' })
+
+    /* Log role changes */
+    if (body.role !== undefined && body.role !== existing.role) {
+      console.log(`[admin] Role change: ${existing.email} ${existing.role} -> ${body.role}`)
+    }
 
     const updateFields = {}
     if (body.nama !== undefined) updateFields.nama = body.nama
@@ -351,7 +357,6 @@ server.patch('/api/users/:id', async (req, res) => {
     if (body.phone !== undefined) updateFields.phone = body.phone
     if (body.alamat !== undefined) updateFields.alamat = body.alamat
     if (body.role !== undefined) updateFields.role = body.role
-    if (body.email !== undefined) updateFields.email = body.email
     if (body.foto !== undefined) updateFields.foto = body.foto
     if (body.faceDescriptor !== undefined) updateFields.faceDescriptor = body.faceDescriptor
 
@@ -430,11 +435,16 @@ function normalizeDbFile() {
   } catch (e) { console.error('Normalize error:', e.message) }
 }
 
-server.post('/absensi', (req, res, next) => {
+server.post('/absensi', async (req, res, next) => {
   try {
     if (!req.body || !req.body.userId) {
       console.error('[absensi] Invalid body:', req.body)
       return res.status(400).json({ message: 'Data absensi tidak valid' })
+    }
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+    if (!session) return res.status(401).json({ message: 'Unauthorized' })
+    if (session.user.role !== 'admin' && session.user.id !== req.body.userId) {
+      return res.status(403).json({ message: 'Anda hanya bisa absen untuk diri sendiri' })
     }
     const t = nowTime(); const m = toMinutes(t)
     if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
@@ -463,14 +473,19 @@ server.post('/absensi', (req, res, next) => {
   }
 })
 
-server.patch('/absensi/:id', (req, res, next) => {
+server.patch('/absensi/:id', async (req, res, next) => {
   try {
     if (!req.body || !req.params.id) {
       return res.status(400).json({ message: 'Data tidak valid' })
     }
     if (!req.body.checkOut) return next()
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+    if (!session) return res.status(401).json({ message: 'Unauthorized' })
     const existing = router.db.get('absensi').find({ id: Number(req.params.id) }).value()
     if (!existing) return res.status(404).json({ message: 'Absensi tidak ditemukan' })
+    if (session.user.role !== 'admin' && session.user.id !== existing.userId) {
+      return res.status(403).json({ message: 'Anda hanya bisa check-out untuk diri sendiri' })
+    }
     const status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : existing.status
     const isPulangCepat = status === 'pulang_cepat'
     req.body = {
@@ -563,10 +578,15 @@ server.patch('/pengajuan/:id', (req, res, next) => {
   next()
 })
 
-server.delete('/pengajuan/:id', (req, res) => {
+server.delete('/pengajuan/:id', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
   const r = router.db.get('pengajuan').find({ id: Number(req.params.id) }).value()
   if (!r) return res.status(404).json({ message: 'Pengajuan tidak ditemukan' })
   if (r.status !== 'pending') return res.status(400).json({ message: 'Hanya pending yang bisa dihapus' })
+  if (session.user.role !== 'admin' && session.user.id !== r.userId) {
+    return res.status(403).json({ message: 'Anda hanya bisa menghapus pengajuan sendiri' })
+  }
   router.db.get('pengajuan').remove({ id: Number(req.params.id) }).write()
   res.status(200).json({ message: 'Dihapus' })
 })
