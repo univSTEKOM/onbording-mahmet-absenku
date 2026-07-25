@@ -140,6 +140,21 @@ export default function AdminDashboardPage() {
         })}
       </div>
 
+      {!isLoading && s?.presentMonth !== undefined && (
+        <Card>
+          <CardContent className="p-3 md:p-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Bulan Ini:</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Hadir: {s.presentMonth}</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> Izin/Sakit: {s.permitMonth}</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Alfa: {s.unpermitMonth}</span>
+              <span className="text-muted-foreground/60">·</span>
+              <span className="text-muted-foreground">Total: {s.totalAbsensiBulanIni} absensi</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
         <Card className="lg:col-span-2">
           <CardHeader className="px-4 md:px-5 pt-4 md:pt-5 pb-2">
