@@ -761,6 +761,18 @@ server.get('/api/absensi/search', async (req, res) => {
       allAbsensi = allAbsensi.filter(function(a) { return statuses.includes(a.status) })
     }
 
+    /* Filter by mainCategory */
+    if (req.query.mainCategory) {
+      var mainCats = Array.isArray(req.query.mainCategory) ? req.query.mainCategory : [req.query.mainCategory]
+      allAbsensi = allAbsensi.filter(function(a) { return mainCats.includes(a.mainCategory) })
+    }
+
+    /* Filter by subCategory */
+    if (req.query.subCategory) {
+      var subCats = Array.isArray(req.query.subCategory) ? req.query.subCategory : [req.query.subCategory]
+      allAbsensi = allAbsensi.filter(function(a) { return subCats.includes(a.subCategory) })
+    }
+
     /* Sort by tanggal descending */
     allAbsensi.sort(function(a, b) { return b.tanggal.localeCompare(a.tanggal) })
 
