@@ -15,7 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import api from '@/api/axios'
 import type { User } from '@/types'
-import { CheckCircle2, XCircle, RefreshCw, Trash2, Ban, UserPlus, Clock, Briefcase, CalendarDays, Mail } from 'lucide-react'
+import { CheckCircle2, XCircle, RefreshCw, Trash2, Ban, UserPlus, Clock, Briefcase, CalendarDays, Mail, Phone, MapPin } from 'lucide-react'
 
 interface VerifikasiUserCardProps {
   user: User
@@ -86,6 +86,20 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
                 <CalendarDays className="h-3 w-3 shrink-0" />
                 Mendaftar {joinedDate}
               </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
+              {u.phone && (
+                <span className="flex items-center gap-1 truncate max-w-[160px]">
+                  <Phone className="h-3 w-3 shrink-0" />
+                  {u.phone}
+                </span>
+              )}
+              {u.alamat && (
+                <span className="flex items-center gap-1 truncate max-w-[200px]">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  {u.alamat}
+                </span>
+              )}
             </div>
           </div>
         </div>
