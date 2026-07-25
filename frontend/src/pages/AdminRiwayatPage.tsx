@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
+import { absensiStatusBadge, absensiStatusLabel, CATEGORY_LABEL } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
@@ -72,6 +72,7 @@ export default function AdminRiwayatPage() {
   var [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
   var [calendarDate, setCalendarDate] = useState<string | null>(null)
   var [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  var [selectedMainCategory, setSelectedMainCategory] = useState('')
   var [search, setSearch] = useState('')
   var debouncedSearch = useDebounce(search, 400)
   var isSearching = search !== debouncedSearch
@@ -93,6 +94,7 @@ export default function AdminRiwayatPage() {
   if (dateFrom) queryParams.tanggal_gte = dateFrom
   if (dateTo) queryParams.tanggal_lte = dateTo
   if (selectedStatuses.length > 0) queryParams.status = selectedStatuses
+  if (selectedMainCategory) queryParams.mainCategory = selectedMainCategory
   if (debouncedSearch) queryParams.q = debouncedSearch
 
   var { data, isLoading, refetch, isFetching } = useSearchAbsensi(queryParams)
@@ -100,7 +102,7 @@ export default function AdminRiwayatPage() {
   var absensi = data?.data
   var totalPages = data?.totalPages || 1
 
-  var hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0 || search.trim() !== ''
+  var hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0 || search.trim() !== '' || !!selectedMainCategory
 
   function toggleStatus(status: string) {
     setSelectedStatuses(function(prev) {
@@ -192,6 +194,25 @@ export default function AdminRiwayatPage() {
               </button>
             </Badge>
           )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {['', 'physical_present', 'absent_permit', 'absent_unpermit'].map(function(cat) {
+            return (
+              <button
+                key={cat || 'all'}
+                type="button"
+                onClick={function() { setSelectedMainCategory(selectedMainCategory === cat ? '' : cat); setPage(1) }}
+                className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
+                  selectedMainCategory === cat
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                {cat ? CATEGORY_LABEL[cat] || cat : 'Semua'}
+              </button>
+            )
+          })}
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">

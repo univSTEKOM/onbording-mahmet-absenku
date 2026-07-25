@@ -103,7 +103,7 @@ export default function RiwayatPage() {
   const absensi = data?.data
   const totalPages = data?.totalPages || 1
 
-  const hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0
+  const hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0 || !!selectedMainCategory
 
   function toggleStatus(status: string) {
     setSelectedStatuses(function(prev) {
