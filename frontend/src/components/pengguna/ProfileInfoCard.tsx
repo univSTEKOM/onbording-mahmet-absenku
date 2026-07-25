@@ -28,7 +28,7 @@ export function ProfileInfoCard({ user }: ProfileInfoCardProps) {
       <CardContent className="pt-6">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
           <Avatar className="h-20 w-20 ring-2 ring-border shrink-0">
-            <AvatarImage src={user.foto && !user.foto.startsWith('[') ? user.foto : undefined} />
+            <AvatarImage src={user.foto || undefined} />
             <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
           </Avatar>
           <div className="text-center sm:text-left flex-1 min-w-0">
@@ -84,9 +84,20 @@ export function ProfileInfoCard({ user }: ProfileInfoCardProps) {
                 ))}
               </div>
             </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
+            </>
+          )}
+
+          {user.faceDescriptor && (
+            <>
+              <Separator className="my-4" />
+              <div className="flex items-center gap-2 text-sm">
+                <span className="size-2 rounded-full bg-green-500" />
+                <span className="text-green-600 dark:text-green-400 font-medium">Wajah terdaftar</span>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+

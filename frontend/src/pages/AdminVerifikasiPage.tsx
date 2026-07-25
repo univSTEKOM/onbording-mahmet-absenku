@@ -49,7 +49,7 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
       <div className="flex flex-1 min-w-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-card">
         <div className="flex items-start gap-2.5 p-3.5 flex-1 min-w-0">
           <Avatar className="h-9 w-9 ring-2 ring-amber-200 dark:ring-amber-800/50 shrink-0">
-            <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+            <AvatarImage src={u.foto || undefined} />
             <AvatarFallback className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-xs">
               {initials}
             </AvatarFallback>
@@ -288,7 +288,7 @@ export default function AdminVerifikasiPage() {
                 <div className="px-6 py-5">
                   <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-border/50">
                     <Avatar className="h-12 w-12 ring-2 ring-amber-200 dark:ring-amber-800/50 shrink-0">
-                      <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+                      <AvatarImage src={u.foto || undefined} />
                       <AvatarFallback className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-base font-semibold">
                         {initials}
                       </AvatarFallback>
@@ -380,7 +380,7 @@ export default function AdminVerifikasiPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={function() { if (deleteTarget) deleteMutation.mutate(deleteTarget.id) }}>
+            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" disabled={deleteMutation.isPending} onClick={function() { if (deleteTarget && !deleteMutation.isPending) deleteMutation.mutate(deleteTarget.id) }}>
               Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -389,3 +389,4 @@ export default function AdminVerifikasiPage() {
     </div>
   )
 }
+

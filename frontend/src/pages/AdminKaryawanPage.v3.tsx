@@ -205,7 +205,7 @@ export default function AdminKaryawanPageV3() {
     setSaving(true)
     try {
       if (editTarget) {
-        await api.patch('/api/users/' + editTarget.id, { ...form, ...(resetFace ? { foto: '' } : {}) } as Partial<User>)
+        await api.patch('/api/users/' + editTarget.id, { ...form, ...(resetFace ? { faceDescriptor: '' } : {}) } as Partial<User>)
         toast.success('Karyawan berhasil diupdate')
       } else {
         var generatedPassword = Math.random().toString(36).slice(2, 14)
@@ -234,11 +234,8 @@ export default function AdminKaryawanPageV3() {
     setDeleteTarget(null)
   }
 
-  function hasFaceData(foto: string): boolean {
-    try {
-      var parsed = JSON.parse(foto)
-      return Array.isArray(parsed) && parsed.length === 128
-    } catch { return false }
+  function hasFaceData(fd: string | undefined): boolean {
+    return fd?.startsWith('[') ?? false
   }
 
   var roleOptions = [
@@ -394,7 +391,7 @@ export default function AdminKaryawanPageV3() {
               {fieldErrors.phone && <p className="text-xs text-destructive">{fieldErrors.phone}</p>}
             </div>
             {!editTarget && <p className="text-xs text-muted-foreground">Password akan digenerate otomatis</p>}
-            {editTarget && hasFaceData(editTarget.foto) && (
+            {editTarget && hasFaceData(editTarget.faceDescriptor) && (
               <>
                 <Separator />
                 <div className="flex items-center justify-between gap-4">

@@ -6,14 +6,19 @@
 |-------|----------|-------|
 | Dashboard personal | ✅ | — |
 | Dashboard admin | — | ✅ |
-| Check-in / Check-out | ✅ | — |
+| Check-in / Check-out + Face Verification | ✅ | — |
 | Riwayat absensi sendiri | ✅ | ✅ (semua karyawan) |
-| Pengajuan cuti/izin/sakit | ✅ (buat & hapus) | ✅ (approve/reject) |
+| Pengajuan cuti/izin/sakit | ✅ (buat, edit, hapus) | ✅ (approve/reject) |
 | Edit profil | ✅ | ✅ |
+| Foto profil + crop | ✅ | ✅ |
 | Verifikasi karyawan baru | — | ✅ |
 | Kelola data karyawan | — | ✅ (CRUD) |
-| Lihat profil karyawan lain | — | ✅ |
+| Lihat profil + absensi karyawan lain | — | ✅ |
 | Status pendaftaran | ✅ (jika pending) | — |
+| Product Tour onboarding | ✅ | ✅ |
+| Export CSV riwayat | ✅ | ✅ |
+| Filter dialog (search, tanggal, status) | ✅ | ✅ |
+| Password toggle + strength indicator | ✅ | ✅ |
 
 ---
 
@@ -24,33 +29,75 @@
 #### Alur Pertama Kali
 
 ```
-Register → Login → Halaman Status (menunggu verifikasi)
-                                       ↓ (Admin approve)
-                              Dashboard Karyawan
+Register → Login → Verification Tour (jika pending)
+                       │
+                       ├── Admin approve → Main Tour → Dashboard
+                       │
+                       └── Admin reject → Edit profil → Submit ulang
 ```
+
+#### Product Tour
+
+Saat pertama login (setelah approve), tour otomatis muncul dalam 800ms:
+
+```
+Welcome → Sidebar → Dashboard Summary → Absen Button → Riwayat → Pengajuan → Profile → Selesai
+```
+
+- Tekan **ESC** atau klik **Lewati** untuk skip
+- Tekan **→** / **←** untuk navigasi cepat
+- Tour hanya muncul sekali (tersimpan di localStorage)
+- Reset: `localStorage.removeItem('absenku-tour')` di console
 
 #### Check-in / Check-out
 
 1. Buka halaman **Absensi** (`/absensi`)
-2. Klik "Absen Sekarang" untuk check-in
-3. (Opsional) Verifikasi wajah via kamera
-4. Selesai bekerja → Klik "Check-out"
-5. Lihat riwayat di **Riwayat** (`/absensi/riwayat`)
+2. Klik **"Absen Sekarang"** untuk check-in
+3. (Opsional) Verifikasi wajah via kamera — kamera otomatis mendeteksi wajah
+4. Setelah 10 detik atau wajah terdeteksi, foto otomatis diambil
+5. Selesai bekerja → Klik **"Check-out"**
+6. Lihat riwayat di **Riwayat** (`/absensi/riwayat`)
+
+#### Face Verification
+
+- **Pertama kali:** Kamera mengambil foto wajah → disimpan sebagai descriptor
+- **Berikutnya:** Kamera mendeteksi wajah → dibandingkan dengan descriptor tersimpan
+- Jika cocok (threshold) → absensi berhasil
+- Jika tidak cocok → bisa ulang atau skip verifikasi
+- Bisa daftar ulang verifikasi wajah di halaman **Profil**
 
 #### Pengajuan Cuti / Izin
 
-1. Buka **Pengajuan** → klik **Ajukan Baru**
-2. Pilih jenis (Cuti / Izin / Sakit), tanggal, alasan
-3. Kirim → status `pending`
-4. Tunggu admin approve/reject
-5. Jika masih pending, bisa diedit atau dihapus
+1. Buka **Pengajuan** (`/pengajuan`)
+2. Klik **"Ajukan Baru"**
+3. Pilih jenis: **Cuti**, **Izin**, atau **Sakit**
+4. Isi tanggal mulai, tanggal selesai, dan alasan
+5. Kirim → status `pending`
+6. Tunggu admin approve/reject
+7. Jika masih `pending`, bisa diedit atau dihapus
+8. Riwayat pengajuan ditampilkan di halaman yang sama
+
+#### Filter Riwayat & Pengajuan
+
+Klik ikon **Filter** untuk membuka dialog filter:
+
+| Filter | Format |
+|--------|--------|
+| Search | Cari tanggal |
+| Status | hadir / terlambat / izin / dll |
+| Jenis | cuti / izin / sakit (pengajuan) |
+| Rentang Tanggal | Date picker |
 
 #### Dashboard
 
-- Statistik hari ini: status check-in/out
-- Statistik bulan: hadir, pulang cepat, terlambat, izin/sakit
-- Kalender absensi: klik tanggal untuk detail
-- Aktivitas 7 hari terakhir
+| Section | Deskripsi |
+|---------|-----------|
+| Status Hari Ini | Check-in/out status + tombol absen |
+| Statistik Bulan | Hadir, terlambat, pulang cepat, izin/sakit |
+| Chart 7 Hari | Pie chart kehadiran minggu ini |
+| Chart Bulan Ini | Pie chart kehadiran bulan ini |
+| Kalender | Warna-coded per hari (hijau=hadir, merah=alfa, dll) |
+| Aktivitas Terbaru | Riwayat 5 absensi terakhir |
 
 ---
 
@@ -58,30 +105,41 @@ Register → Login → Halaman Status (menunggu verifikasi)
 
 #### Dashboard
 
-- Total karyawan, hadir hari ini, terlambat, verifikasi pending
-- Tren kehadiran 7 hari (bar chart)
-- Pie chart kehadiran bulan ini
-- Kalender absensi seluruh karyawan
+| Section | Deskripsi |
+|---------|-----------|
+| Statistik | Total karyawan, hadir hari ini, terlambat, pending verifikasi |
+| Bar Chart | Tren kehadiran 7 hari (stacked: hadir, terlambat, izin, sakit, cuti, alfa) |
+| Pie Chart | Distribusi kehadiran bulan ini |
+| Kalender | Warna-coded per hari untuk seluruh tim |
+| Tombol Refresh | Refresh data dashboard |
 
 #### Verifikasi Karyawan Baru
 
 1. Buka **Verifikasi Karyawan** (`/admin/verifikasi`)
 2. Lihat daftar user dengan status `pending`
-3. Klik **Setujui** atau **Tolak** (dengan catatan)
-4. User yang ditolak bisa mengedit profil dan mengulang
+3. Klik **Setujui** → user bisa login
+4. Klik **Tolak** → masukkan catatan → user melihat alasan penolakan
+5. User yang ditolak bisa edit profil → status kembali `pending`
 
 #### Kelola Karyawan
 
 1. Buka **Kelola Karyawan** (`/admin/karyawan`)
-2. Cari, filter, edit, atau hapus karyawan
-3. Klik nama karyawan untuk lihat detail profil + absensi
+2. Cari karyawan via search bar
+3. Klik **Edit** untuk ubah data (nama, email, jabatan, role, telepon)
+4. Klik **Hapus** → konfirmasi → user dihapus dari auth + semua data terkait
+5. Klik nama karyawan → lihat detail profil + riwayat absensi
 
 #### Manajemen Pengajuan
 
 1. Buka **Pengajuan** (`/admin/pengajuan`)
 2. Filter berdasarkan status atau jenis
-3. Klik **Setujui** atau **Tolak** (catatan wajib jika tolak)
-4. Status berubah, karyawan mendapat notifikasi
+3. Klik **Setujui** → pengajuan approved
+4. Klik **Tolak** → catatan wajib → pengajuan rejected
+5. Status berubah, karyawan bisa melihat di halaman pengajuan
+
+#### Export CSV
+
+Di halaman **Riwayat** (`/admin/riwayat`), klik ikon **Download** untuk export data absensi ke CSV.
 
 ---
 
@@ -98,13 +156,13 @@ Register → Login → Halaman Status (menunggu verifikasi)
 
 ### Sidebar — Admin
 
-| Menu | Route |
-|------|-------|
-| Admin | `/admin/dashboard` |
-| Riwayat | `/admin/riwayat` |
-| Pengajuan | `/admin/pengajuan` |
-| Kelola Karyawan | `/admin/karyawan` |
-| Verifikasi Karyawan | `/admin/verifikasi` |
+| Menu | Route | Badge |
+|------|-------|-------|
+| Admin | `/admin/dashboard` | — |
+| Verifikasi Karyawan | `/admin/verifikasi` | Jumlah pending |
+| Riwayat | `/admin/riwayat` | — |
+| Pengajuan | `/admin/pengajuan` | Jumlah pending |
+| Kelola Karyawan | `/admin/karyawan` | — |
 
 ### Sidebar — Onboarding (Pending/Rejected)
 
@@ -112,3 +170,26 @@ Register → Login → Halaman Status (menunggu verifikasi)
 |------|-------|
 | Status Akun | `/status` |
 | Profil | `/profil` |
+
+---
+
+## Role Badge
+
+Setiap user memiliki **RoleBadge** di halaman profil dan detail:
+
+- **Admin** — Badge biru
+- **Karyawan** — Badge hijau
+
+---
+
+## Status Color Reference
+
+| Status | Warna | CSS Variable |
+|--------|-------|-------------|
+| Hadir | Hijau | `--color-status-hadir` |
+| Terlambat | Kuning | `--color-status-terlambat` |
+| Pulang Cepat | Oranye | `--color-status-pulang-cepat` |
+| Izin | Biru | `--color-status-izin` |
+| Sakit | Ungu | `--color-status-sakit` |
+| Cuti | Abu-abu | `--color-status-cuti` |
+| Alfa / Tidak Hadir | Merah | `--color-status-tidakHadir` |

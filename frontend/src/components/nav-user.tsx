@@ -23,7 +23,7 @@ export function NavUser() {
   const { isMobile } = useSidebar()
 
   const initials = user?.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-  const fotoSrc = user?.foto && !user.foto.startsWith('[') ? user.foto : undefined
+  const fotoSrc = user?.foto || undefined
 
   return (
     <SidebarMenu data-slot="nav-user">

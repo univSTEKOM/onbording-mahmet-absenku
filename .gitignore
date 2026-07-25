@@ -1,1 +1,8 @@
 .agents/
+
+# Environment files
+.env
+
+# Database files
+mock-api/auth.db
+mock-api/db.json

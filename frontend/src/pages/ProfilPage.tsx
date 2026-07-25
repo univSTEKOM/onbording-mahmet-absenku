@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { toast } from 'sonner'
-import { Camera, Loader2, Save, Pencil } from 'lucide-react'
+import { Camera, Loader2, Save, Pencil, CheckCircle2 } from 'lucide-react'
 import { ImageCropperDialog } from '@/components/shared/ImageCropperDialog'
 import { ImageViewer } from '@/components/shared/ImageViewer'
 
@@ -190,6 +190,15 @@ export default function ProfilPage() {
                   <p className="font-medium mt-0.5">{user.alamat || '-'}</p>
                 </div>
               </div>
+
+              {user.faceDescriptor && (
+                <div className="flex items-center gap-2 text-sm p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                  <span className="text-green-700 dark:text-green-400 font-medium">Wajah terdaftar</span>
+                  <span className="text-xs text-muted-foreground ml-auto">Verifikasi absensi otomatis aktif</span>
+                </div>
+              )}
+
               <Button onClick={() => setEditing(true)} className="w-full gap-2">
                 <Pencil className="h-4 w-4" /> Edit Profil
               </Button>

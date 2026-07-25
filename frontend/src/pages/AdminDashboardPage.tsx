@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useAdminWeek, useMonthAttendance } from '@/hooks/useDashboard'
 import { useQuery } from '@tanstack/react-query'
@@ -34,6 +34,7 @@ export default function AdminDashboardPage() {
   var chart = adminData?.chart || []
   var pendingCount = pendingUsers?.length || 0
   var totalKaryawan = s?.totalKaryawan || 0
+  var [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   var donutData = useMemo(function() {
     if (!monthData?.data) return []
@@ -192,6 +193,8 @@ export default function AdminDashboardPage() {
               month={currentMonth}
               data={monthData?.data || []}
               totalKaryawan={monthData?.totalKaryawan || totalKaryawan}
+              selectedDate={selectedDate}
+              onSelectedDateChange={setSelectedDate}
             />
           ) : (
             <Skeleton className="h-[220px] md:h-[260px] w-full rounded-lg" />

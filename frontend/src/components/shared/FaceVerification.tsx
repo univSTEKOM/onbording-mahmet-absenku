@@ -58,11 +58,11 @@ export function FaceVerification({
     return new Promise<void>((resolve, reject) => {
       saveTimeoutRef.current = setTimeout(() => reject(new Error('Timeout')), SAVE_TIMEOUT)
       updateUserMutation.mutate(
-        { id: user.id, data: { foto: JSON.stringify(arr) } },
+        { id: user.id, data: { faceDescriptor: JSON.stringify(arr) } },
         {
           onSuccess: () => {
             if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
-            updateUser({ foto: JSON.stringify(arr) })
+            updateUser({ faceDescriptor: JSON.stringify(arr) })
             resolve()
           },
           onError: (err) => {
@@ -108,10 +108,10 @@ export function FaceVerification({
     setMessage('')
 
     try {
-      const raw = user?.foto
+      const raw = user?.faceDescriptor
       let stored: number[] | null = null
       if (raw) {
-        try { const p = JSON.parse(raw); if (isFaceDescriptor(p)) stored = p } catch { /* ok */ }
+        try { const p = JSON.parse(raw); if (isFaceDescriptor(p)) stored = p } catch (e) { console.error('FaceVerification: parse descriptor error', e) }
       }
 
       if (stored) {
@@ -195,7 +195,7 @@ export function FaceVerification({
         <DialogHeader>
           <DialogTitle>Verifikasi Wajah</DialogTitle>
           <DialogDescription>
-            {user?.foto
+            {user?.faceDescriptor
               ? `Verifikasi wajah untuk ${mode === 'in' ? 'check in' : 'check out'}`
               : 'Daftarkan wajah Anda untuk absensi selanjutnya'}
           </DialogDescription>

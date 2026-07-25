@@ -48,7 +48,7 @@ export function PengajuanDetailDialog({
           {variant === 'admin' && pengaju && (
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={pengaju.foto && !pengaju.foto.startsWith('[') ? pengaju.foto : undefined} />
+                <AvatarImage src={pengaju.foto || undefined} />
                 <AvatarFallback className="text-sm">{pengaju.nama?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
               </Avatar>
               <div>
@@ -137,3 +137,4 @@ export function PengajuanDetailDialog({
     </Dialog>
   )
 }
+

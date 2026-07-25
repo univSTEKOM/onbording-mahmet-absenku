@@ -11,6 +11,7 @@ export const users = sqliteTable('user', {
   jabatan: text('jabatan'),
   phone: text('phone'),
   alamat: text('alamat'),
+  faceDescriptor: text('face_descriptor'),
   createdAt: text('created_at'),
   updatedAt: text('updated_at'),
 })

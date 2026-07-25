@@ -55,6 +55,7 @@ dbJson.users = createdUsers.map((u) => ({
   status: u.status,
   rejectionNotes: [],
   foto: '',
+  faceDescriptor: '',
   phone: u.phone,
   alamat: u.alamat,
   createdAt: new Date().toISOString(),

@@ -80,6 +80,7 @@ function AuthenticatedLayout() {
   if (isLoading) return <LoadingScreen timedOut={timedOut} />
   if (!user) return <Navigate to="/login" replace />
   if (['pending', 'rejected'].includes(user.status) && location.pathname !== '/status' && location.pathname !== '/profil') return <Navigate to="/status" replace />
+  if (user.status === 'approved' && location.pathname === '/status') return <Navigate to="/dashboard" replace />
 
   return (
     <ErrorBoundary>

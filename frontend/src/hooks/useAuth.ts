@@ -20,6 +20,7 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
     status: (p.status as User['status']) ?? (base.status as User['status']) ?? 'approved',
     rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) ?? [],
     foto: (p.foto as string) ?? (base.image as string) ?? '',
+    faceDescriptor: (p.faceDescriptor as string) ?? (base.faceDescriptor as string) ?? '',
     phone: (p.phone as string) ?? (base.phone as string) ?? '',
     alamat: (p.alamat as string) ?? (base.alamat as string) ?? '',
     createdAt: (p.createdAt as string) ?? (base.createdAt as string) ?? '',
@@ -95,6 +96,8 @@ export function useAuth() {
     if (data.foto !== undefined) body.foto = data.foto
     if (data.phone !== undefined) body.phone = data.phone
     if (data.alamat !== undefined) body.alamat = data.alamat
+    if (data.faceDescriptor !== undefined) body.faceDescriptor = data.faceDescriptor
+    delete body.password
     await api.patch(`/users/${sessionUserId}`, body)
 
     await queryClient.invalidateQueries({ queryKey: ['auth', 'profile', sessionUserId] })

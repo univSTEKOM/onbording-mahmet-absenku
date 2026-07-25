@@ -69,6 +69,9 @@ const loginAttempts = new Map()
 const MAX_ATTEMPTS = 3
 const BASE_BLOCK = 30000
 const MAX_BLOCK = 120000
+const registerAttempts = new Map()
+const REGISTER_MAX = 5
+const REGISTER_WINDOW = 60000
 
 server.post('/api/auth/sign-in/email', (req, res, next) => {
   let body = ''
@@ -134,6 +137,15 @@ async function requireAdmin(headers) {
 /* ── Custom routes ── */
 
 server.post('/api/register', async (req, res) => {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const now = Date.now()
+  const regRecord = registerAttempts.get(ip)
+  if (regRecord && regRecord.count >= REGISTER_MAX && (now - regRecord.start) < REGISTER_WINDOW) {
+    return res.status(429).json({ message: 'Terlalu banyak percobaan pendaftaran. Coba lagi dalam 1 menit.' })
+  }
+  if (regRecord && (now - regRecord.start) >= REGISTER_WINDOW) {
+    registerAttempts.delete(ip)
+  }
   try {
     const { email, password, phone } = req.body
     const nama = req.body.nama || req.body.name || ''
@@ -168,7 +180,13 @@ server.post('/api/register', async (req, res) => {
     }
     router.db.get('users').push(profile).write()
     res.status(201).json({ user: { ...data.user, ...profile } })
-  } catch (e) { res.status(400).json({ message: e.message || 'Gagal mendaftar' }) }
+    registerAttempts.delete(ip)
+  } catch (e) {
+    const rec = registerAttempts.get(ip)
+    if (!rec) { registerAttempts.set(ip, { count: 1, start: Date.now() }) }
+    else { rec.count++ }
+    res.status(400).json({ message: 'Gagal mendaftar' })
+  }
 })
 
 server.get('/api/me', async (req, res) => {
@@ -214,7 +232,7 @@ server.patch('/api/users/:id/status', async (req, res) => {
     res.json({ message: `Status berhasil diubah ke ${newStatus}` })
   } catch (e) {
     console.error('Status change error:', e.message, e.stack)
-    res.status(400).json({ message: 'Gagal: ' + e.message })
+    res.status(400).json({ message: 'Gagal memproses request' })
   }
 })
 
@@ -225,6 +243,7 @@ server.post('/api/users/:id/notes', async (req, res) => {
 
     const { note } = req.body
     if (!note) return res.status(400).json({ message: 'Catatan harus diisi' })
+    if (note.length > 500) return res.status(400).json({ message: 'Catatan maksimal 500 karakter' })
 
     const user = router.db.get('users').find({ id: req.params.id }).value()
     if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
@@ -233,7 +252,7 @@ server.post('/api/users/:id/notes', async (req, res) => {
     notes.push({ note, createdAt: new Date().toISOString() })
     router.db.get('users').find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
     res.json({ message: 'Catatan ditambahkan' })
-  } catch (e) { res.status(400).json({ message: 'Gagal: ' + e.message }) }
+  } catch (e) { res.status(400).json({ message: 'Gagal memproses request' }) }
 })
 
 server.delete('/api/users/:id', async (req, res) => {
@@ -262,7 +281,7 @@ server.delete('/api/users/:id', async (req, res) => {
 
     console.log(`User fully deleted: ${user.email}`)
     res.json({ message: 'User dan semua data terkait berhasil dihapus' })
-  } catch (e) { res.status(400).json({ message: 'Gagal: ' + e.message }) }
+  } catch (e) { res.status(400).json({ message: 'Gagal memproses request' }) }
 })
 
 server.get('/api/users/pending', async (req, res) => {
@@ -300,6 +319,8 @@ server.patch('/api/users/:id', async (req, res) => {
       if (d.length > 15) return res.status(400).json({ message: 'No telepon maksimal 15 digit' })
     }
     if (body.alamat !== undefined && body.alamat && body.alamat.length > 500) return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
+    if (body.foto !== undefined && body.foto && body.foto.length > 512000) return res.status(400).json({ message: 'Ukuran foto maksimal 500KB' })
+    if (body.faceDescriptor !== undefined && body.faceDescriptor && body.faceDescriptor.length > 10240) return res.status(400).json({ message: 'Data wajah tidak valid' })
 
     const existing = router.db.get('users').find({ id: req.params.id }).value()
     if (!existing) return res.status(404).json({ message: 'User tidak ditemukan' })
@@ -333,7 +354,7 @@ server.patch('/api/users/:id', async (req, res) => {
     res.json({ message: 'User berhasil diupdate' })
   } catch (e) {
     console.error('Admin update error:', e.message, e.stack)
-    res.status(400).json({ message: 'Gagal update user: ' + e.message })
+    res.status(400).json({ message: 'Gagal update user' })
   }
 })
 
@@ -411,7 +432,7 @@ server.post('/absensi', (req, res, next) => {
     next()
   } catch (e) {
     console.error('[absensi] POST error:', e.message, e.stack)
-    res.status(500).json({ message: 'Gagal absen: ' + e.message })
+    res.status(500).json({ message: 'Gagal absen' })
   }
 })
 
@@ -438,7 +459,7 @@ server.patch('/absensi/:id', (req, res, next) => {
     next()
   } catch (e) {
     console.error('[absensi] PATCH error:', e.message, e.stack)
-    res.status(500).json({ message: 'Gagal update absensi: ' + e.message })
+    res.status(500).json({ message: 'Gagal update absensi' })
   }
 })
 
@@ -465,6 +486,8 @@ server.patch('/users/:id', async (req, res, next) => {
     if (d.length > 15) return res.status(400).json({ message: 'No telepon maksimal 15 digit' })
   }
   if (body.alamat !== undefined && body.alamat.length > 500) return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
+  if (body.foto !== undefined && body.foto && body.foto.length > 512000) return res.status(400).json({ message: 'Ukuran foto maksimal 500KB' })
+  if (body.faceDescriptor !== undefined && body.faceDescriptor && body.faceDescriptor.length > 10240) return res.status(400).json({ message: 'Data wajah tidak valid' })
   const user = router.db.get('users').find({ id: req.params.id }).value()
   if (user && user.status === 'rejected') {
     router.db.get('users').find({ id: req.params.id }).assign({ status: 'pending', rejectionNotes: [] }).write()
@@ -705,13 +728,13 @@ server.get('/api/absensi/search', async (req, res) => {
     res.json(data)
   } catch (e) {
     console.error('[absensi/search] error:', e.message)
-    res.status(500).json({ message: e.message })
+    res.status(500).json({ message: 'Gagal memproses request' })
   }
 })
 
 server.use((err, req, res, next) => {
   console.error('[server] Unhandled error:', err?.message || err, err?.stack || '')
-  res.status(500).json({ message: 'Internal server error: ' + (err?.message || 'unknown') })
+  res.status(500).json({ message: 'Internal server error' })
 })
 
 server.use(async (req, res, next) => {

@@ -52,19 +52,23 @@ function hasAttendanceData(dayData: DayAttendanceData | undefined): boolean {
   return !!dayData && (dayData.hadir > 0 || dayData.pulangCepat > 0 || dayData.terlambat > 0 || dayData.checkInOnly > 0 || dayData.izin > 0 || dayData.sakit > 0 || dayData.cuti > 0)
 }
 
+const ATTENDED_STATUSES = ['hadir', 'pulangCepat', 'terlambat', 'checkInOnly'] as const
+
+function hasAttended(dayData: DayAttendanceData): boolean {
+  return ATTENDED_STATUSES.some((s) => dayData[s as keyof DayAttendanceData] > 0)
+}
+
 function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean): string {
   if (tanggal < APP_RELEASE_DATE) return STATUS_COLORS.sebelumRilis
   if (tanggal > todayStr) return STATUS_COLORS.masaDepan
   if (tanggal === todayStr && !hasAttendanceData(dayData)) return STATUS_COLORS.hariIni
   if (!dayData) return STATUS_COLORS.tidakHadir
   if (isAdmin) {
+    if (hasAttended(dayData)) return STATUS_COLORS.hadir
     const dominant = getAdminDominant(dayData)
     return STATUS_COLORS[dominant] || STATUS_COLORS.tidakHadir
   }
-  if (dayData.hadir > 0) return STATUS_COLORS.hadir
-  if (dayData.pulangCepat > 0) return STATUS_COLORS.pulang_cepat
-  if (dayData.terlambat > 0) return STATUS_COLORS.terlambat
-  if (dayData.checkInOnly > 0) return STATUS_COLORS.checkInOnly
+  if (hasAttended(dayData)) return STATUS_COLORS.hadir
   if (dayData.izin > 0) return STATUS_COLORS.izin
   if (dayData.sakit > 0) return STATUS_COLORS.sakit
   if (dayData.cuti > 0) return STATUS_COLORS.cuti
@@ -88,9 +92,9 @@ function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, is
     return parts.length > 0 ? parts.join(' ') : 'Alfa'
   }
   if (dayData.hadir > 0) return 'Hadir'
-  if (dayData.pulangCepat > 0) return 'Pulang Cepat'
-  if (dayData.terlambat > 0) return 'Telat'
-  if (dayData.checkInOnly > 0) return 'In'
+  if (dayData.pulangCepat > 0) return 'Hadir'
+  if (dayData.terlambat > 0) return 'Hadir'
+  if (dayData.checkInOnly > 0) return 'Hadir'
   if (dayData.izin > 0) return 'Izin'
   if (dayData.sakit > 0) return 'Sakit'
   if (dayData.cuti > 0) return 'Cuti'
@@ -156,12 +160,12 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
       </div>
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-hadir)' }} /> Hadir</span>
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-pulang-cepat)' }} /> Pulang Cepat</span>
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-terlambat)' }} /> Terlambat</span>
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-izin)' }} /> Izin</span>
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-sakit)' }} /> Sakit</span>
-        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-cuti)' }} /> Cuti</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-hadir)' }} /> Hadir (H)</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-pulang-cepat)' }} /> Pulang Cepat (PC)</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-terlambat)' }} /> Terlambat (T)</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-izin)' }} /> Izin (I)</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-sakit)' }} /> Sakit (S)</span>
+        <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-cuti)' }} /> Cuti (C)</span>
         <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-status-tidakHadir)' }} /> Alfa</span>
       </div>
     </div>

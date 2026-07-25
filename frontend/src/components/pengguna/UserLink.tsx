@@ -31,7 +31,7 @@ export function UserLink({ user, showAvatar = true, className, children }: UserL
     >
       {showAvatar && (
         <Avatar className="h-8 w-8 shrink-0">
-          <AvatarImage src={user.foto && !user.foto.startsWith('[') ? user.foto : undefined} />
+          <AvatarImage src={user.foto || undefined} />
           <AvatarFallback className="text-xs">{initials}</AvatarFallback>
         </Avatar>
       )}
@@ -39,4 +39,5 @@ export function UserLink({ user, showAvatar = true, className, children }: UserL
     </span>
   )
 }
+
 

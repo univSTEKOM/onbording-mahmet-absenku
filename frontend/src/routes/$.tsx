@@ -12,7 +12,8 @@ function CatchAllRedirect() {
 
   if (location.pathname === '/') {
     if (!user) return <WelcomePage />
-    return <Navigate to="/dashboard" replace />
+    if (['pending', 'rejected'].includes(user.status)) return <Navigate to="/status" replace />
+    return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/dashboard'} replace />
   }
 
   if (!user) return <Navigate to="/login" replace />

@@ -2,6 +2,8 @@
 
 **Base URL:** `http://localhost:3001`
 
+---
+
 ## Data Models
 
 ### User
@@ -87,16 +89,22 @@ Semua endpoint `/api/auth/*` menggunakan **cookie-based session** dari better-au
 **Response 200:**
 ```json
 {
-  "user": { "id": "uuid", "email": "andika@stekom.ac.id", "name": "Andika", "role": "admin", ... },
-  "session": { "id": "uuid", "token": "string", ... }
+  "user": { "id": "uuid", "email": "andika@stekom.ac.id", "name": "Andika", "role": "admin" },
+  "session": { "id": "uuid", "token": "string" }
 }
 ```
 
 **Error Responses:**
-| Code | Kondisi |
-|------|---------|
-| 400 | Email/password salah |
-| 429 | 3x gagal login — blokir sementara |
+
+`400 Bad Request` — Email atau password salah:
+```json
+{ "message": "Email atau password salah" }
+```
+
+`429 Too Many Requests` — 3x gagal login:
+```json
+{ "message": "Terlalu banyak percobaan. Coba lagi 27 detik lagi." }
+```
 
 **Contoh:**
 ```bash
@@ -122,15 +130,18 @@ curl -X POST http://localhost:3001/api/auth/sign-out -b cookies.txt
 
 ### `GET /api/auth/get-session` — Cek Session
 
-**Response 200:**
+**Response 200 (login):**
 ```json
 {
-  "user": { "id": "uuid", "email": "...", "role": "admin", ... },
-  "session": { "id": "uuid", ... }
+  "user": { "id": "uuid", "email": "...", "role": "admin" },
+  "session": { "id": "uuid" }
 }
 ```
 
-Jika tidak login: `{ "user": null, "session": null }`
+**Response 200 (tidak login):**
+```json
+{ "user": null, "session": null }
+```
 
 ---
 
@@ -138,7 +149,7 @@ Jika tidak login: `{ "user": null, "session": null }`
 
 ### `POST /api/register` — Daftar Akun Baru
 
-**Akses:** Publik (tanpa login) atau Admin (jika login sebagai admin)
+**Akses:** Publik atau Admin (jika login sebagai admin)
 
 **Request:**
 ```json
@@ -154,24 +165,33 @@ Jika tidak login: `{ "user": null, "session": null }`
 
 **Response 201:**
 ```json
-{ "user": { "id": "uuid", "email": "...", "nama": "...", "role": "karyawan", "status": "pending", ... } }
+{ "user": { "id": "uuid", "email": "...", "nama": "...", "role": "karyawan", "status": "pending" } }
+```
+
+**Error Responses:**
+
+`400 Bad Request`:
+```json
+{ "message": "Email sudah digunakan" }
+{ "message": "Password minimal 8 karakter" }
+{ "message": "Format email tidak valid" }
+{ "message": "Nama maksimal 100 karakter" }
 ```
 
 **Aturan:**
 - Jika request dari admin yang login: `role` sesuai body, `status` = `approved`
 - Jika request publik: `role` = `karyawan`, `status` = `pending`
-- Validasi: email format valid, password min 8, nama max 100, jabatan max 100
-
-**Error:**
-| Code | Kondisi |
-|------|---------|
-| 400 | Validasi gagal |
 
 ### `GET /api/me` — Profile Sendiri
 
 **Akses:** Cookie login
 
-**Response 200:** User object (merge session user + data dari db.json)
+**Response 200:** User object lengkap (merge session user + data dari db.json)
+
+`401 Unauthorized`:
+```json
+{ "message": "Unauthorized" }
+```
 
 ### `PATCH /users/:id` — Update Profile
 
@@ -179,12 +199,13 @@ Jika tidak login: `{ "user": null, "session": null }`
 
 **Request:**
 ```json
-{ "nama": "Nama Baru", "jabatan": "Staff Senior", "phone": "081234567890", "alamat": "Jl. Baru", "foto": "data:image/jpeg;base64,..." }
+{ "nama": "Nama Baru", "jabatan": "Staff Senior", "phone": "081234567890", "foto": "data:image/jpeg;base64,..." }
 ```
 
-**Response 200:** User object yang sudah diupdate
+**Response 200:** `{ ...updatedUser }`
 
 **Validasi:**
+
 | Field | Syarat |
 |-------|--------|
 | nama | max 100, tidak boleh kosong |
@@ -214,7 +235,8 @@ Jika tidak login: `{ "user": null, "session": null }`
 
 **Request:**
 ```json
-{ "status": "approved", "note": "Selamat bergabung" }
+{ "status": "approved" }
+{ "status": "rejected", "note": "Data tidak lengkap" }
 ```
 
 | Field | Wajib | Keterangan |
@@ -222,7 +244,10 @@ Jika tidak login: `{ "user": null, "session": null }`
 | status | ya | `"approved"` atau `"rejected"` |
 | note | tidak | Catatan, tersimpan di `rejectionNotes` jika reject |
 
-**Response 200:** `{ "message": "Status berhasil diubah ke approved" }`
+**Response 200:**
+```json
+{ "message": "Status berhasil diubah ke approved" }
+```
 
 ### `POST /api/users/:id/notes` — [Admin] Tambah Catatan
 
@@ -233,16 +258,22 @@ Jika tidak login: `{ "user": null, "session": null }`
 { "note": "Catatan tambahan untuk user ini" }
 ```
 
-**Response 200:** `{ "message": "Catatan ditambahkan" }`
+**Response 200:**
+```json
+{ "message": "Catatan ditambahkan" }
+```
 
 ### `DELETE /api/users/:id` — [Admin] Hapus User
 
 **Akses:** Admin
 
-**Response 200:** `{ "message": "User dan semua data terkait berhasil dihapus" }`
+**Response 200:**
+```json
+{ "message": "User dan semua data terkait berhasil dihapus" }
+```
 
-Menghapus dari:
-- better-auth (accounts, sessions, users table)
+**Menghapus dari:**
+- better-auth (accounts, sessions, users table via Drizzle ORM)
 - db.json (users, absensi, pengajuan milik user)
 
 ---
@@ -265,11 +296,12 @@ Menghapus dari:
 ```
 
 **Aturan:**
+
 | Kondisi | Response |
 |---------|----------|
 | Sebelum 06:45 | 400: "Absensi dibuka pukul 06:45" |
 | Sudah absen hari ini | 400: "Sudah absen hari ini" |
-| Check-in ≤ 07:45 | Status otomatis `hadir` |
+| Check-in <= 07:45 | Status otomatis `hadir` |
 | Check-in > 07:45 | Status otomatis `terlambat` |
 
 ### `PATCH /absensi/:id` — Check-Out
@@ -282,10 +314,11 @@ Menghapus dari:
 ```
 
 **Aturan:**
+
 | Kondisi | Status |
 |---------|--------|
 | Check-out < 16:00 | `pulang_cepat` |
-| Check-out ≥ 16:00 | Status tetap (tidak diubah) |
+| Check-out >= 16:00 | Status tetap (tidak diubah) |
 
 ### `GET /absensi` — List Absensi
 
@@ -334,9 +367,37 @@ Server otomatis menambahkan: `status: "pending"`, `catatan: ""`, `createdAt: NOW
 
 **Akses:** Cookie login
 
-**Query Parameters:** userId, jenis, status, _sort, _order, _page, _limit
+**Query Parameters:**
+
+| Parameter | Tipe | Contoh | Keterangan |
+|-----------|------|--------|------------|
+| userId | string | `abc123` | Filter by user |
+| jenis | string | `cuti` | Filter by jenis |
+| status | string | `pending` | Filter by status |
+| _sort | string | `createdAt` | Sort field |
+| _order | string | `asc` / `desc` | Sort direction |
+| _page | number | `1` | Pagination |
+| _limit | number | `10` | Items per page |
 
 **Response 200:** `Pengajuan[]`
+
+### `PATCH /pengajuan/:id` — Update Pengajuan (Karyawan)
+
+**Akses:** Cookie login (pemilik pengajuan)
+
+**Request:**
+```json
+{
+  "jenis": "izin",
+  "tanggalMulai": "2026-07-26",
+  "tanggalSelesai": "2026-07-26",
+  "alasan": "Keperluan mendadak"
+}
+```
+
+**Aturan:**
+- Hanya bisa di-update jika status saat ini `pending`
+- `alasan` max 500 karakter
 
 ### `PATCH /pengajuan/:id` — Update Status (Admin)
 
@@ -355,8 +416,7 @@ Server otomatis menambahkan: `status: "pending"`, `catatan: ""`, `createdAt: NOW
 
 **Akses:** Cookie login
 
-**Aturan:**
-- Hanya bisa dihapus jika status saat ini `pending`
+**Aturan:** Hanya bisa dihapus jika status saat ini `pending`
 
 ---
 
@@ -365,6 +425,7 @@ Server otomatis menambahkan: `status: "pending"`, `catatan: ""`, `createdAt: NOW
 ### `GET /api/dashboard/recent` — Riwayat 7 Hari
 
 **Query:**
+
 | Parameter | Wajib | Keterangan |
 |-----------|-------|------------|
 | userId | ya | UUID user |
@@ -379,18 +440,18 @@ Server otomatis menambahkan: `status: "pending"`, `catatan: ""`, `createdAt: NOW
 }
 ```
 
-7 tanggal terakhir yang memiliki data absensi.
+7 hari terakhir yang memiliki data absensi.
 
-### `GET /api/dashboard/admin/week` — Ringkasan Mingguan
+### `GET /api/dashboard/admin/week` — Ringkasan Mingguan (Admin)
 
-**Akses:** Cookie
+**Akses:** Cookie login
 
 **Response 200:**
 ```json
 {
   "chart": [
-    { "name": "Sen", "hadir": 10, "terlambat": 2, "izin": 1, "sakit": 0, "cuti": 1, "persen": 85 },
-    { "name": "Sel", "hadir": 8, "terlambat": 1, "izin": 2, "sakit": 1, "cuti": 0, "persen": 75 }
+    { "name": "Sen", "hadir": 10, "terlambat": 2, "izin": 1, "sakit": 0, "cuti": 1, "tidakHadir": 1, "persen": 85 },
+    { "name": "Sel", "hadir": 8, "terlambat": 1, "izin": 2, "sakit": 1, "cuti": 0, "tidakHadir": 3, "persen": 75 }
   ],
   "summary": {
     "totalKaryawan": 15,
@@ -408,6 +469,7 @@ Server otomatis menambahkan: `status: "pending"`, `catatan: ""`, `createdAt: NOW
 ### `GET /api/dashboard/month` — Data Bulanan
 
 **Query:**
+
 | Parameter | Wajib | Default | Keterangan |
 |-----------|-------|---------|------------|
 | tahun | tidak | tahun sekarang | Tahun |
@@ -428,17 +490,12 @@ Server otomatis menambahkan: `status: "pending"`, `catatan: ""`, `createdAt: NOW
 
 ## Error Codes
 
-| Kode | Arti | Penyebab Umum |
-|------|------|---------------|
-| 400 | Bad Request | Validasi gagal, body tidak valid |
-| 401 | Unauthorized | Tidak login / session expired |
-| 403 | Forbidden | Bukan admin, akses ditolak |
-| 404 | Not Found | Resource tidak ditemukan |
-| 413 | Payload Too Large | File foto > 5MB |
-| 429 | Too Many Requests | 3x gagal login |
-| 500 | Internal Server Error | Error server (cek console) |
-
-Semua error response berbentuk:
-```json
-{ "message": "Deskripsi error" }
-```
+| Kode | Arti | Penyebab Umum | Response Body |
+|------|------|---------------|---------------|
+| 400 | Bad Request | Validasi gagal, body tidak valid | `{ "message": "Deskripsi error" }` |
+| 401 | Unauthorized | Tidak login / session expired | `{ "message": "Unauthorized" }` |
+| 403 | Forbidden | Bukan admin | `{ "message": "Forbidden" }` |
+| 404 | Not Found | Resource tidak ditemukan | `{ "message": "User tidak ditemukan" }` |
+| 413 | Payload Too Large | File foto > 5MB | `{ "message": "File terlalu besar" }` |
+| 429 | Too Many Requests | 3x gagal login | `{ "message": "Terlalu banyak percobaan. Coba lagi X detik lagi." }` |
+| 500 | Internal Server Error | Error server | `{ "message": "Internal server error: ..." }` |

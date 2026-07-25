@@ -4,9 +4,24 @@
 
 | Software | Minimal Versi | Cek |
 |----------|--------------|-----|
-| [Node.js](https://nodejs.org/) | ≥ 18.x | `node -v` |
-| npm | ≥ 9.x | `npm -v` |
+| [Node.js](https://nodejs.org/) | >= 18.x | `node -v` |
+| [Bun](https://bun.sh/) | >= 1.x | `bun --version` |
 | [Git](https://git-scm.com/) | — | `git --version` |
+
+> **Mengapa Bun?** Proyek ini menggunakan Bun sebagai package manager dan runtime. Bun lebih cepat dari npm dan kompatibel penuh.
+
+### Install Bun
+
+```powershell
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Atau via npm:
+```bash
+npm install -g bun
+```
+
+---
 
 ## Quick Start (5 Menit)
 
@@ -23,16 +38,16 @@ cd on-boarding-trials
 cd mock-api
 
 # Install dependencies
-npm install
+bun install
 
 # Copy environment variables
 copy .env.example .env
 
 # (Opsional) Seed database demo
-node seed.js
+bun run seed
 
 # Start server
-node server.js
+bun run start
 ```
 
 Mock API berjalan di **http://localhost:3001**.
@@ -43,13 +58,13 @@ Mock API berjalan di **http://localhost:3001**.
 cd frontend
 
 # Install dependencies
-npm install
+bun install
 
 # Copy environment variables
 copy .env.example .env
 
 # Start development server
-npm run dev
+bun run dev
 ```
 
 Frontend berjalan di **http://localhost:5173**.
@@ -57,6 +72,8 @@ Frontend berjalan di **http://localhost:5173**.
 ### 4. Buka Browser
 
 Buka **http://localhost:5173** dan login dengan akun demo.
+
+---
 
 ## Akun Demo
 
@@ -67,6 +84,8 @@ Buka **http://localhost:5173** dan login dengan akun demo.
 | siti@stekom.ac.id | password | karyawan | approved |
 | budi@stekom.ac.id | password | karyawan | pending (perlu diverifikasi) |
 
+---
+
 ## Environment Variables
 
 ### `frontend/.env`
@@ -76,6 +95,12 @@ VITE_API_URL=http://localhost:3001
 VITE_APP_RELEASE_DATE=2026-07-13
 ```
 
+**Keterangan:**
+| Variable | Default | Deskripsi |
+|----------|---------|-----------|
+| `VITE_API_URL` | `http://localhost:3001` | Base URL mock API |
+| `VITE_APP_RELEASE_DATE` | `2026-07-13` | Tanggal rilis aplikasi (data sebelum ini dianggap kosong di dashboard) |
+
 ### `mock-api/.env`
 
 ```env
@@ -84,31 +109,42 @@ BETTER_AUTH_URL=http://localhost:3001
 APP_RELEASE_DATE=2026-07-13
 ```
 
+**Keterangan:**
+| Variable | Default | Deskripsi |
+|----------|---------|-----------|
+| `BETTER_AUTH_SECRET` | — | Secret key untuk better-auth (min 32 karakter) |
+| `BETTER_AUTH_URL` | `http://localhost:3001` | Base URL auth server |
+| `APP_RELEASE_DATE` | `2026-07-13` | Cutoff date untuk dashboard admin |
+
+---
+
 ## Available Scripts
 
 ### Frontend
 
 | Script | Perintah | Deskripsi |
 |--------|----------|-----------|
-| Dev | `npm run dev` | Start Vite dev server (port 5173) |
-| Build | `npm run build` | TypeScript check + build production |
-| Lint | `npm run lint` | Jalankan oxlint |
-| Preview | `npm run preview` | Preview production build |
+| Dev | `bun run dev` | Start Vite dev server (port 5173) |
+| Build | `bun run build` | TypeScript check + build production |
+| Lint | `bun run lint` | Jalankan oxlint |
+| Preview | `bun run preview` | Preview production build |
 
 ### Mock API
 
 | Script | Perintah | Deskripsi |
 |--------|----------|-----------|
-| Start | `node server.js` | Start server (port 3001) |
-| Seed | `node seed.js` | Reset & seed database |
-| Seed+Start | `node seed.js && node server.js` | Seed lalu start |
+| Start | `bun run start` | Start server (port 3001) |
+| Seed | `bun run seed` | Reset & seed database |
+| Seed+Start | `bun run seed && bun run start` | Seed lalu start |
+
+---
 
 ## Troubleshooting
 
 ### Port 3001 / 5173 already in use
 
 ```powershell
-# Cari PID
+# Cari PID yang menggunakan port
 netstat -ano | Select-String ":3001"
 
 # Matikan proses
@@ -117,13 +153,13 @@ Stop-Process -Id <PID> -Force
 
 ### Route tree tidak ter-generate
 
-Hapus file route tree lalu restart Vite:
-
 ```bash
 cd frontend
 Remove-Item src/routeTree.gen.ts -Force
-npm run dev
+bun run dev
 ```
+
+> Vite + TanStack Router plugin akan meng-generate ulang route tree secara otomatis.
 
 ### Error `table "user" already exists`
 
@@ -132,16 +168,47 @@ Hapus file database lama:
 ```bash
 cd mock-api
 Remove-Item auth.db -Force
-node server.js
+bun run start
 ```
+
+Server akan meregenerasi `auth.db` otomatis saat startup.
 
 ### Face-api models tidak loading
 
-Pastikan folder `frontend/public/models/` berisi file model face-api.js. Jika kosong, download dari [face-api.js weights](https://github.com/justadudewhohacks/face-api.js/tree/master/weights).
+Pastikan folder `frontend/public/models/` berisi file weight face-api.js:
+
+```
+frontend/public/models/
+├── tiny_face_detector_model-shard1
+├── tiny_face_detector_model-weights_manifest.json
+├── face_landmark_68_model-shard1
+├── face_landmark_68_model-weights_manifest.json
+├── face_recognition_model-shard1
+├── face_recognition_model-weights_manifest.json
+├── face_recognition_model-shard2
+└── face_recognition_model-weights_manifest.json
+```
+
+Jika kosong, download dari: https://github.com/justadudewhohacks/face-api.js/tree/master/weights
 
 ### Module not found
 
 ```bash
 cd frontend  # atau cd mock-api
-npm install
+bun install
+```
+
+### Reset Product Tour
+
+Buka console browser (F12) lalu jalankan:
+
+```js
+// Reset tour utama
+localStorage.removeItem('absenku-tour')
+
+// Reset verification tour
+localStorage.removeItem('absenku-verification-tour')
+
+// Refresh halaman
+location.reload()
 ```
