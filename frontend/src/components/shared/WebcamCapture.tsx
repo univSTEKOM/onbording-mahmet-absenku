@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, Loader2 } from 'lucide-react'
-import { detectFace, drawFaceOverlay } from '@/lib/faceDetection'
+import { detectAllFaces, drawFaceOverlay } from '@/lib/faceDetection'
 
 /* Ubah ke true untuk mengaktifkan tombol ambil foto manual */
 const MANUAL_CAPTURE_ENABLED = false
@@ -92,15 +92,19 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
       ctx.drawImage(v, 0, 0, w, h)
 
       try {
-        const result = await detectFace(canvas, 500)
+        const results = await detectAllFaces(canvas, 500)
         const overlay = overlayRef.current
         if (!overlay) return
 
-        if (result) {
-          const box = result.detection.box
+        if (results.length > 1) {
+          stableRef.current = 0
+          const boxes = results.map((r) => ({ x: r.detection.box.x, y: r.detection.box.y, width: r.detection.box.width, height: r.detection.box.height }))
+          drawFaceOverlay(overlay, w, h, boxes, false)
+          onFaceStatus?.({ detected: true, stable: false, message: `Terdeteksi ${results.length} wajah. Pastikan hanya 1 wajah.`, color: 'yellow' })
+        } else if (results.length === 1) {
+          const box = results[0].detection.box
           const faceStable = (box.width * box.height) > MIN_FACE_AREA
-
-          drawFaceOverlay(overlay, w, h, { x: box.x, y: box.y, width: box.width, height: box.height }, faceStable)
+          drawFaceOverlay(overlay, w, h, [{ x: box.x, y: box.y, width: box.width, height: box.height }], faceStable)
 
           if (faceStable) {
             stableRef.current++

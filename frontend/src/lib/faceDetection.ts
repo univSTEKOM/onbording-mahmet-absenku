@@ -30,11 +30,31 @@ export async function detectFace(
   }
 }
 
+export async function detectAllFaces(
+  input: HTMLVideoElement | HTMLCanvasElement,
+  timeoutMs = 5000
+): Promise<faceapi.WithFaceDescriptor<faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }>>[]> {
+  const timer = setTimeout(() => {
+    throw new Error('Timeout')
+  }, timeoutMs)
+
+  try {
+    const results = await faceapi
+      .detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor()
+
+    return results || []
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export function drawFaceOverlay(
   canvas: HTMLCanvasElement,
   videoWidth: number,
   videoHeight: number,
-  faceBox: { x: number; y: number; width: number; height: number } | null,
+  faces: { x: number; y: number; width: number; height: number }[] | null,
   faceStable: boolean
 ) {
   const ctx = canvas.getContext('2d')
@@ -43,20 +63,22 @@ export function drawFaceOverlay(
   canvas.width = videoWidth
   canvas.height = videoHeight
 
-  if (faceBox) {
-    /* Rounded face box */
-    ctx.beginPath()
-    ctx.roundRect(faceBox.x, faceBox.y, faceBox.width, faceBox.height, 16)
-    ctx.strokeStyle = faceStable ? 'rgba(34, 197, 94, 0.8)' : 'rgba(234, 179, 8, 0.8)'
-    ctx.lineWidth = 3
-    ctx.stroke()
+  if (faces && faces.length > 0) {
+    const hasMultiple = faces.length > 1
+    faces.forEach((box) => {
+      const color = faceStable && !hasMultiple ? 'rgba(34, 197, 94, 0.8)' : hasMultiple ? 'rgba(239, 68, 68, 0.8)' : 'rgba(234, 179, 8, 0.8)'
+      ctx.beginPath()
+      ctx.roundRect(box.x, box.y, box.width, box.height, 16)
+      ctx.strokeStyle = color
+      ctx.lineWidth = 3
+      ctx.stroke()
 
-    /* Glow effect */
-    ctx.save()
-    ctx.shadowColor = faceStable ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)'
-    ctx.shadowBlur = 20
-    ctx.stroke()
-    ctx.restore()
+      ctx.save()
+      ctx.shadowColor = color.replace('0.8', '0.3')
+      ctx.shadowBlur = 20
+      ctx.stroke()
+      ctx.restore()
+    })
   }
 }
 
