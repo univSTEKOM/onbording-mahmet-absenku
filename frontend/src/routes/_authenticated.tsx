@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { createFileRoute, Navigate, Outlet, useLocation } from '@tanstack/react-router'
+import { createFileRoute, Navigate, Outlet, useLocation, Link } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
 import { FilterProvider, useFilterContext } from '@/lib/filter-context'
 import { AuthContextProvider } from '@/lib/auth-context'
@@ -49,9 +49,9 @@ function LoadingScreen({ timedOut }: { timedOut?: boolean }) {
             {timedOut ? (
               <>
                 <p className="text-sm">Koneksi terputus. Mungkin sesi Anda berakhir.</p>
-                <a href="/login" className="text-sm text-primary underline underline-offset-4">
+                <Link to="/login" className="text-sm text-primary underline underline-offset-4">
                   Kembali ke login
-                </a>
+                </Link>
               </>
             ) : (
               <>

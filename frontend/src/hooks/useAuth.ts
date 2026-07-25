@@ -115,7 +115,6 @@ export function useAuth() {
 
   return {
     user,
-    token: null,
     isLoading,
     login,
     register,

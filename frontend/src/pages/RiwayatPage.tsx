@@ -33,8 +33,8 @@ const STATUS_OPTIONS = [
 type QuickDate = 'hari_ini' | 'kemarin' | '7_hari' | 'bulan_ini' | null
 
 function hitungJam(checkIn: string | null, checkOut: string | null): string {
-  if (!checkIn || !checkOut) return '-'
-  const selisih = Math.max(0, new Date(checkOut).getTime() - new Date(checkIn).getTime())
+  if (!checkIn) return '-'
+  const selisih = Math.max(0, (checkOut ? new Date(checkOut).getTime() : Date.now()) - new Date(checkIn).getTime())
   const jam = Math.floor(selisih / (1000 * 60 * 60))
   const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
   return `${jam}j ${menit}m`

@@ -4,7 +4,7 @@ import fs from 'fs'
 import express from 'express'
 import { createRequire } from 'module'
 import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { auth, db } from './auth.js'
 import { users as usersSchema, sessions, accounts } from './db-schema.js'
 
@@ -507,7 +507,20 @@ server.patch('/users/:id', async (req, res, next) => {
     } catch (e) { console.error('Drizzle profile sync error:', e.message) }
   }
 
-  next()
+  /* Write changes to db.json */
+  const updateFields = {}
+  if (body.nama !== undefined) updateFields.nama = body.nama
+  if (body.jabatan !== undefined) updateFields.jabatan = body.jabatan
+  if (body.phone !== undefined) updateFields.phone = body.phone
+  if (body.alamat !== undefined) updateFields.alamat = body.alamat
+  if (body.foto !== undefined) updateFields.foto = body.foto
+  if (body.faceDescriptor !== undefined) updateFields.faceDescriptor = body.faceDescriptor
+  if (Object.keys(updateFields).length > 0) {
+    router.db.get('users').find({ id: req.params.id }).assign(updateFields).write()
+  }
+
+  const updated = router.db.get('users').find({ id: req.params.id }).value()
+  res.json(updated || { message: 'User berhasil diupdate' })
 })
 
 server.delete('/users/:id', (req, res) => { res.status(403).json({ message: 'Gunakan endpoint admin: DELETE /api/users/:id' }) })
@@ -518,16 +531,6 @@ server.patch('/pengajuan/:id', (req, res, next) => {
   if (req.body.status && r.status !== 'pending') return res.status(400).json({ message: 'Pengajuan sudah diproses' })
   if (req.body.alasan && req.body.alasan.length > 500) return res.status(400).json({ message: 'Alasan maksimal 500 karakter' })
   next()
-})
-
-server.delete('/users/:id', (req, res) => {
-  const user = router.db.get('users').find({ id: req.params.id }).value()
-  if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
-  /* Hapus juga absensi & pengajuan milik user */
-  router.db.get('absensi').remove((a) => a.userId === req.params.id).write()
-  router.db.get('pengajuan').remove((p) => p.userId === req.params.id).write()
-  router.db.get('users').remove({ id: req.params.id }).write()
-  res.status(200).json({ message: 'User dan seluruh data terkait berhasil dihapus' })
 })
 
 server.delete('/pengajuan/:id', (req, res) => {
@@ -762,6 +765,13 @@ server.use(router)
 
 const PORT = process.env.PORT || 3001
 normalizeDbFile()
+
+/* Migrate auth.db — add face_descriptor column if not exists */
+try {
+  db.run(sql`ALTER TABLE user ADD COLUMN face_descriptor TEXT`)
+  console.log('Migration: added face_descriptor column')
+} catch (_e) { /* kolom sudah ada */ }
+
 syncSeedUsers().then(() => {
   server.listen(PORT, () => { console.log(`Mock API running at http://localhost:${PORT}`) })
 })

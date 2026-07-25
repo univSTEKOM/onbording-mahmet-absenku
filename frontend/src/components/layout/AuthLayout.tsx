@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Logo } from '@/components/Logo'
+import { ROUTES } from '@/lib/routes'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth()
@@ -19,7 +20,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
   if (user) {
     const isOnboarding = user.status === 'pending' || user.status === 'rejected'
-    return <Navigate to={isOnboarding ? '/status' : user.role === 'admin' ? '/admin/dashboard' : '/dashboard'} replace />
+    return <Navigate to={isOnboarding ? ROUTES.STATUS : user.role === 'admin' ? ROUTES.ADMIN.DASHBOARD : ROUTES.DASHBOARD} replace />
   }
 
   return <>{children}</>
