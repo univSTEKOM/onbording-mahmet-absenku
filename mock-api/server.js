@@ -311,6 +311,8 @@ server.patch('/api/users/:id', async (req, res) => {
     if (body.alamat !== undefined) updateFields.alamat = body.alamat
     if (body.role !== undefined) updateFields.role = body.role
     if (body.email !== undefined) updateFields.email = body.email
+    if (body.foto !== undefined) updateFields.foto = body.foto
+    if (body.faceDescriptor !== undefined) updateFields.faceDescriptor = body.faceDescriptor
 
     router.db.get('users').find({ id: req.params.id }).assign(updateFields).write()
 
@@ -321,6 +323,7 @@ server.patch('/api/users/:id', async (req, res) => {
     if (body.phone !== undefined) syncFields.phone = body.phone
     if (body.alamat !== undefined) syncFields.alamat = body.alamat
     if (body.role !== undefined) syncFields.role = body.role
+    if (body.faceDescriptor !== undefined) syncFields.faceDescriptor = body.faceDescriptor
     if (Object.keys(syncFields).length > 0) {
       try {
         await db.update(usersSchema).set(syncFields).where(eq(usersSchema.id, req.params.id)).run()
@@ -440,6 +443,10 @@ server.patch('/absensi/:id', (req, res, next) => {
 })
 
 server.patch('/users/:id', async (req, res, next) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+  if (session.user.id !== req.params.id) return res.status(403).json({ message: 'Forbidden' })
+
   const body = req.body
   delete body.status; delete body.rejectionNotes; delete body.role; delete body.id; delete body.createdAt
   if (body.email !== undefined) {
@@ -470,6 +477,7 @@ server.patch('/users/:id', async (req, res, next) => {
   if (body.phone !== undefined) syncFields.phone = body.phone
   if (body.alamat !== undefined) syncFields.alamat = body.alamat
   if (body.foto !== undefined) syncFields.foto = body.foto
+  if (body.faceDescriptor !== undefined) syncFields.faceDescriptor = body.faceDescriptor
   if (Object.keys(syncFields).length > 0) {
     try {
       await db.update(usersSchema).set(syncFields).where(eq(usersSchema.id, req.params.id)).run()
@@ -507,10 +515,16 @@ server.delete('/pengajuan/:id', (req, res) => {
   res.status(200).json({ message: 'Dihapus' })
 })
 
-server.get('/api/dashboard/recent', (req, res) => {
-  const userId = req.query.userId || null
+server.get('/api/dashboard/recent', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+
+  const requestUserId = req.query.userId || null
+  const isAdmin = session.user.role === 'admin'
+  const effectiveUserId = requestUserId && isAdmin ? requestUserId : session.user.id
+
   let a = router.db.get('absensi').value()
-  if (userId) a = a.filter((x) => x.userId === userId)
+  if (effectiveUserId) a = a.filter((x) => x.userId === effectiveUserId)
   const today = new Date()
   const data = []
   for (let i = 6; i >= 0; i--) {
@@ -522,7 +536,11 @@ server.get('/api/dashboard/recent', (req, res) => {
   res.json({ data })
 })
 
-server.get('/api/dashboard/admin/week', (req, res) => {
+server.get('/api/dashboard/admin/week', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+  if (session.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
+
   const a = router.db.get('absensi').value()
   const u = router.db.get('users').value()
   const k = u.filter((x) => x.role === 'karyawan')
@@ -583,19 +601,25 @@ server.get('/api/dashboard/admin/week', (req, res) => {
 
 const APP_RELEASE_DATE = process.env.APP_RELEASE_DATE || '2026-07-13'
 
-server.get('/api/dashboard/month', (req, res) => {
+server.get('/api/dashboard/month', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+
+  const requestUserId = req.query.userId || null
+  const isAdmin = session.user.role === 'admin'
+  const effectiveUserId = requestUserId && isAdmin ? requestUserId : session.user.id
+
   const tahun = parseInt(req.query.tahun) || new Date().getFullYear()
   const bulan = parseInt(req.query.bulan) || (new Date().getMonth() + 1)
-  const userId = req.query.userId || null
   const todayStr = new Date().toISOString().split('T')[0]
   let a = router.db.get('absensi').value()
   let p = router.db.get('pengajuan').value()
-  if (userId) {
-    a = a.filter((x) => x.userId === userId)
-    p = p.filter((x) => x.userId === userId)
+  if (effectiveUserId) {
+    a = a.filter((x) => x.userId === effectiveUserId)
+    p = p.filter((x) => x.userId === effectiveUserId)
   }
   const u = router.db.get('users').value()
-  const total = userId ? 1 : u.filter((x) => x.role === 'karyawan').length
+  const total = effectiveUserId ? 1 : u.filter((x) => x.role === 'karyawan').length
 
   const daysInMonth = new Date(tahun, bulan, 0).getDate()
   const data = []
@@ -634,6 +658,57 @@ server.get('/api/dashboard/month', (req, res) => {
   res.json({ data, totalKaryawan: total })
 })
 
+server.get('/api/absensi/search', async (req, res) => {
+  try {
+    const query = (req.query.q || '').toLowerCase()
+    const statusFilter = req.query.status || ''
+    const tanggalGte = req.query.tanggal_gte || ''
+    const tanggalLte = req.query.tanggal_lte || ''
+    const page = parseInt(req.query._page) || 1
+    const limit = parseInt(req.query._limit) || 15
+
+    var allAbsensi = router.db.get('absensi').value()
+    var allUsers = router.db.get('users').value()
+
+    /* Filter by name if query exists */
+    if (query) {
+      var matchedUserIds = allUsers
+        .filter(function(u) { return (u.nama || '').toLowerCase().includes(query) })
+        .map(function(u) { return u.id })
+      allAbsensi = allAbsensi.filter(function(a) { return matchedUserIds.includes(a.userId) })
+    }
+
+    /* Filter by userId if specified */
+    if (req.query.userId) {
+      allAbsensi = allAbsensi.filter(function(a) { return a.userId === req.query.userId })
+    }
+
+    /* Filter by date range */
+    if (tanggalGte) allAbsensi = allAbsensi.filter(function(a) { return a.tanggal >= tanggalGte })
+    if (tanggalLte) allAbsensi = allAbsensi.filter(function(a) { return a.tanggal <= tanggalLte })
+
+    /* Filter by status */
+    if (statusFilter) {
+      var statuses = Array.isArray(req.query.status) ? req.query.status : [statusFilter]
+      allAbsensi = allAbsensi.filter(function(a) { return statuses.includes(a.status) })
+    }
+
+    /* Sort by tanggal descending */
+    allAbsensi.sort(function(a, b) { return b.tanggal.localeCompare(a.tanggal) })
+
+    /* Pagination */
+    var total = allAbsensi.length
+    var start = (page - 1) * limit
+    var data = allAbsensi.slice(start, start + limit)
+
+    res.set('x-total-count', String(total))
+    res.json(data)
+  } catch (e) {
+    console.error('[absensi/search] error:', e.message)
+    res.status(500).json({ message: e.message })
+  }
+})
+
 server.use((err, req, res, next) => {
   console.error('[server] Unhandled error:', err?.message || err, err?.stack || '')
   res.status(500).json({ message: 'Internal server error: ' + (err?.message || 'unknown') })
@@ -644,6 +719,19 @@ server.use(async (req, res, next) => {
   if (req.method === 'GET' && (req.path === '/' || req.path.startsWith('/uploads/'))) return next()
   const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
   if (!session) return res.status(401).json({ message: 'Unauthorized' })
+
+  /* Non-admin users can only access their own data */
+  if (session.user.role !== 'admin') {
+    if (req.path === '/users' || req.path.match(/^\/users\//)) {
+      return res.status(403).json({ message: 'Forbidden' })
+    }
+    if (req.path === '/absensi' || req.path.match(/^\/absensi\//)) {
+      req.query.userId = session.user.id
+    }
+    if (req.path === '/pengajuan' || req.path.match(/^\/pengajuan\//)) {
+      req.query.userId = session.user.id
+    }
+  }
   next()
 })
 

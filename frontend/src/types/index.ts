@@ -29,6 +29,7 @@ export interface User {
   status: UserStatus
   rejectionNotes: RejectionNote[]
   foto: string
+  faceDescriptor?: string
   phone: string
   alamat: string
   createdAt: string
@@ -67,6 +68,7 @@ export interface UpdateUserData {
   alamat?: string
   foto?: string
   role?: Role
+  faceDescriptor?: string
 }
 
 export interface AbsensiFilters {
@@ -81,8 +83,14 @@ export interface AbsensiFilters {
   _limit?: number
 }
 
+export interface UserFilters {
+  q?: string
+  role?: string
+}
+
 export interface PengajuanFilters {
   userId?: string
+  jenis?: string
   status?: string
 }
 

@@ -18,6 +18,18 @@ export async function getAbsensiPaginated(filters?: AbsensiFilters): Promise<Pag
   }
 }
 
+export async function searchAbsensi(params: Record<string, string | number | undefined>): Promise<PaginatedResult<Absensi>> {
+  const res = await api.get('/api/absensi/search', { params })
+  const total = parseInt(res.headers['x-total-count'] || '0', 10)
+  const limit = Number(params._limit) || 15
+  return {
+    data: res.data,
+    total,
+    page: Number(params._page) || 1,
+    totalPages: Math.ceil(total / limit),
+  }
+}
+
 export async function getAbsensiToday(userId: string): Promise<Absensi | null> {
   const today = new Date().toISOString().split('T')[0]
   const res = await api.get('/absensi', { params: { userId, tanggal: today } })

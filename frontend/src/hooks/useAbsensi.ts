@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { getAbsensi, getAbsensiPaginated, getAbsensiToday, checkIn, checkOut } from '@/api/absensi'
+import { getAbsensi, getAbsensiPaginated, searchAbsensi, getAbsensiToday, checkIn, checkOut } from '@/api/absensi'
 import type { AbsensiFilters } from '@/types'
 import { useAuth } from './useAuth'
 
@@ -15,6 +15,13 @@ export function useAbsensiListPaginated(filters?: AbsensiFilters) {
   return useQuery({
     queryKey: ['absensi', 'paginated', filters],
     queryFn: () => getAbsensiPaginated(filters),
+  })
+}
+
+export function useSearchAbsensi(params: Record<string, string | number | undefined>) {
+  return useQuery({
+    queryKey: ['absensi', 'search', params],
+    queryFn: () => searchAbsensi(params),
   })
 }
 
