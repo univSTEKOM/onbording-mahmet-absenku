@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
@@ -29,6 +29,7 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
   const [currentStep, setCurrentStep] = useState(0)
   const [isActive, setIsActive] = useState(false)
   const [paused, setPaused] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [exiting, setExiting] = useState(false)
 
   const steps = useMemo(() => {
@@ -73,7 +74,8 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
 
   const changeStep = useCallback((nextIndex: number) => {
     setExiting(true)
-    setTimeout(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
       setExiting(false)
       const step = steps[nextIndex]
       if (!isMobile && step.requiresSidebar) {
@@ -151,6 +153,13 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
       setPaused(false)
     }
   }, [location.pathname, isActive, currentStepDef, paused])
+
+  /* Cleanup timeout on unmount */
+  useEffect(function() {
+    return function() {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
 
   const showSpotlight = isActive && !paused && currentStepDef?.type === 'spotlight' && !isMobile
   const spotlight = useElementTracker(
