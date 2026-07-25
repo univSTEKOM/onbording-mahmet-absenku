@@ -11,6 +11,10 @@ export interface AdminWeekChartItem {
   name: string
   hadir: number
   terlambat: number
+  izin: number
+  sakit: number
+  cuti: number
+  tidakHadir: number
   persen: number
 }
 

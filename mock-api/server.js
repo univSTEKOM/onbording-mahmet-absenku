@@ -284,18 +284,25 @@ server.delete('/api/users/:id', async (req, res) => {
   } catch (e) { res.status(400).json({ message: 'Gagal memproses request' }) }
 })
 
+/* ── Helper: strip password from user object ── */
+function stripPassword(u) {
+  if (!u) return u
+  var { password, ...rest } = u
+  return rest
+}
+
 server.get('/api/users/pending', async (req, res) => {
   const authResult = await requireAdmin(fromNodeHeaders(req.headers))
   if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
   const users = router.db.get('users').filter((u) => u.status === 'pending').value()
-  res.json(users)
+  res.json(users.map(stripPassword))
 })
 
 server.get('/api/users/all', async (req, res) => {
   const authResult = await requireAdmin(fromNodeHeaders(req.headers))
   if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
   const users = router.db.get('users').value()
-  res.json(users)
+  res.json(users.map(stripPassword))
 })
 
 server.patch('/api/users/:id', async (req, res) => {
@@ -452,7 +459,7 @@ server.patch('/absensi/:id', (req, res, next) => {
       checkOut: req.body.checkOut,
       status: status || existing.status,
       faceVerified: existing.faceVerified || false,
-      photos: existing.photos || [],
+      photos: req.body.photos || existing.photos || [],
       keterangan: existing.keterangan || '',
       createdAt: existing.createdAt,
     }
@@ -756,6 +763,18 @@ server.use(async (req, res, next) => {
     }
     if (req.path === '/pengajuan' || req.path.match(/^\/pengajuan\//)) {
       req.query.userId = session.user.id
+    }
+  }
+  next()
+})
+
+/* ── Strip password from all /users GET responses ── */
+server.use(function(req, res, next) {
+  if (req.method === 'GET' && req.path === '/users') {
+    var origJson = res.json.bind(res)
+    res.json = function(body) {
+      if (Array.isArray(body)) return origJson(body.map(stripPassword))
+      return origJson(body)
     }
   }
   next()
