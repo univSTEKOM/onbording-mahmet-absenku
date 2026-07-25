@@ -38,7 +38,7 @@ function BadgeMini(p: { role: string }) {
       'inline-flex items-center gap-1 rounded-full text-[10px] font-medium px-2 py-0.5 border-0 shrink-0 ' +
       (p.role === 'admin'
         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-        : 'bg-muted text-muted-foreground')
+        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400')
     }>
       <Shield className="h-2.5 w-2.5" />
       {p.role === 'admin' ? 'Admin' : 'Karyawan'}
@@ -70,7 +70,7 @@ function KaryawanUserCard(p: KaryawanUserCardProps) {
         <div className="flex items-start gap-2.5 p-3.5 flex-1 min-w-0">
           <Avatar className="h-9 w-9 ring-2 ring-border/50 shrink-0">
             <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
-            <AvatarFallback className={u.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 text-xs' : 'bg-muted text-muted-foreground text-xs'}>
+            <AvatarFallback className={u.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 text-xs' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400 text-xs'}>
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -249,7 +249,7 @@ export default function AdminKaryawanPageV3() {
     <div className="space-y-5 md:space-y-6">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Karyawan</h1>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Pengguna</h1>
           <p className="text-xs md:text-sm text-muted-foreground">
             {filtered?.length || 0} orang
             {filtered && karyawanCount > 0 && ' · ' + karyawanCount + ' Karyawan'}

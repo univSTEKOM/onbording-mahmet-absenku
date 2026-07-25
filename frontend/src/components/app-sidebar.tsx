@@ -27,7 +27,7 @@ const adminItems = [
   { title: 'Admin', url: '/admin/dashboard', icon: <LayoutDashboard /> },
   { title: 'Riwayat', url: '/admin/riwayat', icon: <History /> },
   { title: 'Pengajuan', url: '/admin/pengajuan', icon: <FileText /> },
-  { title: 'Kelola Karyawan', url: '/admin/karyawan', icon: <Users /> },
+  { title: 'Kelola Pengguna', url: '/admin/karyawan', icon: <Users /> },
 ]
 
 const onboardingItems = [
