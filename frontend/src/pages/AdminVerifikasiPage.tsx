@@ -55,7 +55,7 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex-1 min-w-0 self-center">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <div className="min-w-0 flex-1 overflow-hidden">
                 <p
@@ -91,30 +91,28 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-16">
+      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-12">
         <button
           type="button"
-          className="flex-1 flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-medium transition-colors min-h-[48px] flex-col leading-tight"
+          className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
           onClick={function(e) { e.stopPropagation(); p.onApprove(u.id) }}
           disabled={p.isApproving}
         >
           <CheckCircle2 className="h-4 w-4" />
-          Setujui
         </button>
         <button
           type="button"
-          className="flex-1 flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white text-[10px] font-medium transition-colors border-t border-white/20 min-h-[48px] flex-col leading-tight"
+          className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
           onClick={function(e) { e.stopPropagation(); p.onReject(u) }}
         >
           <XCircle className="h-4 w-4" />
-          Tolak
         </button>
         <button
           type="button"
-          className="flex items-center justify-center bg-muted hover:bg-muted/80 text-muted-foreground text-[11px] transition-colors border-t border-border/40 min-h-[34px]"
-          onClick={function(e) { e.stopPropagation(); p.onDetail(u) }}
+          className="flex items-center justify-center bg-red-600/60 hover:bg-red-600/80 text-white transition-colors border-t border-white/20 min-h-[36px]"
+          onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
         >
-          Detail
+          <Trash2 className="h-4 w-4" />
         </button>
       </div>
 
@@ -136,17 +134,10 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
         </button>
         <button
           type="button"
-          className="flex items-center justify-center text-muted-foreground hover:text-foreground py-2.5 text-[11px] font-medium transition-colors border-l border-border/40 min-h-[42px] px-3"
-          onClick={function(e) { e.stopPropagation(); p.onDetail(u) }}
-        >
-          Detail
-        </button>
-        <button
-          type="button"
-          className="flex items-center justify-center text-destructive/70 hover:text-destructive py-2.5 transition-colors border-l border-border/40 min-h-[42px] px-3"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-red-600/60 hover:bg-red-600/80 text-white py-2.5 text-[11px] font-medium transition-colors border-l border-white/20 min-h-[42px]"
           onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-4 w-4" /> Hapus
         </button>
       </div>
     </div>
