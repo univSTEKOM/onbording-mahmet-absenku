@@ -17,6 +17,142 @@ import api from '@/api/axios'
 import type { User } from '@/types'
 import { CheckCircle2, XCircle, RefreshCw, Trash2, Ban, UserPlus, Clock, Briefcase, CalendarDays, Mail } from 'lucide-react'
 
+interface VerifikasiUserCardProps {
+  user: User
+  onApprove: (id: string) => void
+  onReject: (user: User) => void
+  onDetail: (user: User) => void
+  onDelete: (user: User) => void
+  isApproving: boolean
+}
+
+function VerifikasiUserCard(p: VerifikasiUserCardProps) {
+  var u = p.user
+  var nameRef = useRef<HTMLParagraphElement>(null)
+  var [isOverflow, setIsOverflow] = useState(false)
+
+  useEffect(function() {
+    var el = nameRef.current
+    if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
+  }, [u.nama])
+
+  var initials = (u.nama || '?').charAt(0).toUpperCase()
+  var joinedDate = u.createdAt
+    ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '-'
+
+  return (
+    <div
+      className="group flex flex-col lg:flex-row rounded-xl border border-border hover:border-primary/30 transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
+      onClick={function() { p.onDetail(u) }}
+    >
+      <div className="flex flex-1 min-w-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-card">
+        <div className="flex items-start gap-2.5 p-3.5 flex-1 min-w-0">
+          <Avatar className="h-9 w-9 ring-2 ring-amber-200 dark:ring-amber-800/50 shrink-0">
+            <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+            <AvatarFallback className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-xs">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="flex-1 min-w-0 self-center">
+            <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <p
+                  ref={nameRef}
+                  className={'text-sm font-semibold whitespace-nowrap ' + (isOverflow ? 'marquee' : 'truncate')}
+                  title={u.nama}
+                >
+                  {u.nama || '-'}
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-full text-[10px] font-medium px-2 py-0.5 shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                <Clock className="h-2.5 w-2.5" />
+                Pending
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+              <Mail className="h-3 w-3 shrink-0" />
+              {u.email}
+            </p>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
+              {u.jabatan && (
+                <span className="flex items-center gap-1">
+                  <Briefcase className="h-3 w-3 shrink-0" />
+                  {u.jabatan}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <CalendarDays className="h-3 w-3 shrink-0" />
+                Mendaftar {joinedDate}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-16">
+        <button
+          type="button"
+          className="flex-1 flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-medium transition-colors min-h-[48px] flex-col leading-tight"
+          onClick={function(e) { e.stopPropagation(); p.onApprove(u.id) }}
+          disabled={p.isApproving}
+        >
+          <CheckCircle2 className="h-4 w-4" />
+          Setujui
+        </button>
+        <button
+          type="button"
+          className="flex-1 flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white text-[10px] font-medium transition-colors border-t border-white/20 min-h-[48px] flex-col leading-tight"
+          onClick={function(e) { e.stopPropagation(); p.onReject(u) }}
+        >
+          <XCircle className="h-4 w-4" />
+          Tolak
+        </button>
+        <button
+          type="button"
+          className="flex items-center justify-center bg-muted hover:bg-muted/80 text-muted-foreground text-[11px] transition-colors border-t border-border/40 min-h-[34px]"
+          onClick={function(e) { e.stopPropagation(); p.onDetail(u) }}
+        >
+          Detail
+        </button>
+      </div>
+
+      <div className="flex lg:hidden rounded-b-xl overflow-hidden border-t border-border/40">
+        <button
+          type="button"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 text-[11px] font-medium transition-colors min-h-[42px]"
+          onClick={function(e) { e.stopPropagation(); p.onApprove(u.id) }}
+          disabled={p.isApproving}
+        >
+          <CheckCircle2 className="h-4 w-4" /> Setujui
+        </button>
+        <button
+          type="button"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white py-2.5 text-[11px] font-medium transition-colors border-l border-white/20 min-h-[42px]"
+          onClick={function(e) { e.stopPropagation(); p.onReject(u) }}
+        >
+          <XCircle className="h-4 w-4" /> Tolak
+        </button>
+        <button
+          type="button"
+          className="flex items-center justify-center text-muted-foreground hover:text-foreground py-2.5 text-[11px] font-medium transition-colors border-l border-border/40 min-h-[42px] px-3"
+          onClick={function(e) { e.stopPropagation(); p.onDetail(u) }}
+        >
+          Detail
+        </button>
+        <button
+          type="button"
+          className="flex items-center justify-center text-destructive/70 hover:text-destructive py-2.5 transition-colors border-l border-border/40 min-h-[42px] px-3"
+          onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminVerifikasiPage() {
   var queryClient = useQueryClient()
   var [rejectTarget, setRejectTarget] = useState<User | null>(null)
@@ -44,143 +180,6 @@ export default function AdminVerifikasiPage() {
     onSuccess: function() { queryClient.invalidateQueries({ queryKey: ['users'] }); setDeleteTarget(null); toast.success('User berhasil dihapus') },
   })
 
-  function UserCard(u: User) {
-    var nameRef = useRef<HTMLParagraphElement>(null)
-    var [isOverflow, setIsOverflow] = useState(false)
-
-    useEffect(function() {
-      var el = nameRef.current
-      if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
-    }, [u.nama])
-
-    var initials = (u.nama || '?').charAt(0).toUpperCase()
-    var joinedDate = u.createdAt
-      ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-      : '-'
-
-    var cardInfo = (
-      <div className="flex items-start gap-2.5 p-3.5 flex-1 min-w-0">
-        <Avatar className="h-9 w-9 ring-2 ring-amber-200 dark:ring-amber-800/50 shrink-0">
-          <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
-          <AvatarFallback className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-xs">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className="flex-1 min-w-0 self-center">
-          <div className="flex items-center gap-2">
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <p
-                ref={nameRef}
-                className={'text-sm font-semibold whitespace-nowrap ' + (isOverflow ? 'marquee' : 'truncate')}
-                title={u.nama}
-              >
-                {u.nama || '-'}
-              </p>
-            </div>
-            <span className="inline-flex items-center gap-1 rounded-full text-[10px] font-medium px-2 py-0.5 shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-              <Clock className="h-2.5 w-2.5" />
-              Pending
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-            <Mail className="h-3 w-3 shrink-0" />
-            {u.email}
-          </p>
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
-            {u.jabatan && (
-              <span className="flex items-center gap-1">
-                <Briefcase className="h-3 w-3 shrink-0" />
-                {u.jabatan}
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <CalendarDays className="h-3 w-3 shrink-0" />
-              Mendaftar {joinedDate}
-            </span>
-          </div>
-        </div>
-      </div>
-    )
-
-    var actionsDesktop = (
-      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-14">
-        <button
-          type="button"
-          className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-medium transition-colors min-h-[48px] flex-col"
-          onClick={function(e) { e.stopPropagation(); approveMutation.mutate(u.id) }}
-          disabled={approveMutation.isPending}
-        >
-          <CheckCircle2 className="h-4 w-4" />
-          <span>Setujui</span>
-        </button>
-        <button
-          type="button"
-          className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-[11px] font-medium transition-colors border-t border-white/20 min-h-[48px] flex-col"
-          onClick={function(e) { e.stopPropagation(); setRejectTarget(u) }}
-        >
-          <XCircle className="h-4 w-4" />
-          <span>Tolak</span>
-        </button>
-        <button
-          type="button"
-          className="flex items-center justify-center bg-muted hover:bg-muted/80 text-muted-foreground transition-colors border-t border-border/40 min-h-[36px]"
-          onClick={function(e) { e.stopPropagation(); setDetailTarget(u) }}
-        >
-          Detail
-        </button>
-      </div>
-    )
-
-    var actionsMobile = (
-      <div className="flex lg:hidden rounded-b-xl overflow-hidden border-t border-border/40">
-        <button
-          type="button"
-          className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-xs font-medium transition-colors min-h-[44px]"
-          onClick={function(e) { e.stopPropagation(); approveMutation.mutate(u.id) }}
-          disabled={approveMutation.isPending}
-        >
-          <CheckCircle2 className="h-4 w-4" /> Setujui
-        </button>
-        <button
-          type="button"
-          className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-3 text-xs font-medium transition-colors border-l border-white/20 min-h-[44px]"
-          onClick={function(e) { e.stopPropagation(); setRejectTarget(u) }}
-        >
-          <XCircle className="h-4 w-4" /> Tolak
-        </button>
-        <button
-          type="button"
-          className="flex items-center justify-center gap-1.5 bg-muted hover:bg-muted/80 text-muted-foreground py-3 text-xs font-medium transition-colors border-l border-border/40 min-h-[44px] px-3"
-          onClick={function(e) { e.stopPropagation(); setDetailTarget(u) }}
-        >
-          Detail
-        </button>
-        <button
-          type="button"
-          className="flex items-center justify-center text-destructive/70 hover:text-destructive py-3 transition-colors border-l border-border/40 min-h-[44px] px-3"
-          onClick={function(e) { e.stopPropagation(); setDeleteTarget(u) }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
-    )
-
-    return (
-      <div
-        key={u.id}
-        className="group flex flex-col lg:flex-row rounded-xl border border-border hover:border-primary/30 transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
-        onClick={function() { setDetailTarget(u) }}
-      >
-        <div className="flex flex-1 min-w-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-card">
-          {cardInfo}
-        </div>
-        {actionsDesktop}
-        {actionsMobile}
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-5 md:space-y-6">
       <div className="flex items-center justify-between gap-2">
@@ -203,7 +202,19 @@ export default function AdminVerifikasiPage() {
         <EmptyState message="Tidak ada pengguna yang menunggu verifikasi" icon={UserPlus} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
-          {pendingUsers.map(function(u) { return UserCard(u) })}
+          {pendingUsers.map(function(u) {
+            return (
+              <VerifikasiUserCard
+                key={u.id}
+                user={u}
+                onApprove={function(id) { approveMutation.mutate(id) }}
+                onReject={function(user) { setRejectTarget(user) }}
+                onDetail={function(user) { setDetailTarget(user) }}
+                onDelete={function(user) { setDeleteTarget(user) }}
+                isApproving={approveMutation.isPending}
+              />
+            )
+          })}
         </div>
       )}
 
