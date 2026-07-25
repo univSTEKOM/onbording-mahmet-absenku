@@ -10,27 +10,25 @@ export const STATUS_CONFIG = {
   tidakHadir:   { label: 'Alfa',         color: 'var(--color-status-tidakHadir)' },
 } as const
 
-const s = (key: string) => `bg-[var(--color-status-${key})]/10 text-[var(--color-status-${key})] border-0`
-
 export const absensiStatusBadge: Record<AbsensiStatus, string> = {
-  hadir: s('hadir'),
-  terlambat: s('terlambat'),
-  pulang_cepat: s('pulang_cepat'),
-  izin: s('izin'),
-  sakit: s('sakit'),
-  cuti: s('cuti'),
+  hadir:        'bg-[var(--color-status-hadir)] text-white border-0',
+  terlambat:    'bg-[var(--color-status-terlambat)] text-black border-0',
+  pulang_cepat: 'bg-[var(--color-status-pulang-cepat)] text-black border-0',
+  izin:         'bg-[var(--color-status-izin)] text-black border-0',
+  sakit:        'bg-[var(--color-status-sakit)] text-white border-0',
+  cuti:         'bg-[var(--color-status-cuti)] text-black border-0',
 }
 
 export const pengajuanStatusBadge: Record<PengajuanStatus, string> = {
-  pending:  'bg-[var(--color-status-terlambat)]/10 text-[var(--color-status-terlambat)] border-0',
-  approved: 'bg-[var(--color-status-hadir)]/10 text-[var(--color-status-hadir)] border-0',
-  rejected: 'bg-[var(--color-status-tidakHadir)]/10 text-[var(--color-status-tidakHadir)] border-0',
+  pending:  'bg-[var(--color-status-terlambat)] text-black border-0',
+  approved: 'bg-[var(--color-status-hadir)] text-white border-0',
+  rejected: 'bg-[var(--color-status-tidakHadir)] text-white border-0',
 }
 
 export const pengajuanJenisBadge: Record<PengajuanJenis, string> = {
-  cuti:  s('sakit'),
-  izin:  s('izin'),
-  sakit: s('terlambat'),
+  cuti:  'bg-[var(--color-status-sakit)] text-white border-0',
+  izin:  'bg-[var(--color-status-izin)] text-black border-0',
+  sakit: 'bg-[var(--color-status-terlambat)] text-black border-0',
 }
 
 export const pengajuanStatusLabel: Record<PengajuanStatus, string> = {
