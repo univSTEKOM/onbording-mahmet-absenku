@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
-import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
+import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP, CATEGORY_LABEL } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Download, RefreshCw, CheckCircle2, History, CalendarDays, X } from 'lucide-react'
@@ -72,6 +72,7 @@ export default function RiwayatPage() {
   const [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
   const [calendarDate, setCalendarDate] = useState<string | null>(null)
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [selectedMainCategory, setSelectedMainCategory] = useState('')
   const [detail, setDetail] = useState<Absensi | null>(null)
   const [detailDate, setDetailDate] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState('')
@@ -96,6 +97,7 @@ export default function RiwayatPage() {
     ...(dateFrom ? { tanggal_gte: dateFrom } : {}),
     ...(dateTo ? { tanggal_lte: dateTo } : {}),
     ...(selectedStatuses.length > 0 ? { status: selectedStatuses } : {}),
+    ...(selectedMainCategory ? { mainCategory: selectedMainCategory } : {}),
   })
 
   const absensi = data?.data
@@ -207,6 +209,23 @@ export default function RiwayatPage() {
               </button>
             </Badge>
           )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          {['', 'physical_present', 'absent_permit', 'absent_unpermit'].map((cat) => (
+            <button
+              key={cat || 'all'}
+              type="button"
+              onClick={() => { setSelectedMainCategory(selectedMainCategory === cat ? '' : cat); setPage(1) }}
+              className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
+                selectedMainCategory === cat
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+            >
+              {cat ? CATEGORY_LABEL[cat] || cat : 'Semua'}
+            </button>
+          ))}
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
