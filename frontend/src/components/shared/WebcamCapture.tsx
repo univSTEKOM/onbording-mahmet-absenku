@@ -6,17 +6,25 @@ import { detectFace, drawFaceOverlay } from '@/lib/faceDetection'
 /* Ubah ke true untuk mengaktifkan tombol ambil foto manual */
 const MANUAL_CAPTURE_ENABLED = false
 
+interface FaceStatus {
+  detected: boolean
+  stable: boolean
+  message: string
+  color: 'red' | 'yellow' | 'green'
+}
+
 interface WebcamCaptureProps {
   onCapture: (canvas: HTMLCanvasElement) => void
   processing?: boolean
   onVideoReady?: (video: HTMLVideoElement) => void
   active?: boolean
   onAutoCapture?: (photoUrl: string) => void
-  onFaceStatus?: (status: { detected: boolean; centered: boolean; message: string }) => void
+  onFaceStatus?: (status: FaceStatus) => void
 }
 
 const SCAN_DELAY = 150
 const STABLE_THRESHOLD = 10
+const MIN_FACE_AREA = 5000
 
 export function WebcamCapture({ onCapture, processing, onVideoReady, active, onAutoCapture, onFaceStatus }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -90,32 +98,26 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
 
         if (result) {
           const box = result.detection.box
-          const cx = w / 2
-          const cy = h / 2
-          const radius = Math.min(w, h) * 0.3
-          const faceCx = box.x + box.width / 2
-          const faceCy = box.y + box.height / 2
-          const dist = Math.sqrt((faceCx - cx) ** 2 + (faceCy - cy) ** 2)
-          const centered = dist + box.width / 2 < radius
+          const faceStable = (box.width * box.height) > MIN_FACE_AREA
 
-          drawFaceOverlay(overlay, w, h, { x: box.x, y: box.y, width: box.width, height: box.height }, centered)
+          drawFaceOverlay(overlay, w, h, { x: box.x, y: box.y, width: box.width, height: box.height }, faceStable)
 
-          if (centered) {
+          if (faceStable) {
             stableRef.current++
             if (stableRef.current >= STABLE_THRESHOLD) {
               if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
               const photoUrl = canvas.toDataURL('image/jpeg', 0.7)
               onAutoCapture(photoUrl)
             }
-            onFaceStatus?.({ detected: true, centered: true, message: 'Wajah terdeteksi, harap diam' })
+            onFaceStatus?.({ detected: true, stable: true, message: 'Wajah terdeteksi, harap diam', color: 'green' })
           } else {
             stableRef.current = 0
-            onFaceStatus?.({ detected: true, centered: false, message: 'Posisikan wajah di tengah lingkaran' })
+            onFaceStatus?.({ detected: true, stable: false, message: 'Dekatkan wajah ke kamera', color: 'yellow' })
           }
         } else {
           stableRef.current = 0
           drawFaceOverlay(overlay, w, h, null, false)
-          onFaceStatus?.({ detected: false, centered: false, message: 'Wajah tidak terdeteksi' })
+          onFaceStatus?.({ detected: false, stable: false, message: 'Wajah tidak terdeteksi', color: 'red' })
         }
       } catch {
         stableRef.current = 0

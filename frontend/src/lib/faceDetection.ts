@@ -35,7 +35,7 @@ export function drawFaceOverlay(
   videoWidth: number,
   videoHeight: number,
   faceBox: { x: number; y: number; width: number; height: number } | null,
-  isCentered: boolean
+  faceStable: boolean
 ) {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
@@ -43,33 +43,20 @@ export function drawFaceOverlay(
   canvas.width = videoWidth
   canvas.height = videoHeight
 
-  const cx = videoWidth / 2
-  const cy = videoHeight / 2
-  const radius = Math.min(videoWidth, videoHeight) * 0.3
-
-  /* Dark overlay with circle cutout */
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'
-  ctx.fillRect(0, 0, videoWidth, videoHeight)
-
-  ctx.save()
-  ctx.beginPath()
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2)
-  ctx.clip()
-  ctx.clearRect(0, 0, videoWidth, videoHeight)
-  ctx.restore()
-
-  /* Guide circle border */
-  ctx.beginPath()
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2)
-  ctx.strokeStyle = faceBox && isCentered ? 'rgba(34, 197, 94, 0.7)' : faceBox ? 'rgba(234, 179, 8, 0.7)' : 'rgba(255, 255, 255, 0.3)'
-  ctx.lineWidth = 2.5
-  ctx.stroke()
-
-  /* Face box */
   if (faceBox) {
-    ctx.strokeStyle = isCentered ? 'rgba(34, 197, 94, 0.8)' : 'rgba(234, 179, 8, 0.8)'
-    ctx.lineWidth = 2
-    ctx.strokeRect(faceBox.x, faceBox.y, faceBox.width, faceBox.height)
+    /* Rounded face box */
+    ctx.beginPath()
+    ctx.roundRect(faceBox.x, faceBox.y, faceBox.width, faceBox.height, 16)
+    ctx.strokeStyle = faceStable ? 'rgba(34, 197, 94, 0.8)' : 'rgba(234, 179, 8, 0.8)'
+    ctx.lineWidth = 3
+    ctx.stroke()
+
+    /* Glow effect */
+    ctx.save()
+    ctx.shadowColor = faceStable ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)'
+    ctx.shadowBlur = 20
+    ctx.stroke()
+    ctx.restore()
   }
 }
 

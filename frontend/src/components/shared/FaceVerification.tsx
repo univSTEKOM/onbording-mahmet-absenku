@@ -46,6 +46,7 @@ export function FaceVerification({
   const [message, setMessage] = useState('')
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
   const [faceStatus, setFaceStatus] = useState('')
+  const [faceColor, setFaceColor] = useState<'red' | 'yellow' | 'green'>('red')
 
   const loadingRef = useRef(false)
   const finishedRef = useRef(false)
@@ -225,12 +226,18 @@ export function FaceVerification({
             onVideoReady={handleVideoReady}
             active={status === 'idle' && !finishedRef.current}
             onAutoCapture={handleAutoCapture}
-            onFaceStatus={(s) => setFaceStatus(s.message)}
+            onFaceStatus={(s) => { setFaceStatus(s.message); setFaceColor(s.color) }}
           />
         ) : null}
 
         {status === 'idle' && cameraActive && faceStatus && (
-          <p className="text-xs text-center text-muted-foreground">{faceStatus}</p>
+          <p className={`text-xs text-center ${
+            faceColor === 'green' ? 'text-green-600 font-medium' :
+            faceColor === 'yellow' ? 'text-yellow-600' :
+            'text-muted-foreground'
+          }`}>
+            {faceStatus}
+          </p>
         )}
 
         {status === 'success' && (

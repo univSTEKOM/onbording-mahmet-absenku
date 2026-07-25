@@ -3,23 +3,25 @@ import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { TourContext } from './hooks/useTour'
-import { karyawanSteps, adminSteps } from './TourStepRegistry'
+import { karyawanSteps, adminSteps, verificationSteps } from './TourStepRegistry'
 import { scrollToElement, type TourRole } from './utils/tour-helpers'
-import { isTourCompleted, markTourCompleted, markTourSkipped } from './utils/tour-storage'
+import { isTourCompleted, markTourCompleted, markTourSkipped, isVerificationTourCompleted, markVerificationTourCompleted, markVerificationTourSkipped } from './utils/tour-storage'
 import { TourSpotlight } from './TourSpotlight'
 import { TourTooltip } from './TourTooltip'
 import { TourModal } from './TourModal'
 import { TourPaused } from './TourPaused'
 import { useElementTracker } from './hooks/useElementTracker'
+import type { User } from '@/types'
 import { useSidebar } from '@/components/ui/sidebar'
 
 interface TourProviderProps {
   children: ReactNode
   role: TourRole
+  status?: User['status']
   autoStart?: boolean
 }
 
-export function TourProvider({ children, role, autoStart = true }: TourProviderProps) {
+export function TourProvider({ children, role, status, autoStart = true }: TourProviderProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { setOpen, setOpenMobile, openMobile: _openMobile, isMobile } = useSidebar()
@@ -29,7 +31,10 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
   const [paused, setPaused] = useState(false)
   const [exiting, setExiting] = useState(false)
 
-  const steps = useMemo(() => role === 'admin' ? adminSteps : karyawanSteps, [role])
+  const steps = useMemo(() => {
+    if (status === 'pending' || status === 'rejected') return verificationSteps
+    return role === 'admin' ? adminSteps : karyawanSteps
+  }, [role, status])
 
   const total = steps.length
   const currentStepDef = steps[currentStep]
@@ -42,22 +47,29 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
     setPaused(false)
   }, [])
 
-  const complete = useCallback(() => {
-    markTourCompleted()
-    setIsActive(false)
-    setPaused(false)
-    const target = role === 'admin' ? '/admin/dashboard' : '/dashboard'
-    if (location.pathname !== target) {
-      navigate({ to: target as any })
-    }
-  }, [navigate, location.pathname, role])
+  const isOnboarding = status === 'pending' || status === 'rejected'
 
-  const skip = useCallback(() => {
-    markTourSkipped()
+  const complete = useCallback(() => {
+    if (isOnboarding) markVerificationTourCompleted()
+    else markTourCompleted()
     setIsActive(false)
     setPaused(false)
     setExiting(false)
-  }, [])
+    if (!isOnboarding) {
+      const target = role === 'admin' ? '/admin/dashboard' : '/dashboard'
+      if (location.pathname !== target) {
+        navigate({ to: target as any })
+      }
+    }
+  }, [isOnboarding, role, navigate, location.pathname])
+
+  const skip = useCallback(() => {
+    if (isOnboarding) markVerificationTourSkipped()
+    else markTourSkipped()
+    setIsActive(false)
+    setPaused(false)
+    setExiting(false)
+  }, [isOnboarding])
 
   const changeStep = useCallback((nextIndex: number) => {
     setExiting(true)
@@ -108,11 +120,14 @@ export function TourProvider({ children, role, autoStart = true }: TourProviderP
   }, [currentStepDef, location.pathname, navigate])
 
   useEffect(() => {
-    if (autoStart && !isActive && !isTourCompleted()) {
+    const isOnboarding = status === 'pending' || status === 'rejected'
+    if (autoStart && !isActive) {
+      if (isOnboarding && isVerificationTourCompleted()) return
+      if (!isOnboarding && isTourCompleted()) return
       const id = setTimeout(() => setIsActive(true), 800)
       return () => clearTimeout(id)
     }
-  }, [autoStart, isActive])
+  }, [autoStart, isActive, status])
 
   useEffect(() => {
     if (!isActive) return

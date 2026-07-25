@@ -39,7 +39,7 @@ export default function StatusAkunPage() {
         <p className="text-sm text-muted-foreground">Halaman monitoring status pendaftaran Anda</p>
       </div>
 
-      <Card>
+      <Card data-slot="status-card">
         <CardContent className="pt-8 pb-7 text-center space-y-5">
           <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br ${cfg.gradient}`}>
             <Icon className={`h-10 w-10 ${cfg.iconColor}`} />
@@ -70,7 +70,7 @@ export default function StatusAkunPage() {
       )}
 
       {user.status === 'rejected' && user.rejectionNotes && user.rejectionNotes.length > 0 && (
-        <Card>
+      <Card data-slot="rejection-notes">
           <CardContent className="pt-6 pb-5">
             <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
               <AlertTriangle className="h-4 w-4 text-destructive" />

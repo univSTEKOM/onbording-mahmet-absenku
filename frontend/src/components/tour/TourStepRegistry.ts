@@ -105,3 +105,48 @@ export const adminSteps: TourStepDef[] = [
   karyawanSteps[6], // profile-nav
   karyawanSteps[7], // completion
 ]
+
+export const verificationSteps: TourStepDef[] = [
+  {
+    id: 'v-welcome',
+    type: 'welcome',
+    title: 'Selamat datang di AbsenKu',
+    description: 'Akun kamu sedang dalam proses verifikasi oleh admin. Kami akan menjelaskan apa yang perlu kamu ketahui.',
+    icon: 'Sparkles',
+  },
+  {
+    id: 'v-status-card',
+    type: 'spotlight',
+    targetSelector: '[data-slot="status-card"]',
+    title: 'Status Pendaftaran',
+    description: 'Halaman ini menunjukkan status akun kamu. Admin akan memproses verifikasi segera.',
+    icon: 'Clock',
+    position: 'right',
+  },
+  {
+    id: 'v-rejection-notes',
+    type: 'spotlight',
+    targetSelector: '[data-slot="rejection-notes"]',
+    title: 'Jika Ditolak',
+    description: 'Jika pendaftaran ditolak, alasan penolakan akan muncul di sini. Perbaiki data dan ajukan ulang.',
+    icon: 'AlertTriangle',
+    position: 'right',
+  },
+  {
+    id: 'v-profile',
+    type: 'spotlight',
+    targetSelector: '[data-slot="nav-user"]',
+    title: 'Lengkapi Profil',
+    description: 'Sambil menunggu, lengkapi profil kamu. Foto dan data diri yang jelas mempercepat verifikasi.',
+    icon: 'User',
+    position: 'top',
+    route: '/profil',
+  },
+  {
+    id: 'v-completion',
+    type: 'completion',
+    title: 'Kamu sudah siap!',
+    description: 'Admin akan memproses verifikasi segera. Kamu akan diarahkan ke dashboard setelah akun diaktifkan.',
+    icon: 'PartyPopper',
+  },
+]
