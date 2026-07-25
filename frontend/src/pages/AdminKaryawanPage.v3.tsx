@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useUsers } from '@/hooks/useUsers'
+import { useDebounce } from '@/hooks/useDebounce'
 import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_PHONE_DIGITS, MIN_PHONE_DIGITS, MAX_ALAMAT_LENGTH } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +18,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { Separator } from '@/components/ui/separator'
 import { RoleBadge } from '@/components/shared/RoleBadge'
 import { Search, PlusCircle, Pencil, Trash2, RefreshCw, Users, Briefcase, CalendarDays } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
@@ -56,7 +58,7 @@ function KaryawanUserCard(p: KaryawanUserCardProps) {
       <div className="flex flex-1 min-w-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-card">
         <div className="flex items-start gap-2.5 p-3.5 flex-1 min-w-0">
           <Avatar className="h-9 w-9 ring-2 ring-border/50 shrink-0">
-            <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+            <AvatarImage src={u.foto || undefined} />
             <AvatarFallback className={u.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 text-xs' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400 text-xs'}>
               {initials}
             </AvatarFallback>
@@ -136,10 +138,19 @@ function KaryawanUserCard(p: KaryawanUserCardProps) {
 export default function AdminKaryawanPageV3() {
   var navigate = useNavigate()
   var { user: currentUser } = useAuth()
-  var { data: users, isLoading, refetch, isFetching } = useUsers()
-  var queryClient = useQueryClient()
   var [search, setSearch] = useState('')
   var [roleFilter, setRoleFilter] = useState('')
+  var debouncedSearch = useDebounce(search, 300)
+
+  var filterParams = useMemo(function() {
+    var p: Record<string, string> = {}
+    if (debouncedSearch) p.q = debouncedSearch
+    if (roleFilter) p.role = roleFilter
+    return p
+  }, [debouncedSearch, roleFilter])
+
+  var { data: users, isLoading, refetch, isFetching } = useUsers(filterParams)
+  var queryClient = useQueryClient()
   var [saving, setSaving] = useState(false)
 
   var [modalOpen, setModalOpen] = useState(false)
@@ -149,15 +160,9 @@ export default function AdminKaryawanPageV3() {
   var [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   var [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+  var [resetFace, setResetFace] = useState(false)
 
-  var filtered = users?.filter(function(u) {
-    var matchSearch = !search ||
-      (u.nama || '').toLowerCase().includes(search.toLowerCase()) ||
-      (u.jabatan || '').toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-    var matchRole = !roleFilter || u.role === roleFilter
-    return matchSearch && matchRole
-  })
+  var filtered = users
 
   var adminCount = filtered?.filter(function(u) { return u.role === 'admin' }).length || 0
   var karyawanCount = filtered?.filter(function(u) { return u.role === 'karyawan' }).length || 0
@@ -167,6 +172,7 @@ export default function AdminKaryawanPageV3() {
     setForm({ nama: '', email: '', jabatan: '', role: 'karyawan', phone: '', alamat: '' })
     setFormError('')
     setFieldErrors({})
+    setResetFace(false)
     setModalOpen(true)
   }
 
@@ -175,6 +181,7 @@ export default function AdminKaryawanPageV3() {
     setForm({ nama: user.nama, email: user.email, jabatan: user.jabatan, role: user.role, phone: user.phone || '', alamat: user.alamat || '' })
     setFormError('')
     setFieldErrors({})
+    setResetFace(false)
     setModalOpen(true)
   }
 
@@ -198,11 +205,12 @@ export default function AdminKaryawanPageV3() {
     setSaving(true)
     try {
       if (editTarget) {
-        await api.patch('/api/users/' + editTarget.id, form as Partial<User>)
+        await api.patch('/api/users/' + editTarget.id, { ...form, ...(resetFace ? { foto: '' } : {}) } as Partial<User>)
         toast.success('Karyawan berhasil diupdate')
       } else {
-        await api.post('/api/register', { ...form, password: 'password', name: form.nama, role: form.role })
-        toast.success('Karyawan berhasil ditambahkan (password: password)')
+        var generatedPassword = Math.random().toString(36).slice(2, 14)
+        await api.post('/api/register', { ...form, password: generatedPassword, name: form.nama, role: form.role })
+        toast.success('Karyawan berhasil ditambahkan')
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setModalOpen(false)
@@ -224,6 +232,13 @@ export default function AdminKaryawanPageV3() {
       toast.error('Gagal menghapus karyawan')
     }
     setDeleteTarget(null)
+  }
+
+  function hasFaceData(foto: string): boolean {
+    try {
+      var parsed = JSON.parse(foto)
+      return Array.isArray(parsed) && parsed.length === 128
+    } catch { return false }
   }
 
   var roleOptions = [
@@ -355,9 +370,16 @@ export default function AdminKaryawanPageV3() {
                 {fieldErrors.jabatan && <p className="text-xs text-destructive">{fieldErrors.jabatan}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Telepon</Label>
-                <PhoneInput value={form.phone || ''} onChange={function(v) { setForm({ ...form, phone: v }); setFieldErrors(function(p) { return { ...p, phone: '' } }) }} error={fieldErrors.phone} />
-                {fieldErrors.phone && <p className="text-xs text-destructive">{fieldErrors.phone}</p>}
+                <Label>Role</Label>
+                <Select value={form.role} onValueChange={function(v) { setForm({ ...form, role: (v || 'karyawan') as 'admin' | 'karyawan' }) }}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="karyawan">Karyawan</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-2">
@@ -367,18 +389,30 @@ export default function AdminKaryawanPageV3() {
               {fieldErrors.alamat && <p className="text-xs text-destructive">{fieldErrors.alamat}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Role</Label>
-              <Select value={form.role} onValueChange={function(v) { setForm({ ...form, role: (v || 'karyawan') as 'admin' | 'karyawan' }) }}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="karyawan">Karyawan</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Telepon</Label>
+              <PhoneInput value={form.phone || ''} onChange={function(v) { setForm({ ...form, phone: v }); setFieldErrors(function(p) { return { ...p, phone: '' } }) }} error={fieldErrors.phone} />
+              {fieldErrors.phone && <p className="text-xs text-destructive">{fieldErrors.phone}</p>}
             </div>
-            {!editTarget && <p className="text-xs text-muted-foreground">Password default: <code>password</code></p>}
+            {!editTarget && <p className="text-xs text-muted-foreground">Password akan digenerate otomatis</p>}
+            {editTarget && hasFaceData(editTarget.foto) && (
+              <>
+                <Separator />
+                <div className="flex items-center justify-between gap-4">
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-medium">Data Wajah</p>
+                    <p className="text-xs text-muted-foreground">Wajah terdaftar untuk verifikasi absensi</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={function() { setResetFace(!resetFace) }}
+                    className={'relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ' + (resetFace ? 'bg-destructive' : 'bg-muted')}
+                    aria-label={resetFace ? 'Aktifkan hapus data wajah' : 'Nonaktifkan hapus data wajah'}
+                  >
+                    <span className={'inline-block size-5 rounded-full bg-white shadow-sm transition-transform ' + (resetFace ? 'translate-x-[22px]' : 'translate-x-[2px]')} />
+                  </button>
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={function() { setModalOpen(false) }}>Batal</Button>
@@ -400,3 +434,4 @@ export default function AdminKaryawanPageV3() {
     </div>
   )
 }
+

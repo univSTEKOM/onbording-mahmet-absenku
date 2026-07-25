@@ -3,7 +3,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { useUsers } from '@/hooks/useUsers'
 import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_PHONE_DIGITS, MIN_PHONE_DIGITS, MAX_ALAMAT_LENGTH } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -92,8 +91,9 @@ export default function AdminKaryawanPageV1() {
         await api.patch('/api/users/' + editTarget.id, form as Partial<User>)
         toast.success('Karyawan berhasil diupdate')
       } else {
-        await api.post('/api/register', { ...form, password: 'password', name: form.nama, role: form.role })
-        toast.success('Karyawan berhasil ditambahkan (password: password)')
+        var generatedPassword = Math.random().toString(36).slice(2, 14)
+        await api.post('/api/register', { ...form, password: generatedPassword, name: form.nama, role: form.role })
+        toast.success('Karyawan berhasil ditambahkan')
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setModalOpen(false)
@@ -170,7 +170,7 @@ export default function AdminKaryawanPageV1() {
                       >
                         <TableCell>
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+                            <AvatarImage src={u.foto || undefined} />
                             <AvatarFallback className="text-xs">{u.nama?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
                           </Avatar>
                         </TableCell>
@@ -223,7 +223,7 @@ export default function AdminKaryawanPageV1() {
                 disabled={!!editTarget} className={fieldErrors.email ? 'border-destructive' : ''} />
               {fieldErrors.email && <p className="text-xs text-destructive">{fieldErrors.email}</p>}
             </div>
-            {!editTarget && <p className="text-xs text-muted-foreground">Password default: <code>password</code></p>}
+            {!editTarget && <p className="text-xs text-muted-foreground">Password akan digenerate otomatis</p>}
             <div className="space-y-2">
               <Label>Jabatan</Label>
               <Input value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={function(e) { setForm({ ...form, jabatan: e.target.value }); setFieldErrors(function(p) { return { ...p, jabatan: '' } }) }}
@@ -274,3 +274,4 @@ export default function AdminKaryawanPageV1() {
     </div>
   )
 }
+
