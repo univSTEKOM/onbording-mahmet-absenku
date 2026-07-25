@@ -56,7 +56,8 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
       video.onloadeddata = () => {
         if (onVideoReady) onVideoReady(video)
       }
-    } catch {
+    } catch (e) {
+      console.error('WebcamCapture: startCamera error', e)
       setError('Kamera tidak tersedia. Periksa izin kamera atau gunakan HTTPS.')
     } finally {
       setStarting(false)

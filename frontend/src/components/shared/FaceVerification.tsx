@@ -157,7 +157,7 @@ export function FaceVerification({
       const result = await detectFace(canvas)
       if (!result) { setStatus('fail'); setMessage('Wajah tidak terdeteksi.'); setCapturedPhoto(null); setProcessing(false); return }
       await processResult(result.descriptor, photoUrl)
-    } catch { setStatus('fail'); setMessage('Gagal memproses wajah.'); setCapturedPhoto(null) }
+    } catch (e) { console.error('FaceVerification: auto-capture error', e); setStatus('fail'); setMessage('Gagal memproses wajah.'); setCapturedPhoto(null) }
     setProcessing(false)
   }
 
@@ -172,7 +172,7 @@ export function FaceVerification({
       const result = await detectFace(canvas)
       if (!result) { setStatus('fail'); setMessage('Wajah tidak terdeteksi.'); setCapturedPhoto(null); setProcessing(false); return }
       await processResult(result.descriptor, photoUrl)
-    } catch { setStatus('fail'); setMessage('Gagal memproses wajah.'); setCapturedPhoto(null) }
+    } catch (e) { console.error('FaceVerification: manual-capture error', e); setStatus('fail'); setMessage('Gagal memproses wajah.'); setCapturedPhoto(null) }
     setProcessing(false)
   }
 

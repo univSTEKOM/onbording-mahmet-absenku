@@ -72,7 +72,8 @@ export function ImageCropperDialog({ open, imageSrc, onCropComplete, onCancel }:
     try {
       const croppedDataUrl = await getCroppedImg(imageSrc, croppedPixelsRef.current)
       onCropComplete(croppedDataUrl)
-    } catch {
+    } catch (e) {
+      console.error('ImageCropperDialog: crop error', e)
       onCancel()
     } finally {
       setSaving(false)
