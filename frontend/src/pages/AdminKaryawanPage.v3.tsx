@@ -1,0 +1,409 @@
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+import { useUsers } from '@/hooks/useUsers'
+import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_PHONE_DIGITS, MIN_PHONE_DIGITS, MAX_ALAMAT_LENGTH } from '@/lib/constants'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { PhoneInput } from '@/components/ui/phone-input'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { Search, PlusCircle, Pencil, Trash2, RefreshCw, Users, Briefcase, CalendarDays, Shield } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import api from '@/api/axios'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
+import type { User } from '@/types'
+
+export default function AdminKaryawanPageV3() {
+  var navigate = useNavigate()
+  var { user: currentUser } = useAuth()
+  var { data: users, isLoading, refetch, isFetching } = useUsers()
+  var queryClient = useQueryClient()
+  var [search, setSearch] = useState('')
+  var [roleFilter, setRoleFilter] = useState('')
+  var [saving, setSaving] = useState(false)
+
+  var [modalOpen, setModalOpen] = useState(false)
+  var [editTarget, setEditTarget] = useState<User | null>(null)
+  var [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const, phone: '', alamat: '' })
+  var [formError, setFormError] = useState('')
+  var [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  var [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+
+  var filtered = users?.filter(function(u) {
+    var matchSearch = !search ||
+      (u.nama || '').toLowerCase().includes(search.toLowerCase()) ||
+      (u.jabatan || '').toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase())
+    var matchRole = !roleFilter || u.role === roleFilter
+    return matchSearch && matchRole
+  })
+
+  var adminCount = filtered?.filter(function(u) { return u.role === 'admin' }).length || 0
+  var karyawanCount = filtered?.filter(function(u) { return u.role === 'karyawan' }).length || 0
+
+  function openCreate() {
+    setEditTarget(null)
+    setForm({ nama: '', email: '', jabatan: '', role: 'karyawan', phone: '', alamat: '' })
+    setFormError('')
+    setFieldErrors({})
+    setModalOpen(true)
+  }
+
+  function openEdit(user: User) {
+    setEditTarget(user)
+    setForm({ nama: user.nama, email: user.email, jabatan: user.jabatan, role: user.role, phone: user.phone || '', alamat: user.alamat || '' })
+    setFormError('')
+    setFieldErrors({})
+    setModalOpen(true)
+  }
+
+  async function handleSave() {
+    setFormError('')
+    var errs: Record<string, string> = {}
+    if (!form.nama?.trim()) errs.nama = 'Nama harus diisi'
+    else if (form.nama.length > MAX_NAMA_LENGTH) errs.nama = 'Maksimal ' + MAX_NAMA_LENGTH + ' karakter'
+    if (!form.email?.trim()) errs.email = 'Email harus diisi'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Format email tidak valid'
+    if (!form.jabatan?.trim()) errs.jabatan = 'Jabatan harus diisi'
+    else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = 'Maksimal ' + MAX_JABATAN_LENGTH + ' karakter'
+    if (form.phone) {
+      var digits = form.phone.replace(/\D/g, '')
+      if (digits.length < MIN_PHONE_DIGITS) errs.phone = 'Minimal ' + MIN_PHONE_DIGITS + ' angka'
+      else if (digits.length > MAX_PHONE_DIGITS) errs.phone = 'Maksimal ' + MAX_PHONE_DIGITS + ' angka'
+    }
+    if (form.alamat && form.alamat.length > MAX_ALAMAT_LENGTH) errs.alamat = 'Maksimal ' + MAX_ALAMAT_LENGTH + ' karakter'
+    if (Object.keys(errs).length > 0) { setFieldErrors(errs); return }
+
+    setSaving(true)
+    try {
+      if (editTarget) {
+        await api.patch('/api/users/' + editTarget.id, form as Partial<User>)
+        toast.success('Karyawan berhasil diupdate')
+      } else {
+        await api.post('/api/register', { ...form, password: 'password', name: form.nama, role: form.role })
+        toast.success('Karyawan berhasil ditambahkan (password: password)')
+      }
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      setModalOpen(false)
+    } catch (err: unknown) {
+      var msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal menyimpan'
+      setFormError(msg)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    try {
+      await api.delete('/api/users/' + deleteTarget.id)
+      toast.success('Karyawan berhasil dihapus')
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    } catch {
+      toast.error('Gagal menghapus karyawan')
+    }
+    setDeleteTarget(null)
+  }
+
+  var roleOptions = [
+    { value: '', label: 'Semua' },
+    { value: 'karyawan', label: 'Karyawan' },
+    { value: 'admin', label: 'Admin' },
+  ]
+
+  function UserCard(u: User) {
+    var nameRef = useRef<HTMLParagraphElement>(null)
+    var [isOverflow, setIsOverflow] = useState(false)
+
+    useEffect(function() {
+      var el = nameRef.current
+      if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
+    }, [u.nama])
+
+    var initials = (u.nama || '?').charAt(0).toUpperCase()
+    var joinedDate = u.createdAt
+      ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '-'
+
+    var cardInfo = (
+      <div className="flex items-start gap-2.5 p-3.5 flex-1 min-w-0">
+        <Avatar className="h-9 w-9 ring-2 ring-border/50 shrink-0">
+          <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+          <AvatarFallback className={u.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 text-xs' : 'bg-muted text-muted-foreground text-xs'}>
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="flex-1 min-w-0 self-center">
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <p
+                ref={nameRef}
+                className={'text-sm font-semibold whitespace-nowrap ' + (isOverflow ? 'marquee' : 'truncate')}
+                title={u.nama}
+              >
+                {u.nama || '-'}
+              </p>
+            </div>
+            <BadgeMini role={u.role} />
+          </div>
+          <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
+            {u.jabatan && (
+              <span className="flex items-center gap-1">
+                <Briefcase className="h-3 w-3 shrink-0" />
+                {u.jabatan}
+              </span>
+            )}
+            <span className="flex items-center gap-1">
+              <CalendarDays className="h-3 w-3 shrink-0" />
+              {joinedDate}
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+
+    var actionsDesktop = (
+      <div className="hidden lg:flex flex-col items-center justify-center gap-0.5 bg-muted/30 rounded-r-xl border-l border-border/40 px-2">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={function(e) { e.stopPropagation(); openEdit(u) }}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        {u.id !== currentUser?.id && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="text-destructive/70 hover:text-destructive"
+            onClick={function(e) { e.stopPropagation(); setDeleteTarget(u) }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    )
+
+    var actionsMobile = (
+      <div className="flex lg:hidden items-center justify-between px-3.5 py-2 bg-muted/30 rounded-b-xl border-t border-border/40">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-xs h-7"
+          onClick={function(e) { e.stopPropagation(); openEdit(u) }}
+        >
+          <Pencil className="h-3.5 w-3.5" /> Edit
+        </Button>
+        {u.id !== currentUser?.id && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs h-7 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive/40"
+            onClick={function(e) { e.stopPropagation(); setDeleteTarget(u) }}
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Hapus
+          </Button>
+        )}
+      </div>
+    )
+
+    return (
+      <div
+        key={u.id}
+        className="group flex flex-col lg:flex-row rounded-xl border border-border hover:border-primary/30 transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
+        onClick={function() { navigate({ to: '/admin/profile', state: { user: u } }) }}
+      >
+        <div className="flex flex-1 min-w-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-card">
+          {cardInfo}
+        </div>
+        {actionsDesktop}
+        {actionsMobile}
+      </div>
+    )
+  }
+
+  function BadgeMini(p: { role: string }) {
+    return (
+      <span className={
+        'inline-flex items-center gap-1 rounded-full text-[10px] font-medium px-2 py-0.5 border-0 shrink-0 ' +
+        (p.role === 'admin'
+          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+          : 'bg-muted text-muted-foreground')
+      }>
+        <Shield className="h-2.5 w-2.5" />
+        {p.role === 'admin' ? 'Admin' : 'Karyawan'}
+      </span>
+    )
+  }
+
+  return (
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Karyawan</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
+            {filtered?.length || 0} orang
+            {filtered && karyawanCount > 0 && ' · ' + karyawanCount + ' Karyawan'}
+            {filtered && adminCount > 0 && ' · ' + adminCount + ' Admin'}
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
+            <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
+          </Button>
+          <Button className="gap-2" onClick={openCreate}>
+            <PlusCircle className="h-4 w-4" /> Tambah
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Cari nama, email, atau jabatan..."
+            className="pl-9 h-9"
+            value={search}
+            onChange={function(e) { setSearch(e.target.value) }}
+          />
+        </div>
+        <div className="flex gap-1.5 shrink-0">
+          {roleOptions.map(function(opt) {
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={function() { setRoleFilter(opt.value) }}
+                className={'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ' + (
+                  roleFilter === opt.value
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
+          {Array.from({ length: 4 }, function(_, i) { return { id: 'kr-sk-' + i } }).map(function(item) {
+            return <Skeleton key={item.id} className="h-20 w-full rounded-xl" />
+          })}
+        </div>
+      ) : filtered && filtered.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
+          {filtered.map(function(u) { return UserCard(u) })}
+        </div>
+      ) : (
+        <EmptyState
+          message={search || roleFilter ? 'Karyawan tidak ditemukan' : 'Belum ada data karyawan'}
+          icon={Users}
+        />
+      )}
+
+      <style>{`
+        @keyframes marquee {
+          0%, 10% { transform: translateX(0); }
+          45%, 55% { transform: translateX(calc(-100% + 150px)); }
+          90%, 100% { transform: translateX(0); }
+        }
+        .marquee {
+          animation: marquee 8s ease-in-out infinite;
+          display: inline-block;
+          white-space: nowrap;
+          padding-right: 4px;
+        }
+        .marquee:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editTarget ? 'Edit Karyawan' : 'Tambah Karyawan'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {formError && <p className="text-sm text-destructive">{formError}</p>}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nama</Label>
+                <Input value={form.nama} maxLength={MAX_NAMA_LENGTH} onChange={function(e) { setForm({ ...form, nama: e.target.value }); setFieldErrors(function(p) { return { ...p, nama: '' } }) }}
+                  className={fieldErrors.nama ? 'border-destructive' : ''} />
+                {fieldErrors.nama && <p className="text-xs text-destructive">{fieldErrors.nama}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input type="email" value={form.email} maxLength={MAX_EMAIL_LENGTH} onChange={function(e) { setForm({ ...form, email: e.target.value }); setFieldErrors(function(p) { return { ...p, email: '' } }) }}
+                  disabled={!!editTarget} className={fieldErrors.email ? 'border-destructive' : ''} />
+                {fieldErrors.email && <p className="text-xs text-destructive">{fieldErrors.email}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Jabatan</Label>
+                <Input value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={function(e) { setForm({ ...form, jabatan: e.target.value }); setFieldErrors(function(p) { return { ...p, jabatan: '' } }) }}
+                  className={fieldErrors.jabatan ? 'border-destructive' : ''} />
+                {fieldErrors.jabatan && <p className="text-xs text-destructive">{fieldErrors.jabatan}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Telepon</Label>
+                <PhoneInput value={form.phone || ''} onChange={function(v) { setForm({ ...form, phone: v }); setFieldErrors(function(p) { return { ...p, phone: '' } }) }} error={fieldErrors.phone} />
+                {fieldErrors.phone && <p className="text-xs text-destructive">{fieldErrors.phone}</p>}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Alamat</Label>
+              <Textarea value={form.alamat || ''} maxLength={MAX_ALAMAT_LENGTH} onChange={function(e) { setForm({ ...form, alamat: e.target.value }); setFieldErrors(function(p) { return { ...p, alamat: '' } }) }}
+                className={fieldErrors.alamat ? 'border-destructive' : ''} />
+              {fieldErrors.alamat && <p className="text-xs text-destructive">{fieldErrors.alamat}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select value={form.role} onValueChange={function(v) { setForm({ ...form, role: (v || 'karyawan') as 'admin' | 'karyawan' }) }}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="karyawan">Karyawan</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {!editTarget && <p className="text-xs text-muted-foreground">Password default: <code>password</code></p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={function() { setModalOpen(false) }}>Batal</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {editTarget ? 'Simpan' : 'Tambah'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={function(o) { if (!o) setDeleteTarget(null) }}
+        title="Hapus Karyawan"
+        actions={[{ label: 'Hapus', onClick: handleDelete, variant: 'destructive' as const }]}
+      >
+        <p className="text-sm">Yakin ingin menghapus <strong>{deleteTarget?.nama}</strong>? Data absensi terkait juga akan terhapus.</p>
+      </ConfirmDialog>
+    </div>
+  )
+}
