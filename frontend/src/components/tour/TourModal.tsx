@@ -1,6 +1,10 @@
-import * as LucideIcons from 'lucide-react'
+import { Sparkles, Menu, LayoutDashboard, Fingerprint, History, FileText, User, PartyPopper, BarChart3, UserCheck, Clock, AlertTriangle, type LucideIcon } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  Sparkles, Menu, LayoutDashboard, Fingerprint, History, FileText, User, PartyPopper, BarChart3, UserCheck, Clock, AlertTriangle,
+}
 
 interface TourModalProps {
   type: 'welcome' | 'completion'
@@ -13,9 +17,7 @@ interface TourModalProps {
 }
 
 export function TourModal({ type, title, description, icon, onStart, onComplete, onSkip }: TourModalProps) {
-  const IconComponent = icon && icon in LucideIcons
-    ? (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[icon]
-    : null
+  const IconComponent = icon ? ICON_MAP[icon] || null : null
 
   return (
     <Dialog open>

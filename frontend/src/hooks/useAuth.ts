@@ -109,7 +109,7 @@ export function useAuth() {
 
   /* Periodic session check — detects deletion by admin */
   useEffect(() => {
-    const id = setInterval(() => refetch(), 30000)
+    const id = setInterval(() => refetch(), 5 * 60 * 1000)
     return () => clearInterval(id)
   }, [refetch])
 

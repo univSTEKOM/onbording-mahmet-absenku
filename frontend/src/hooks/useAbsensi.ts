@@ -8,6 +8,7 @@ export function useAbsensiList(filters?: AbsensiFilters) {
   return useQuery({
     queryKey: ['absensi', filters],
     queryFn: () => getAbsensi(filters),
+    staleTime: 15000,
   })
 }
 
@@ -15,6 +16,7 @@ export function useAbsensiListPaginated(filters?: AbsensiFilters) {
   return useQuery({
     queryKey: ['absensi', 'paginated', filters],
     queryFn: () => getAbsensiPaginated(filters),
+    staleTime: 15000,
   })
 }
 
