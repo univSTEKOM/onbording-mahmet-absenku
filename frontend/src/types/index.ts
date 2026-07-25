@@ -51,8 +51,8 @@ export interface Absensi {
   tanggal: string
   checkIn: string | null
   checkOut: string | null
-  mainCategory: string
-  subCategory: string
+  mainCategory?: string
+  subCategory?: string
   status: AbsensiStatus
   faceVerified: boolean
   photos?: Photo[]
@@ -79,7 +79,6 @@ export interface UpdateUserData {
   phone?: string
   alamat?: string
   foto?: string
-  role?: Role
   faceDescriptor?: string
 }
 
@@ -108,4 +107,4 @@ export interface PengajuanFilters {
   status?: string
 }
 
-export type { LoginRequest, RegisterRequest, PaginatedResult, ApiResponse, ApiError, CheckInData, CheckOutData, PengajuanFormData } from './api'
+export type { LoginRequest, RegisterRequest, PaginatedResult, ApiError, CheckInData, CheckOutData, PengajuanFormData } from './api'
