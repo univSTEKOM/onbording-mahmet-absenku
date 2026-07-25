@@ -6,9 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CalendarCard } from '@/components/CalendarCard'
-import { StatsCard } from '@/components/shared/StatsCard'
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
-import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
+import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck } from 'lucide-react'
 import { type ChartConfig } from '@/components/ui/chart'
 import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
 import api from '@/api/axios'
@@ -19,21 +18,21 @@ const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
 
 const barChartConfig = {
-  tidakHadir: { label: 'Alfa', color: 'var(--chart-1)' },
-  hadir: { label: 'Hadir', color: 'var(--chart-2)' },
-  izin: { label: 'Izin', color: 'var(--chart-3)' },
-  terlambat: { label: 'Terlambat', color: 'var(--chart-4)' },
-  sakit: { label: 'Sakit', color: 'var(--chart-5)' },
-  cuti: { label: 'Cuti', color: 'var(--chart-6)' },
+  tidakHadir: { label: 'Alfa', color: 'var(--color-status-tidakHadir)' },
+  hadir: { label: 'Hadir', color: 'var(--color-status-hadir)' },
+  izin: { label: 'Izin', color: 'var(--color-status-izin)' },
+  terlambat: { label: 'Terlambat', color: 'var(--color-status-terlambat)' },
+  sakit: { label: 'Sakit', color: 'var(--color-status-sakit)' },
+  cuti: { label: 'Cuti', color: 'var(--color-status-cuti)' },
 } satisfies ChartConfig
 
 const pieChartConfig = {
-  hadir: { label: 'Hadir', color: 'var(--chart-1)' },
-  terlambat: { label: 'Terlambat', color: 'var(--chart-2)' },
-  izin: { label: 'Izin', color: 'var(--chart-3)' },
-  sakit: { label: 'Sakit', color: 'var(--chart-4)' },
-  cuti: { label: 'Cuti', color: 'var(--chart-5)' },
-  tidakHadir: { label: 'Alfa', color: 'var(--chart-6)' },
+  hadir: { label: 'Hadir', color: 'var(--color-status-hadir)' },
+  terlambat: { label: 'Terlambat', color: 'var(--color-status-terlambat)' },
+  izin: { label: 'Izin', color: 'var(--color-status-izin)' },
+  sakit: { label: 'Sakit', color: 'var(--color-status-sakit)' },
+  cuti: { label: 'Cuti', color: 'var(--color-status-cuti)' },
+  tidakHadir: { label: 'Alfa', color: 'var(--color-status-tidakHadir)' },
 } satisfies ChartConfig
 
 const pieId = 'pie-kehadiran'
@@ -44,105 +43,112 @@ export default function AdminDashboardPage() {
   const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
   const { data: pendingUsers } = useQuery({
     queryKey: ['users', 'pending'],
-    queryFn: () => api.get('/api/users/pending').then((r) => r.data as User[]),
+    queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data as User[] }) },
   })
 
-  const s = adminData?.summary
-  const chart = adminData?.chart || []
-  const pendingCount = pendingUsers?.length || 0
-  const totalKaryawan = s?.totalKaryawan || 0
+  var s = adminData?.summary
+  var chart = adminData?.chart || []
+  var pendingCount = pendingUsers?.length || 0
+  var totalKaryawan = s?.totalKaryawan || 0
 
-  const donutData = useMemo(() => {
+  var donutData = useMemo(function() {
     if (!monthData?.data) return []
-    const hadirTotal = monthData.data.reduce((sum, d) => sum + (d.hadir || 0), 0)
-    const terlambatTotal = monthData.data.reduce((sum, d) => sum + (d.terlambat || 0), 0)
-    const izinTotal = monthData.data.reduce((sum, d) => sum + (d.izin || 0), 0)
-    const sakitTotal = monthData.data.reduce((sum, d) => sum + (d.sakit || 0), 0)
-    const cutiTotal = monthData.data.reduce((sum, d) => sum + (d.cuti || 0), 0)
-    const alfaTotal = monthData.data.reduce((sum, d) => sum + (d.tidakHadir || 0), 0)
+    var hadirTotal = monthData.data.reduce(function(sum, d) { return sum + (d.hadir || 0) }, 0)
+    var terlambatTotal = monthData.data.reduce(function(sum, d) { return sum + (d.terlambat || 0) }, 0)
+    var izinTotal = monthData.data.reduce(function(sum, d) { return sum + (d.izin || 0) }, 0)
+    var sakitTotal = monthData.data.reduce(function(sum, d) { return sum + (d.sakit || 0) }, 0)
+    var cutiTotal = monthData.data.reduce(function(sum, d) { return sum + (d.cuti || 0) }, 0)
+    var alfaTotal = monthData.data.reduce(function(sum, d) { return sum + (d.tidakHadir || 0) }, 0)
     return [
-      { name: 'hadir', value: hadirTotal, fill: 'var(--color-hadir)' },
-      { name: 'terlambat', value: terlambatTotal, fill: 'var(--color-terlambat)' },
-      { name: 'izin', value: izinTotal, fill: 'var(--color-izin)' },
-      { name: 'sakit', value: sakitTotal, fill: 'var(--color-sakit)' },
-      { name: 'cuti', value: cutiTotal, fill: 'var(--color-cuti)' },
-      { name: 'tidakHadir', value: alfaTotal, fill: 'var(--color-tidakHadir)' },
+      { name: 'hadir', value: hadirTotal, fill: 'var(--color-status-hadir)' },
+      { name: 'terlambat', value: terlambatTotal, fill: 'var(--color-status-terlambat)' },
+      { name: 'izin', value: izinTotal, fill: 'var(--color-status-izin)' },
+      { name: 'sakit', value: sakitTotal, fill: 'var(--color-status-sakit)' },
+      { name: 'cuti', value: cutiTotal, fill: 'var(--color-status-cuti)' },
+      { name: 'tidakHadir', value: alfaTotal, fill: 'var(--color-status-tidakHadir)' },
     ]
   }, [monthData])
 
-  const totalAbsen = donutData.reduce((s, d) => s + d.value, 0)
-  const hadirVal = donutData[0]?.value ?? 0
-  const hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
+  var totalAbsen = donutData.reduce(function(s, d) { return s + d.value }, 0)
+  var hadirVal = donutData[0]?.value ?? 0
+  var hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
+
+  var statsCards = [
+    {
+      label: 'Total Karyawan', value: isLoading ? '-' : String(totalKaryawan),
+      icon: Users, color: 'text-primary', bg: 'bg-primary/10', secondary: null,
+    },
+    {
+      label: 'Hadir Hari Ini', value: isLoading ? '-' : String(s?.hadirHariIni || 0),
+      icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      secondary: s?.hadirHariIni !== undefined ? 'dari ' + totalKaryawan + ' karyawan' : null,
+    },
+    {
+      label: 'Terlambat', value: isLoading ? '-' : String(s?.terlambatHariIni || 0),
+      icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30',
+      secondary: s?.terlambatHariIni && s.terlambatHariIni > 0 ? 'Lihat detail' : null,
+      onClick: s?.terlambatHariIni && s.terlambatHariIni > 0 ? function() { navigate({ to: '/admin/riwayat' }) } : undefined,
+    },
+    {
+      label: 'Verifikasi', value: String(pendingCount),
+      icon: UserCheck, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30',
+      secondary: 'karyawan perlu verifikasi',
+      onClick: pendingCount > 0 ? function() { navigate({ to: '/admin/verifikasi' }) } : undefined,
+    },
+  ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Admin</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
             {today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2" onClick={() => refetch()} disabled={isFetching}>
+        <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={function() { refetch() }} disabled={isFetching}>
           <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
           Refresh
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard label="Total Karyawan" value={isLoading ? '-' : String(totalKaryawan)} icon={Users} />
-        <Card>
-          <CardContent className="py-5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground">Hadir Hari Ini</span>
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-            </div>
-            <p className="text-3xl font-bold text-green-600">{isLoading ? '-' : s?.hadirHariIni || 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">dari {totalKaryawan} karyawan</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground">Terlambat</span>
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-            </div>
-            <p className="text-3xl font-bold text-yellow-600">{isLoading ? '-' : s?.terlambatHariIni || 0}</p>
-            {s?.terlambatHariIni && s.terlambatHariIni > 0 && (
-              <Button variant="link" size="sm" className="h-5 p-0 text-xs text-muted-foreground" onClick={() => navigate({ to: '/admin/riwayat' })}>
-                Lihat detail →
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-        <Card className="relative">
-          <CardContent className="py-5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground">Verifikasi</span>
-              <UserCheck className="h-4 w-4 text-blue-600" />
-            </div>
-            <p className="text-3xl font-bold text-blue-600">{pendingCount}</p>
-            <p className="text-xs text-muted-foreground mt-1">karyawan perlu verifikasi</p>
-            {pendingCount > 0 && (
-              <Button size="sm" variant="ghost" className="absolute bottom-2 right-2 gap-1 text-xs text-blue-600 h-7" onClick={() => navigate({ to: '/admin/verifikasi' })}>
-                Verifikasi <ArrowRight className="h-3 w-3" />
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+      <div className="flex gap-3 md:gap-4 overflow-x-auto pb-1">
+        {statsCards.map(function(stat) {
+          var Icon = stat.icon
+          return (
+            <Card
+              key={stat.label}
+              className={'shrink-0 w-[140px] md:w-[160px]' + (stat.onClick ? ' cursor-pointer hover:bg-muted/30 transition-colors' : '')}
+              onClick={stat.onClick}
+            >
+              <CardContent className="p-3 md:p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={'p-1.5 rounded-md ' + stat.bg}>
+                    <Icon className={'h-3.5 w-3.5 ' + stat.color} />
+                  </div>
+                  <span className="text-[11px] md:text-xs text-muted-foreground truncate">{stat.label}</span>
+                </div>
+                <p className={'text-xl md:text-2xl font-bold ' + stat.color}>{stat.value}</p>
+                {stat.secondary && (
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">{stat.secondary}</p>
+                )}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">Tren Kehadiran 7 Hari</CardTitle>
-            <CardDescription>
+          <CardHeader className="px-4 md:px-5 pt-4 md:pt-5">
+            <CardTitle className="text-sm md:text-base">Tren Kehadiran 7 Hari</CardTitle>
+            <CardDescription className="text-[11px] md:text-xs">
               {new Date(today.getTime() - 6 * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
               {' — '}
               {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 md:px-5 pb-4 md:pb-5">
             <WeekAttendanceChart
               data={chart}
               config={barChartConfig}
@@ -152,19 +158,21 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="flex flex-col" data-slot="admin-chart">
-          <CardHeader className="flex-row items-start space-y-0 pb-0">
-            <div className="grid gap-1">
-              <CardTitle>Kehadiran Bulan Ini</CardTitle>
-              <CardDescription>{['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][currentMonth]} {currentYear}</CardDescription>
+        <Card className="flex flex-col">
+          <CardHeader className="flex-row items-start space-y-0 pb-0 px-4 md:px-5 pt-4 md:pt-5">
+            <div className="grid gap-0.5">
+              <CardTitle className="text-sm md:text-base">Kehadiran Bulan Ini</CardTitle>
+              <CardDescription className="text-[11px] md:text-xs">
+                {['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][currentMonth]} {currentYear}
+              </CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-1 flex-col items-center justify-center pb-0">
+          <CardContent className="flex flex-1 flex-col items-center justify-center pb-0 px-4 md:px-5">
             <AttendancePieChart
               id={pieId}
               data={donutData}
               config={pieChartConfig}
-              centerLabel={`${hadirPct}%`}
+              centerLabel={hadirPct + '%'}
               centerSub="hadir"
               loading={monthLoading}
             />
@@ -173,7 +181,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {monthLoading ? (
-        <Skeleton className="h-[300px] w-full rounded-lg" />
+        <Skeleton className="h-[260px] md:h-[300px] w-full rounded-lg" />
       ) : (
         <CalendarCard
           year={currentYear}
@@ -185,4 +193,3 @@ export default function AdminDashboardPage() {
     </div>
   )
 }
-
