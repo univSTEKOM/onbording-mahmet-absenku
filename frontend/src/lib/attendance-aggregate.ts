@@ -24,7 +24,8 @@ function getType(mainCat: string, subCat: string): string {
 export function aggregateByMainCategory(records: AttendanceRecord[]): CategoryCount[] {
   var map: Record<string, number> = {}
   records.forEach(function(r) {
-    map[r.mainCategory] = (map[r.mainCategory] || 0) + 1
+    var key = r.mainCategory || 'unknown'
+    map[key] = (map[key] || 0) + 1
   })
   return Object.entries(map).map(function(e) {
     var cat = CATEGORY_MAP[e[0]]
@@ -41,7 +42,8 @@ export function aggregateByMainCategory(records: AttendanceRecord[]): CategoryCo
 export function aggregateBySubCategory(records: AttendanceRecord[]): CategoryCount[] {
   var map: Record<string, number> = {}
   records.forEach(function(r) {
-    map[r.subCategory] = (map[r.subCategory] || 0) + 1
+    var key = r.subCategory || 'unknown'
+    map[key] = (map[key] || 0) + 1
   })
   return Object.entries(map).map(function(e) {
     var cat = CATEGORY_MAP[e[0]]

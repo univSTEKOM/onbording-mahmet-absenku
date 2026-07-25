@@ -131,10 +131,10 @@ export default function AdminRiwayatPage() {
         <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" className="gap-2" onClick={function() {
             if (!absensi?.length) return
-            exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0],
-              ['Karyawan', 'Tanggal', 'Masuk', 'Pulang', 'Status'],
+exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0],
+              ['Karyawan', 'Tanggal', 'Masuk', 'Pulang', 'Status', 'Kategori'],
               absensi.map(function(a) {
-                return [users?.find(function(u) { return u.id === a.userId })?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status]
+                return [users?.find(function(u) { return u.id === a.userId })?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status, CATEGORY_LABEL[a.subCategory || ''] || a.subCategory || '-']
               }))
           }}>
             <Download className="h-4 w-4" /> CSV

@@ -97,6 +97,7 @@ export const CATEGORY_BADGE: Record<string, string> = {
   permit_personal:    'bg-[var(--color-status-izin)] text-black border-0',
   permit_general:     'bg-[var(--color-status-izin)] text-black border-0',
   /* Unpermit */
+  tidakHadir:         'bg-[var(--color-status-tidakHadir)] text-white border-0',
   unpermit_absent:    'bg-[var(--color-status-tidakHadir)] text-white border-0',
   unpermit_partial:   'bg-[var(--color-status-tidakHadir)] text-white border-0',
   unpermit_suspension:'bg-[var(--color-status-tidakHadir)] text-white border-0',

@@ -145,9 +145,9 @@ export default function RiwayatPage() {
         <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => {
             if (!absensi?.length) return
-            exportToCsv('riwayat-absensi-' + new Date().toISOString().split('T')[0],
-              ['Tanggal', 'Masuk', 'Pulang', 'Durasi', 'Status'],
-              absensi.map((a) => [formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), hitungJam(a.checkIn, a.checkOut), a.status]))
+             exportToCsv('riwayat-absensi-' + new Date().toISOString().split('T')[0],
+              ['Tanggal', 'Masuk', 'Pulang', 'Durasi', 'Status', 'Kategori'],
+              absensi.map((a) => [formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), hitungJam(a.checkIn, a.checkOut), a.status, CATEGORY_LABEL[a.subCategory || ''] || a.subCategory || '-']))
           }}>
             <Download className="h-4 w-4" /> CSV
           </Button>
@@ -362,6 +362,11 @@ export default function RiwayatPage() {
                   <Badge variant="secondary" className={absensiStatusBadge[detail.status]}>{absensiStatusLabel[detail.status]}</Badge>
                 </div>
               </div>
+              {detail.mainCategory && (
+                <div className="text-xs text-muted-foreground flex items-center gap-2">
+                  <span>Kategori: {CATEGORY_LABEL[detail.subCategory || ''] || CATEGORY_LABEL[detail.mainCategory] || detail.mainCategory}</span>
+                </div>
+              )}
               {detail.faceVerified && (
                 <p className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Wajah terverifikasi</p>
               )}
