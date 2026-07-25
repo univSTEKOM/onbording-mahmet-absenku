@@ -6,6 +6,7 @@ import {
   ALL_CATEGORIES,
   LEGACY_STATUS_TO_CATEGORY,
 } from '@/lib/attendance-categories'
+import { CATEGORY_LABEL, CATEGORY_BADGE, CATEGORY_COLORS_MAP } from '@/lib/constants'
 import { aggregateByType, aggregateByMainCategory, aggregateBySubCategory } from '@/lib/attendance-aggregate'
 
 describe('attendance-categories', function() {
@@ -38,6 +39,24 @@ describe('attendance-categories', function() {
 
   it('absent_unpermit has 3 sub categories', function() {
     expect(getSubCategories('absent_unpermit').length).toBe(3)
+  })
+
+  it('CATEGORY_LABEL covers all sub categories', function() {
+    ALL_CATEGORIES.forEach(function(c) {
+      expect(CATEGORY_LABEL[c.id]).toBeDefined()
+    })
+  })
+
+  it('CATEGORY_BADGE covers all sub categories', function() {
+    ALL_CATEGORIES.forEach(function(c) {
+      expect(CATEGORY_BADGE[c.id]).toBeDefined()
+    })
+  })
+
+  it('CATEGORY_COLORS_MAP covers all sub categories', function() {
+    ALL_CATEGORIES.forEach(function(c) {
+      expect(CATEGORY_COLORS_MAP[c.id]).toBeDefined()
+    })
   })
 
   it('getCategoryTree returns 3 main with subs', function() {

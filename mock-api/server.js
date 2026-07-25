@@ -390,6 +390,8 @@ function normalizeDbFile() {
         checkIn: entry.checkIn || null,
         checkOut: entry.checkOut || null,
         status: entry.status || '',
+        mainCategory: entry.mainCategory || '',
+        subCategory: entry.subCategory || '',
         faceVerified: entry.faceVerified || false,
         photos: entry.photos || [],
         keterangan: entry.keterangan || '',
@@ -456,6 +458,7 @@ server.patch('/absensi/:id', (req, res, next) => {
     const existing = router.db.get('absensi').find({ id: Number(req.params.id) }).value()
     if (!existing) return res.status(404).json({ message: 'Absensi tidak ditemukan' })
     const status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : existing.status
+    const isPulangCepat = status === 'pulang_cepat'
     req.body = {
       userId: existing.userId,
       tanggal: existing.tanggal,
@@ -463,7 +466,7 @@ server.patch('/absensi/:id', (req, res, next) => {
       checkOut: req.body.checkOut,
       status: status || existing.status,
       mainCategory: existing.mainCategory || 'physical_present',
-      subCategory: existing.subCategory || 'physical_standard',
+      subCategory: isPulangCepat ? 'physical_violation' : (existing.subCategory || 'physical_standard'),
       faceVerified: existing.faceVerified || false,
       photos: req.body.photos || existing.photos || [],
       keterangan: existing.keterangan || '',
@@ -619,7 +622,7 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
     const totalAktif = hadir + terlambat
     /* Category-type counts */
     var present = da.filter((x) => catType(x) === 'present').length
-    var absentPermit = da.filter((x) => catType(x) === 'absent_permit').length + dp.length
+    var absentPermit = da.filter((x) => catType(x) === 'absent_permit').length + dp.filter((x) => x.jenis === 'izin').length
     var absentUnpermit = da.filter((x) => catType(x) === 'absent_unpermit').length
     chart.push({
       name: d.toLocaleDateString('id-ID', { weekday: 'short' }),

@@ -79,7 +79,11 @@ export const STATUS_COLORS_MAP: Record<string, string> = {
 /* ── Category Badge & Label (new) ── */
 
 export const CATEGORY_BADGE: Record<string, string> = {
-  /* Physical */
+  /* Main */
+  physical_present:   'bg-[var(--color-status-hadir)] text-white border-0',
+  absent_permit:      'bg-[var(--color-status-izin)] text-black border-0',
+  absent_unpermit:    'bg-[var(--color-status-tidakHadir)] text-white border-0',
+  /* Sub: Physical */
   physical_standard:  'bg-[var(--color-status-hadir)] text-white border-0',
   physical_flexible:  'bg-[var(--color-status-hadir)] text-white border-0',
   physical_field:     'bg-[var(--color-status-hadir)] text-white border-0',
@@ -99,6 +103,11 @@ export const CATEGORY_BADGE: Record<string, string> = {
 }
 
 export const CATEGORY_LABEL: Record<string, string> = {
+  /* Main */
+  physical_present:   'Kehadiran Fisik',
+  absent_permit:      'Ketidakhadiran Berizin',
+  absent_unpermit:    'Ketidakhadiran Tanpa Izin',
+  /* Sub */
   physical_standard:  'Hadir Standar',
   physical_flexible:  'Hadir Fleksibel',
   physical_field:     'Dinas Luar',
@@ -116,6 +125,11 @@ export const CATEGORY_LABEL: Record<string, string> = {
 }
 
 export const CATEGORY_COLORS_MAP: Record<string, string> = {
+  /* Main */
+  physical_present:   'var(--color-status-hadir)',
+  absent_permit:      'var(--color-status-izin)',
+  absent_unpermit:    'var(--color-status-tidakHadir)',
+  /* Sub */
   physical_standard:  'var(--color-status-hadir)',
   physical_flexible:  'var(--color-status-hadir)',
   physical_field:     'var(--color-status-hadir)',

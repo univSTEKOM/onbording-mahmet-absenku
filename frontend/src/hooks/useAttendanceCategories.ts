@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getAttendanceCategories, clearCategoryCache } from '@/api/attendance'
+import { getAttendanceCategories } from '@/api/attendance'
 
 export function useAttendanceCategories() {
   return useQuery({
@@ -8,5 +8,3 @@ export function useAttendanceCategories() {
     staleTime: 60000,
   })
 }
-
-export { clearCategoryCache }
