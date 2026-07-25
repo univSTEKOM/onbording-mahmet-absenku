@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, Loader2 } from 'lucide-react'
-import { detectAllFaces, drawFaceOverlay } from '@/lib/faceDetection'
+import { detectFace, countFaces, drawFaceOverlay } from '@/lib/faceDetection'
 
 /* Ubah ke true untuk mengaktifkan tombol ambil foto manual */
 const MANUAL_CAPTURE_ENABLED = false
@@ -33,6 +33,7 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
   const streamRef = useRef<MediaStream | null>(null)
   const scanRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const stableRef = useRef(0)
+  const frameRef = useRef(0)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
 
@@ -75,7 +76,7 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
     return () => stopCamera()
   }, [active, startCamera, stopCamera])
 
-  /* Detection loop */
+  /* Detection loop — dual detection */
   useEffect(() => {
     if (!active || !onAutoCapture) return
 
@@ -90,21 +91,30 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.drawImage(v, 0, 0, w, h)
+      const overlay = overlayRef.current
+      if (!overlay) return
 
       try {
-        const results = await detectAllFaces(canvas, 500)
-        const overlay = overlayRef.current
-        if (!overlay) return
+        /* Single face detection — untuk capture */
+        const result = await detectFace(canvas, 500)
+        const boxes: { x: number; y: number; width: number; height: number }[] = []
 
-        if (results.length > 1) {
-          stableRef.current = 0
-          const boxes = results.map((r) => ({ x: r.detection.box.x, y: r.detection.box.y, width: r.detection.box.width, height: r.detection.box.height }))
-          drawFaceOverlay(overlay, w, h, boxes, false)
-          onFaceStatus?.({ detected: true, stable: false, message: `Terdeteksi ${results.length} wajah. Pastikan hanya 1 wajah.`, color: 'yellow' })
-        } else if (results.length === 1) {
-          const box = results[0].detection.box
+        if (result) {
+          const box = result.detection.box
           const faceStable = (box.width * box.height) > MIN_FACE_AREA
-          drawFaceOverlay(overlay, w, h, [{ x: box.x, y: box.y, width: box.width, height: box.height }], faceStable)
+          boxes.push({ x: box.x, y: box.y, width: box.width, height: box.height })
+          drawFaceOverlay(overlay, w, h, boxes, faceStable)
+
+          /* Multi-face check — tiap 3 frame, ringan */
+          frameRef.current++
+          if (frameRef.current % 3 === 0) {
+            const faceCount = await countFaces(canvas)
+            if (faceCount > 1) {
+              stableRef.current = 0
+              onFaceStatus?.({ detected: true, stable: false, message: `Terdeteksi ${faceCount} wajah. Pastikan hanya 1 wajah.`, color: 'yellow' })
+              return
+            }
+          }
 
           if (faceStable) {
             stableRef.current++

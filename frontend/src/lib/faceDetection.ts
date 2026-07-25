@@ -32,25 +32,12 @@ export async function detectFace(
   }
 }
 
-export async function detectAllFaces(
-  input: HTMLVideoElement | HTMLCanvasElement,
-  timeoutMs = 3000
-): Promise<faceapi.WithFaceDescriptor<faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }>>[]> {
-  let timedOut = false
-  const timer = setTimeout(() => { timedOut = true }, timeoutMs)
-
+export async function countFaces(input: HTMLVideoElement | HTMLCanvasElement): Promise<number> {
   try {
-    if (timedOut) return []
-    const results = await faceapi
-      .detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
-      .withFaceLandmarks()
-      .withFaceDescriptor()
-
-    return results || []
+    const results = await faceapi.detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
+    return results.length
   } catch {
-    return []
-  } finally {
-    clearTimeout(timer)
+    return 0
   }
 }
 

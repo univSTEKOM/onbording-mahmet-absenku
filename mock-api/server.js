@@ -246,11 +246,14 @@ server.delete('/api/users/:id', async (req, res) => {
 
     /* Hapus dari Better Auth via Drizzle */
     try {
-      await db.delete(accounts).where(eq(accounts.userId, req.params.id)).run()
-      await db.delete(sessions).where(eq(sessions.userId, req.params.id)).run()
-      await db.delete(usersSchema).where(eq(usersSchema.id, req.params.id)).run()
+      await db.delete(accounts).where(eq(accounts.userId, req.params.id))
+      await db.delete(sessions).where(eq(sessions.userId, req.params.id))
+      await db.delete(usersSchema).where(eq(usersSchema.id, req.params.id))
       console.log(`Deleted from Better Auth: ${user.email}`)
-    } catch (e) { console.error('Drizzle delete error:', e.message) }
+    } catch (e) {
+      console.error('Drizzle delete error:', e.message)
+      throw e
+    }
 
     /* Hapus dari db.json */
     router.db.get('users').remove({ id: req.params.id }).write()
