@@ -21,11 +21,14 @@ var ITEMS_PER_PAGE = 10
 
 export default function AdminPengajuanPage() {
   var { data: users } = useUsers()
-  var { data: allPengajuan, isLoading, refetch, isFetching } = useAllPengajuan()
-  var updateStatus = useUpdatePengajuanStatus()
-  var skId = useId()
   var [filterJenis, setFilterJenis] = useState('')
   var [filterStatus, setFilterStatus] = useState('')
+  var { data: allPengajuan, isLoading, refetch, isFetching } = useAllPengajuan({
+    jenis: filterJenis || undefined,
+    status: filterStatus || undefined,
+  })
+  var updateStatus = useUpdatePengajuanStatus()
+  var skId = useId()
   var [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
   var [confirmTarget, setConfirmTarget] = useState<Pengajuan | null>(null)
   var [confirmAction, setConfirmAction] = useState<PengajuanStatus | null>(null)
@@ -41,13 +44,9 @@ export default function AdminPengajuanPage() {
   var approvedMonth = monthData.filter(function(p) { return p.status === 'approved' }).length
   var rejectedMonth = monthData.filter(function(p) { return p.status === 'rejected' }).length
 
-  var filtered = allPengajuan?.filter(function(p) {
-    var matchStatus = !filterStatus || p.status === filterStatus
-    var matchJenis = !filterJenis || p.jenis === filterJenis
-    return matchStatus && matchJenis
-  }) || []
+  var dataList = allPengajuan || []
 
-  var sorted = [...filtered].sort(function(a, b) {
+  var sorted = [...dataList].sort(function(a, b) {
     if (a.status === 'pending' && b.status !== 'pending') return -1
     if (a.status !== 'pending' && b.status === 'pending') return 1
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

@@ -4,19 +4,25 @@ import { getPengajuan, createPengajuan, updatePengajuan, updatePengajuanStatus, 
 import type { Pengajuan, PengajuanStatus, PengajuanFormData } from '@/types'
 import { useAuth } from './useAuth'
 
-export function usePengajuanList() {
+export function usePengajuanList(filters?: { jenis?: string; status?: string }) {
   const { user } = useAuth()
+  const params: Record<string, string | undefined> = { userId: user?.id }
+  if (filters?.jenis) params.jenis = filters.jenis
+  if (filters?.status) params.status = filters.status
   return useQuery({
-    queryKey: ['pengajuan', user?.id],
-    queryFn: () => getPengajuan(user ? { userId: user.id } : undefined),
+    queryKey: ['pengajuan', user?.id, filters],
+    queryFn: () => getPengajuan(params),
     enabled: !!user,
   })
 }
 
-export function useAllPengajuan() {
+export function useAllPengajuan(filters?: { jenis?: string; status?: string }) {
+  const params: Record<string, string> = {}
+  if (filters?.jenis) params.jenis = filters.jenis
+  if (filters?.status) params.status = filters.status
   return useQuery({
-    queryKey: ['pengajuan'],
-    queryFn: () => getPengajuan(),
+    queryKey: ['pengajuan', 'all', filters],
+    queryFn: () => getPengajuan(params),
   })
 }
 

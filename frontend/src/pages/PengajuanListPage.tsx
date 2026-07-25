@@ -16,26 +16,24 @@ const ITEMS_PER_PAGE = 10
 
 export default function PengajuanListPage() {
   const navigate = useNavigate()
-  const { data: pengajuan, isLoading, refetch, isFetching } = usePengajuanList()
-  const deleteMutation = useDeletePengajuan()
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
-  const [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
   const [filterJenis, setFilterJenis] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [page, setPage] = useState(1)
   const skId = useId()
 
-  const filtered = pengajuan?.filter(function(p) {
-    var matchStatus = !filterStatus || p.status === filterStatus
-    var matchJenis = !filterJenis || p.jenis === filterJenis
-    return matchStatus && matchJenis
-  }) || []
+  const { data: pengajuan, isLoading, refetch, isFetching } = usePengajuanList({
+    jenis: filterJenis || undefined,
+    status: filterStatus || undefined,
+  })
+  const deleteMutation = useDeletePengajuan()
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
 
   var total = pengajuan?.length || 0
   var pending = pengajuan?.filter(function(p) { return p.status === 'pending' }).length || 0
   var approved = pengajuan?.filter(function(p) { return p.status === 'approved' }).length || 0
-  var totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  var paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+  var totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
+  var paginated = pengajuan?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE) || []
 
   var hasActiveFilter = filterJenis || filterStatus
 
