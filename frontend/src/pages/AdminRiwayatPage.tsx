@@ -5,23 +5,22 @@ import { useUsers } from '@/hooks/useUsers'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { CalendarCard } from '@/components/CalendarCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
-import { UserLink } from '@/components/pengguna/UserLink'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
-import { Download, RefreshCw, X, Search } from 'lucide-react'
+import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock } from 'lucide-react'
+import type { Absensi } from '@/types'
 
-const PAGE_SIZE = 15
-const curMonth = new Date().getMonth()
-const curYear = new Date().getFullYear()
+var PAGE_SIZE = 15
+var curMonth = new Date().getMonth()
+var curYear = new Date().getFullYear()
 
-const STATUS_OPTIONS = [
+var STATUS_OPTIONS = [
   { value: 'hadir', label: 'Hadir' },
   { value: 'terlambat', label: 'Terlambat' },
   { value: 'pulang_cepat', label: 'Pulang Cepat' },
@@ -31,6 +30,19 @@ const STATUS_OPTIONS = [
 ] as const
 
 type QuickDate = 'hari_ini' | 'kemarin' | '7_hari' | 'bulan_ini' | null
+
+function formatJam(iso: string | null): string {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+}
+
+function hitungJam(checkIn: string | null, checkOut: string | null): string {
+  if (!checkIn) return '-'
+  var selisih = Math.max(0, (checkOut ? new Date(checkOut).getTime() : Date.now()) - new Date(checkIn).getTime())
+  var jam = Math.floor(selisih / (1000 * 60 * 60))
+  var menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
+  return jam + 'j ' + menit + 'm'
+}
 
 function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } | null {
   if (!preset) return null
@@ -53,11 +65,6 @@ function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } |
   }
 }
 
-function formatJam(iso: string | null): string {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
 export default function AdminRiwayatPage() {
   var { data: users } = useUsers()
   var [page, setPage] = useState(1)
@@ -65,6 +72,7 @@ export default function AdminRiwayatPage() {
   var [calendarDate, setCalendarDate] = useState<string | null>(null)
   var [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set())
   var [search, setSearch] = useState('')
+  var [detail, setDetail] = useState<Absensi | null>(null)
 
   var { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
 
@@ -230,52 +238,126 @@ export default function AdminRiwayatPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 5 }, function(_, i) { return { id: 'hr-sk-' + i } }).map(function(item) {
-            return <Skeleton key={item.id} className="h-12 w-full rounded-lg" />
+          {Array.from({ length: 5 }, function(_, i) { return { id: 'ar-sk-' + i } }).map(function(item) {
+            return <Skeleton key={item.id} className="h-24 w-full rounded-xl" />
           })}
         </div>
       ) : filtered && filtered.length > 0 ? (
-        <div className="overflow-x-auto -mx-4 md:-mx-6">
-          <div className="min-w-[600px] px-4 md:px-6">
-            <div className="rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Karyawan</TableHead>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Masuk</TableHead>
-                    <TableHead>Pulang</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map(function(a) {
-                    var user = users?.find(function(u) { return u.id === a.userId })
-                    var nama = user?.nama || '-'
-                    return (
-                      <TableRow key={a.id} className="hover:bg-muted/30 transition-colors">
-                        <TableCell>
-                          {user ? <UserLink user={user} showAvatar={false} /> : <span className="font-medium">{nama}</span>}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">{new Date(a.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
-                        <TableCell className="text-muted-foreground whitespace-nowrap">{formatJam(a.checkIn)}</TableCell>
-                        <TableCell className="text-muted-foreground whitespace-nowrap">{formatJam(a.checkOut)}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+        <div className="space-y-2">
+          {filtered.map(function(a) {
+            var u = users?.find(function(u) { return u.id === a.userId })
+            var tgl = new Date(a.tanggal + 'T00:00:00')
+            var initials = (u?.nama || '?').charAt(0).toUpperCase()
+
+            return (
+              <div
+                key={a.id}
+                className="rounded-xl border border-border bg-card hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                onClick={function() { setDetail(a) }}
+              >
+                <div className="px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex flex-col items-center w-9 shrink-0 pt-0.5">
+                      <span className="text-[10px] text-muted-foreground leading-none">{tgl.toLocaleDateString('id-ID', { weekday: 'short' })}</span>
+                      <span className="text-base font-bold leading-tight">{tgl.getDate()}</span>
+                      <span className="text-[10px] text-muted-foreground leading-none">{tgl.toLocaleDateString('id-ID', { month: 'short' })}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <Avatar className="h-8 w-8 ring-2 ring-border/50 shrink-0">
+                        <AvatarImage src={u?.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+                        <AvatarFallback className="text-xs bg-muted text-muted-foreground">{initials}</AvatarFallback>
+                      </Avatar>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold truncate">{u?.nama || '-'}</p>
+                          <Badge variant="secondary" className={absensiStatusBadge[a.status] + ' shrink-0'}>{absensiStatusLabel[a.status]}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{u?.email || '-'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-border/40">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <LogIn className="h-3.5 w-3.5 text-emerald-600" />
+                      {formatJam(a.checkIn)}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <LogOut className="h-3.5 w-3.5 text-red-600" />
+                      {formatJam(a.checkOut)}
+                    </div>
+                    {a.checkIn && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
+                        <Clock className="h-3.5 w-3.5 text-blue-600" />
+                        {hitungJam(a.checkIn, a.checkOut)}
+                      </div>
+                    )}
+                    {a.faceVerified && (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       ) : (
-        <EmptyState message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada data absensi'} />
+        <EmptyState message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada data absensi'} icon={History} />
       )}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+      <Dialog open={!!detail} onOpenChange={function(o) { if (!o) setDetail(null) }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Detail Absensi</DialogTitle>
+            <DialogDescription>
+              {detail && new Date(detail.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </DialogDescription>
+          </DialogHeader>
+          {detail && (
+            <div className="space-y-4">
+              {detail.photos && detail.photos.length > 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  {detail.photos.map(function(p) {
+                    return (
+                      <div key={p.type + p.capturedAt}>
+                        <p className="text-xs text-muted-foreground mb-1 capitalize">{p.type === 'check_in' ? 'Check In' : 'Check Out'}</p>
+                        <div className="rounded-lg overflow-hidden border">
+                          <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="p-3 rounded-lg bg-muted">
+                  <p className="text-xs text-muted-foreground">Check In</p>
+                  <p className="font-medium">{detail.checkIn ? formatJam(detail.checkIn) : '-'}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted">
+                  <p className="text-xs text-muted-foreground">Check Out</p>
+                  <p className="font-medium">{detail.checkOut ? formatJam(detail.checkOut) : '-'}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted">
+                  <p className="text-xs text-muted-foreground">Durasi</p>
+                  <p className="font-medium">{hitungJam(detail.checkIn, detail.checkOut)}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-muted">
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  <Badge variant="secondary" className={absensiStatusBadge[detail.status]}>{absensiStatusLabel[detail.status]}</Badge>
+                </div>
+              </div>
+              {detail.faceVerified && (
+                <p className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Wajah terverifikasi</p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
