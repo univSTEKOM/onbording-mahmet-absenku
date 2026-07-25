@@ -119,7 +119,8 @@ export function FaceVerification({
         if (match) {
           setStatus('success')
           setMessage('Wajah cocok!')
-          setTimeout(() => onVerified(photoUrl), 800)
+          if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+          saveTimeoutRef.current = setTimeout(() => onVerified(photoUrl), 800)
         } else {
           setStatus('fail')
           setMessage('Wajah tidak cocok dengan data terdaftar.')
@@ -128,7 +129,8 @@ export function FaceVerification({
         await saveDescriptor(descriptor)
         setStatus('success')
         setMessage('Wajah berhasil didaftarkan!')
-        setTimeout(() => onVerified(photoUrl), 800)
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+        saveTimeoutRef.current = setTimeout(() => onVerified(photoUrl), 800)
       }
     } catch {
       finishedRef.current = false

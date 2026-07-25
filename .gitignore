@@ -6,3 +6,9 @@
 # Database files
 mock-api/auth.db
 mock-api/db.json
+
+# Lock files (bun is primary package manager)
+package-lock.json
+**/package-lock.json
+bun.lock
+**/bun.lock
