@@ -9,10 +9,13 @@ interface ImageViewerProps {
 }
 
 export function ImageViewer(p: ImageViewerProps) {
+  var open = p.open
+  var onClose = p.onClose
+
   useEffect(function() {
-    if (!p.open) return
+    if (!open) return
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') p.onClose()
+      if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', handleKey)
     document.body.style.overflow = 'hidden'
@@ -20,7 +23,7 @@ export function ImageViewer(p: ImageViewerProps) {
       document.removeEventListener('keydown', handleKey)
       document.body.style.overflow = ''
     }
-  }, [p.open])
+  }, [open, onClose])
 
   if (!p.open) return null
 
