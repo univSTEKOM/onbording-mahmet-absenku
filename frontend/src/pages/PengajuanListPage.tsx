@@ -141,7 +141,7 @@ export default function PengajuanListPage() {
             onClick={clearFilters}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
           >
-            Hapus filter ({filtered.length})
+            Hapus filter ({total})
           </button>
         )}
       </div>
