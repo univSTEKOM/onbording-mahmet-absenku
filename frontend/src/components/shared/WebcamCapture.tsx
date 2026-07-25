@@ -1,20 +1,38 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, Loader2 } from 'lucide-react'
+import { detectFace, drawFaceOverlay } from '@/lib/faceDetection'
+
+/* Ubah ke true untuk mengaktifkan tombol ambil foto manual */
+const MANUAL_CAPTURE_ENABLED = false
 
 interface WebcamCaptureProps {
   onCapture: (canvas: HTMLCanvasElement) => void
   processing?: boolean
   onVideoReady?: (video: HTMLVideoElement) => void
   active?: boolean
+  onAutoCapture?: (photoUrl: string) => void
+  onFaceStatus?: (status: { detected: boolean; centered: boolean; message: string }) => void
 }
 
-export function WebcamCapture({ onCapture, processing, onVideoReady, active }: WebcamCaptureProps) {
+const SCAN_DELAY = 150
+const STABLE_THRESHOLD = 10
+
+export function WebcamCapture({ onCapture, processing, onVideoReady, active, onAutoCapture, onFaceStatus }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const overlayRef = useRef<HTMLCanvasElement>(null)
+  const captureRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const scanRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const stableRef = useRef(0)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
+
+  const getVideoDimensions = useCallback(() => {
+    const v = videoRef.current
+    if (!v || !v.videoWidth) return { w: 640, h: 480 }
+    return { w: v.videoWidth, h: v.videoHeight }
+  }, [])
 
   const startCamera = useCallback(async () => {
     setError('')
@@ -24,9 +42,10 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active }: W
         video: { width: 640, height: 480, facingMode: 'user' },
       })
       streamRef.current = stream
-      videoRef.current!.srcObject = stream
-      videoRef.current!.onloadeddata = () => {
-        if (onVideoReady && videoRef.current) onVideoReady(videoRef.current)
+      const video = videoRef.current!
+      video.srcObject = stream
+      video.onloadeddata = () => {
+        if (onVideoReady) onVideoReady(video)
       }
     } catch {
       setError('Kamera tidak tersedia. Periksa izin kamera atau gunakan HTTPS.')
@@ -43,25 +62,79 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active }: W
   }, [])
 
   useEffect(() => {
-    if (active && !streamRef.current) {
-      startCamera()
-    }
-    if (!active && streamRef.current) {
-      stopCamera()
-    }
-    return () => { stopCamera() }
+    if (active && !streamRef.current) startCamera()
+    if (!active && streamRef.current) stopCamera()
+    return () => stopCamera()
   }, [active, startCamera, stopCamera])
 
-  function handleCapture() {
-    if (!videoRef.current || !canvasRef.current) return
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    const ctx = canvas.getContext('2d')
+  /* Detection loop */
+  useEffect(() => {
+    if (!active || !onAutoCapture) return
+
+    scanRef.current = setInterval(async () => {
+      const v = videoRef.current
+      if (!v || v.readyState < 2) return
+
+      const { w, h } = getVideoDimensions()
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.drawImage(v, 0, 0, w, h)
+
+      try {
+        const result = await detectFace(canvas, 500)
+        const overlay = overlayRef.current
+        if (!overlay) return
+
+        if (result) {
+          const box = result.detection.box
+          const cx = w / 2
+          const cy = h / 2
+          const radius = Math.min(w, h) * 0.3
+          const faceCx = box.x + box.width / 2
+          const faceCy = box.y + box.height / 2
+          const dist = Math.sqrt((faceCx - cx) ** 2 + (faceCy - cy) ** 2)
+          const centered = dist + box.width / 2 < radius
+
+          drawFaceOverlay(overlay, w, h, { x: box.x, y: box.y, width: box.width, height: box.height }, centered)
+
+          if (centered) {
+            stableRef.current++
+            if (stableRef.current >= STABLE_THRESHOLD) {
+              if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
+              const photoUrl = canvas.toDataURL('image/jpeg', 0.7)
+              onAutoCapture(photoUrl)
+            }
+            onFaceStatus?.({ detected: true, centered: true, message: 'Wajah terdeteksi, harap diam' })
+          } else {
+            stableRef.current = 0
+            onFaceStatus?.({ detected: true, centered: false, message: 'Posisikan wajah di tengah lingkaran' })
+          }
+        } else {
+          stableRef.current = 0
+          drawFaceOverlay(overlay, w, h, null, false)
+          onFaceStatus?.({ detected: false, centered: false, message: 'Wajah tidak terdeteksi' })
+        }
+      } catch {
+        stableRef.current = 0
+      }
+    }, SCAN_DELAY)
+
+    return () => { if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null } }
+  }, [active, onAutoCapture, onFaceStatus, getVideoDimensions])
+
+  function handleManualCapture() {
+    const v = videoRef.current
+    const c = captureRef.current
+    if (!v || !c) return
+    c.width = v.videoWidth
+    c.height = v.videoHeight
+    const ctx = c.getContext('2d')
     if (!ctx) return
-    ctx.drawImage(video, 0, 0)
-    onCapture(canvas)
+    ctx.drawImage(v, 0, 0)
+    onCapture(c)
   }
 
   return (
@@ -74,7 +147,11 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active }: W
           muted
           className={'w-full aspect-[4/3] object-cover' + (active ? '' : ' hidden')}
         />
-        <canvas ref={canvasRef} className="hidden" />
+        <canvas
+          ref={overlayRef}
+          className={'absolute inset-0 w-full h-full pointer-events-none' + (active ? '' : ' hidden')}
+        />
+        <canvas ref={captureRef} className="hidden" />
         {!active && (
           <div className="flex items-center justify-center aspect-[4/3] text-muted-foreground">
             {starting ? (
@@ -94,8 +171,8 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active }: W
             <Camera className="h-4 w-4" /> Buka Kamera
           </Button>
         )}
-        {active && (
-          <Button onClick={handleCapture} disabled={processing} className="gap-2">
+        {MANUAL_CAPTURE_ENABLED && active && (
+          <Button onClick={handleManualCapture} disabled={processing} className="gap-2">
             {processing ? <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</> : <><Camera className="h-4 w-4" /> Ambil Foto</>}
           </Button>
         )}

@@ -28,8 +28,6 @@ interface FaceVerificationProps {
   mode?: 'in' | 'out'
 }
 
-const STABLE_FRAMES = 3
-const SCAN_INTERVAL = 1200
 const SAVE_TIMEOUT = 15000
 
 export function FaceVerification({
@@ -47,11 +45,9 @@ export function FaceVerification({
   const [status, setStatus] = useState<'idle' | 'success' | 'fail'>('idle')
   const [message, setMessage] = useState('')
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
+  const [faceStatus, setFaceStatus] = useState('')
 
   const loadingRef = useRef(false)
-  const scanRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const stableRef = useRef(0)
-  const videoRef = useRef<HTMLVideoElement | null>(null)
   const finishedRef = useRef(false)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -81,11 +77,10 @@ export function FaceVerification({
   useEffect(() => {
     if (!open) return
     finishedRef.current = false
-    stableRef.current = 0
     setCapturedPhoto(null)
     setStatus('idle')
     setMessage('')
-    if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
+    setFaceStatus('')
     if (saveTimeoutRef.current) { clearTimeout(saveTimeoutRef.current); saveTimeoutRef.current = null }
   }, [open])
 
@@ -101,44 +96,9 @@ export function FaceVerification({
 
   useEffect(() => {
     if (!open) {
-      if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
       if (saveTimeoutRef.current) { clearTimeout(saveTimeoutRef.current); saveTimeoutRef.current = null }
     }
   }, [open])
-
-  useEffect(() => {
-    if (!modelsLoaded || !videoRef.current || finishedRef.current || scanRef.current) return
-
-    scanRef.current = setInterval(async () => {
-      if (finishedRef.current || !videoRef.current || videoRef.current.readyState < 2) return
-
-      const canvas = document.createElement('canvas')
-      canvas.width = videoRef.current.videoWidth
-      canvas.height = videoRef.current.videoHeight
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-      ctx.drawImage(videoRef.current, 0, 0)
-
-      try {
-        const result = await detectFace(canvas, 3000)
-        if (result) {
-          stableRef.current++
-          if (stableRef.current >= STABLE_FRAMES) {
-            if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null }
-            setProcessing(true)
-            const photoUrl = canvas.toDataURL('image/jpeg', 0.7)
-            setCapturedPhoto(photoUrl)
-            await processResult(result.descriptor, photoUrl)
-            setProcessing(false)
-          }
-        } else {
-          stableRef.current = 0
-        }
-      } catch { /* continue scanning */ }
-    }, SCAN_INTERVAL)
-
-    return () => { if (scanRef.current) { clearInterval(scanRef.current); scanRef.current = null } }
-  }, [modelsLoaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function processResult(descriptor: Float32Array, photoUrl?: string) {
     if (finishedRef.current) return
@@ -177,6 +137,29 @@ export function FaceVerification({
     }
   }
 
+  async function handleAutoCapture(photoUrl: string) {
+    if (finishedRef.current) return
+    setCapturedPhoto(photoUrl)
+    setProcessing(true)
+    setStatus('idle')
+    setMessage('')
+    try {
+      /* Konversi data URL ke canvas untuk deteksi */
+      const img = new Image()
+      img.src = photoUrl
+      await new Promise((r) => { img.onload = r })
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+      const result = await detectFace(canvas)
+      if (!result) { setStatus('fail'); setMessage('Wajah tidak terdeteksi.'); setCapturedPhoto(null); setProcessing(false); return }
+      await processResult(result.descriptor, photoUrl)
+    } catch { setStatus('fail'); setMessage('Gagal memproses wajah.'); setCapturedPhoto(null) }
+    setProcessing(false)
+  }
+
   async function handleManualCapture(canvas: HTMLCanvasElement) {
     if (finishedRef.current) return
     const photoUrl = canvas.toDataURL('image/jpeg', 0.7)
@@ -192,16 +175,14 @@ export function FaceVerification({
     setProcessing(false)
   }
 
-  const handleVideoReady = useCallback((video: HTMLVideoElement) => {
-    videoRef.current = video
-  }, [])
+  const handleVideoReady = useCallback(() => {}, [])
 
   function handleRetry() {
     finishedRef.current = false
-    stableRef.current = 0
     setStatus('idle')
     setMessage('')
     setCapturedPhoto(null)
+    setFaceStatus('')
   }
 
   const cameraActive = modelsLoaded && !finishedRef.current && status === 'idle'
@@ -238,11 +219,18 @@ export function FaceVerification({
             {processing && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Memverifikasi...</p>}
           </div>
         ) : status === 'idle' ? (
-          <WebcamCapture onCapture={handleManualCapture} processing={processing} onVideoReady={handleVideoReady} active={status === 'idle' && !finishedRef.current} />
+          <WebcamCapture
+            onCapture={handleManualCapture}
+            processing={processing}
+            onVideoReady={handleVideoReady}
+            active={status === 'idle' && !finishedRef.current}
+            onAutoCapture={handleAutoCapture}
+            onFaceStatus={(s) => setFaceStatus(s.message)}
+          />
         ) : null}
 
-        {status === 'idle' && cameraActive && (
-          <p className="text-xs text-center text-muted-foreground">Posisikan wajah di depan kamera. Foto akan diambil otomatis.</p>
+        {status === 'idle' && cameraActive && faceStatus && (
+          <p className="text-xs text-center text-muted-foreground">{faceStatus}</p>
         )}
 
         {status === 'success' && (

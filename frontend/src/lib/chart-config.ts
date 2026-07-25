@@ -6,8 +6,8 @@ export function statusColor(key: string): string {
   return `color-mix(in srgb, var(--color-status-${key}) ${OPACITY}, transparent)`
 }
 
-export function pieDataItem(name: string, value: number): { name: string; value: number; fill: string } {
-  return { name, value, fill: `var(--color-status-${name})` }
+export function pieDataItem(name: string, value: number): { name: string; value: number } {
+  return { name, value }
 }
 
 export const absensiChartConfig: ChartConfig = {

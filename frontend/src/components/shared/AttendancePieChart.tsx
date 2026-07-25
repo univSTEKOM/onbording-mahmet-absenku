@@ -44,7 +44,8 @@ export function AttendancePieChart({ id, data, config, centerLabel, centerSub, l
             innerRadius={60}
             strokeWidth={2}
             shape={({ index, outerRadius = 0, ...props }: PieSectorDataItem & { index: number }) => (
-              <Sector {...props} outerRadius={index === activeIndex ? outerRadius + 6 : outerRadius} />
+              <Sector {...props} className={`fill-status-${data[index]?.name || 'hadir'}`}
+                outerRadius={index === activeIndex ? outerRadius + 6 : outerRadius} />
             )}
             onMouseEnter={(_, index) => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(-1)}

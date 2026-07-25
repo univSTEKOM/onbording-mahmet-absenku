@@ -345,7 +345,7 @@ export default function AdminVerifikasiPage() {
               </>
             )
           }(detailTarget)}
-          <DialogFooter className="flex sm:flex-row gap-0 p-0 border-t border-border/40 rounded-b-xl overflow-hidden">
+          <div className="flex border-t border-border/40 rounded-b-xl overflow-hidden">
             <button
               type="button"
               className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-xs font-medium transition-colors min-h-[44px]"
@@ -368,7 +368,7 @@ export default function AdminVerifikasiPage() {
             >
               <Trash2 className="h-4 w-4" /> Hapus
             </button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 

@@ -167,3 +167,11 @@
 .tour-pulse {
   animation: tour-pulse 2s ease-in-out infinite;
 }
+
+.fill-status-hadir        { fill: var(--color-status-hadir); }
+.fill-status-terlambat    { fill: var(--color-status-terlambat); }
+.fill-status-pulang-cepat { fill: var(--color-status-pulang-cepat); }
+.fill-status-izin         { fill: var(--color-status-izin); }
+.fill-status-sakit        { fill: var(--color-status-sakit); }
+.fill-status-cuti         { fill: var(--color-status-cuti); }
+.fill-status-tidakHadir   { fill: var(--color-status-tidakHadir); }

@@ -51,6 +51,19 @@
       "phone": "02843223423",
       "alamat": "ALAMATeeeee anakkkkkk soleehhhhi ikuu papatttttt, tandane ? mabor ",
       "createdAt": "2026-07-23T06:53:00.021Z"
+    },
+    {
+      "id": "GmrfLYK0uDSrqN2GXXgqdhO2xG594HHc",
+      "email": "budiai@stekom.ac.id",
+      "nama": "llfk",
+      "jabatan": "STAFF KETENAGA NGANGGURAN",
+      "role": "karyawan",
+      "status": "pending",
+      "rejectionNotes": [],
+      "foto": "",
+      "phone": "2342323904230",
+      "alamat": "",
+      "createdAt": "2026-07-25T02:38:25.989Z"
     }
   ],
   "absensi": [
@@ -164,8 +177,8 @@
       "userId": "zSNXhYfelRttawJ38hQUKQfyrx3QNzJZ",
       "tanggal": "2026-07-25",
       "checkIn": "2026-07-25T01:09:32.558Z",
-      "checkOut": null,
-      "status": "terlambat",
+      "checkOut": "2026-07-25T02:33:55.127Z",
+      "status": "pulang_cepat",
       "faceVerified": false,
       "photos": [
         {
