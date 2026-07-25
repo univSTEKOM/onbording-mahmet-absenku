@@ -12,11 +12,13 @@ const { runMigrations } = await getMigrations(auth.options)
 await runMigrations()
 console.log('Migrations applied')
 
+var DEV_PASSWORD = process.env.DEMO_PASSWORD || 'password'
+
 const demoUsers = [
-  { email: "andika@stekom.ac.id", password: "password", name: "Andika", role: "admin", jabatan: "Manager HRD", phone: "081234567890", alamat: "Jl. Merdeka No. 1, Jakarta", status: "approved" },
-  { email: "rudi@stekom.ac.id", password: "password", name: "Rudi Hartono", role: "karyawan", jabatan: "Staff IT", phone: "081234567891", alamat: "Jl. Sudirman No. 2, Jakarta", status: "approved" },
-  { email: "siti@stekom.ac.id", password: "password", name: "Siti Nurhaliza", role: "karyawan", jabatan: "Staff Keuangan", phone: "081234567892", alamat: "Jl. Gatot Subroto No. 3, Jakarta", status: "approved" },
-  { email: "budi@stekom.ac.id", password: "password", name: "Budi Santoso", role: "karyawan", jabatan: "Staff Baru", phone: "081234567893", alamat: "Jl. Baru No. 1, Jakarta", status: "pending" },
+  { email: "andika@stekom.ac.id", password: DEV_PASSWORD, name: "Andika", role: "admin", jabatan: "Manager HRD", phone: "081234567890", alamat: "Jl. Merdeka No. 1, Jakarta", status: "approved" },
+  { email: "rudi@stekom.ac.id", password: DEV_PASSWORD, name: "Rudi Hartono", role: "karyawan", jabatan: "Staff IT", phone: "081234567891", alamat: "Jl. Sudirman No. 2, Jakarta", status: "approved" },
+  { email: "siti@stekom.ac.id", password: DEV_PASSWORD, name: "Siti Nurhaliza", role: "karyawan", jabatan: "Staff Keuangan", phone: "081234567892", alamat: "Jl. Gatot Subroto No. 3, Jakarta", status: "approved" },
+  { email: "budi@stekom.ac.id", password: DEV_PASSWORD, name: "Budi Santoso", role: "karyawan", jabatan: "Staff Baru", phone: "081234567893", alamat: "Jl. Baru No. 1, Jakarta", status: "pending" },
 ]
 
 const createdUsers = []

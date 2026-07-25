@@ -33,7 +33,6 @@ export interface RejectionNote {
 export interface User {
   id: string
   email: string
-  password: string
   nama: string
   jabatan: string
   role: Role

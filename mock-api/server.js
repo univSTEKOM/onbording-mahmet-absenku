@@ -48,7 +48,7 @@ async function syncSeedUsers() {
           router.db.write()
         } else {
           router.db.get('users').push({
-            id: newId, email: seed.email, password: seed.password,
+            id: newId, email: seed.email,
             nama: seed.nama, jabatan: seed.jabatan || '',
             role: seed.role || 'karyawan', status: seed.status || 'approved',
             rejectionNotes: [], foto: '', phone: seed.phone || '',
@@ -79,26 +79,39 @@ server.post('/api/auth/sign-in/email', (req, res, next) => {
   req.on('end', () => {
     try {
       const parsed = JSON.parse(body)
-      const key = parsed.email?.toLowerCase()
-      if (!key) return next()
+      const emailKey = parsed.email?.toLowerCase()
+      const ipKey = req.ip + ':login'
+      if (!emailKey) return next()
       const now = Date.now()
-      const record = loginAttempts.get(key)
-      if (record && record.count >= MAX_ATTEMPTS) {
-        const elapsed = now - record.blockedAt
-        if (elapsed < record.duration) {
-          return res.status(429).json({ message: `Terlalu banyak percobaan. Coba lagi ${Math.ceil((record.duration - elapsed) / 1000)} detik lagi.` })
+
+      function isBlocked(k) {
+        const r = loginAttempts.get(k)
+        if (r && r.count >= MAX_ATTEMPTS) {
+          const elapsed = now - r.blockedAt
+          if (elapsed < r.duration) return r.duration - elapsed
+          loginAttempts.delete(k)
         }
-        loginAttempts.delete(key)
+        return 0
       }
+
+      var emailRemaining = isBlocked(emailKey)
+      var ipRemaining = isBlocked(ipKey)
+      var blockRemaining = Math.max(emailRemaining, ipRemaining)
+      if (blockRemaining > 0) {
+        return res.status(429).json({ message: `Terlalu banyak percobaan. Coba lagi ${Math.ceil(blockRemaining / 1000)} detik lagi.` })
+      }
+
+      function recordAttempt(k) {
+        let a = loginAttempts.get(k)
+        if (!a) { a = { count: 0 }; loginAttempts.set(k, a) }
+        a.count++
+        if (a.count >= MAX_ATTEMPTS) { a.blockedAt = now; a.duration = Math.min(BASE_BLOCK + (a.count - MAX_ATTEMPTS) * 15000, MAX_BLOCK) }
+      }
+
       const origJson = res.json.bind(res)
       res.json = function (data) {
-        if (data?.token || data?.user) { loginAttempts.delete(key) }
-        else {
-          let a = loginAttempts.get(key)
-          if (!a) { a = { count: 0 }; loginAttempts.set(key, a) }
-          a.count++
-          if (a.count >= MAX_ATTEMPTS) { a.blockedAt = now; a.duration = Math.min(BASE_BLOCK + (a.count - MAX_ATTEMPTS) * 15000, MAX_BLOCK) }
-        }
+        if (data?.token || data?.user) { loginAttempts.delete(emailKey); loginAttempts.delete(ipKey) }
+        else { recordAttempt(emailKey); recordAttempt(ipKey) }
         return origJson(data)
       }
       req.body = parsed; next()
@@ -137,7 +150,7 @@ async function requireAdmin(headers) {
 /* ── Custom routes ── */
 
 server.post('/api/register', async (req, res) => {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const regRecord = registerAttempts.get(ip)
   if (regRecord && regRecord.count >= REGISTER_MAX && (now - regRecord.start) < REGISTER_WINDOW) {
@@ -194,7 +207,7 @@ server.get('/api/me', async (req, res) => {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
     if (!session) return res.status(401).json({ message: 'Unauthorized' })
     const profile = router.db.get('users').find({ email: session.user.email }).value() || {}
-    res.json({ ...session, user: { ...session.user, ...profile } })
+    res.json({ ...session, user: { ...session.user, ...stripPassword(profile) } })
   } catch (e) {
     console.error('/api/me error:', e.message)
     res.status(500).json({ message: 'Gagal memuat profil' })
