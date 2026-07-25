@@ -18,7 +18,7 @@ export async function getAbsensiPaginated(filters?: AbsensiFilters): Promise<Pag
   }
 }
 
-export async function searchAbsensi(params: Record<string, string | number | undefined>): Promise<PaginatedResult<Absensi>> {
+export async function searchAbsensi(params: Record<string, string | number | string[] | undefined>): Promise<PaginatedResult<Absensi>> {
   const res = await api.get('/api/absensi/search', { params })
   const total = parseInt(res.headers['x-total-count'] || '0', 10)
   const limit = Number(params._limit) || 15

@@ -85,7 +85,7 @@ export default function AdminRiwayatPage() {
   var dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
   var dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
 
-  var queryParams: Record<string, string | number | undefined> = {
+  var queryParams: Record<string, string | number | string[] | undefined> = {
     _sort: 'tanggal',
     _order: 'desc',
     _page: page,
@@ -116,6 +116,7 @@ export default function AdminRiwayatPage() {
     setQuickDate('hari_ini')
     setCalendarDate(null)
     setSelectedStatuses([])
+    setSelectedMainCategory('')
     setSearch('')
     setPage(1)
   }

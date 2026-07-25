@@ -117,6 +117,7 @@ export default function RiwayatPage() {
     setQuickDate('hari_ini')
     setCalendarDate(null)
     setSelectedStatuses([])
+    setSelectedMainCategory('')
     setPage(1)
   }
 

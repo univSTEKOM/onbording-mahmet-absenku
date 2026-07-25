@@ -20,7 +20,7 @@ export function useAbsensiListPaginated(filters?: AbsensiFilters) {
   })
 }
 
-export function useSearchAbsensi(params: Record<string, string | number | undefined>) {
+export function useSearchAbsensi(params: Record<string, string | number | string[] | undefined>) {
   return useQuery({
     queryKey: ['absensi', 'search', params],
     queryFn: () => searchAbsensi(params),
