@@ -74,6 +74,7 @@ export default function AdminRiwayatPage() {
   var [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   var [search, setSearch] = useState('')
   var debouncedSearch = useDebounce(search, 400)
+  var isSearching = search !== debouncedSearch
   var [detail, setDetail] = useState<Absensi | null>(null)
   var [previewImage, setPreviewImage] = useState('')
 
@@ -218,10 +219,11 @@ export default function AdminRiwayatPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Cari nama karyawan..."
-            className="pl-9 h-9 text-sm"
+            className={'pl-9 h-9 text-sm ' + (isSearching ? 'pr-8' : '')}
             value={search}
             onChange={function(e) { setSearch(e.target.value); setPage(1) }}
           />
+          {isSearching && <span className="absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />}
         </div>
 
         {hasActiveFilter && (

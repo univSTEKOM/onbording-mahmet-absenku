@@ -13,6 +13,7 @@ export function usePengajuanList(filters?: { jenis?: string; status?: string }) 
     queryKey: ['pengajuan', user?.id, filters],
     queryFn: () => getPengajuan(params),
     enabled: !!user,
+    staleTime: 20000,
   })
 }
 
@@ -23,6 +24,7 @@ export function useAllPengajuan(filters?: { jenis?: string; status?: string }) {
   return useQuery({
     queryKey: ['pengajuan', 'all', filters],
     queryFn: () => getPengajuan(params),
+    staleTime: 20000,
   })
 }
 

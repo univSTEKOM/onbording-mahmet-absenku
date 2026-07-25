@@ -22,6 +22,7 @@ export function useSearchAbsensi(params: Record<string, string | number | undefi
   return useQuery({
     queryKey: ['absensi', 'search', params],
     queryFn: () => searchAbsensi(params),
+    staleTime: params?.q ? 10000 : 15000,
   })
 }
 

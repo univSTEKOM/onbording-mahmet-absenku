@@ -6,6 +6,7 @@ export function useUsers(filters?: UserFilters) {
   return useQuery({
     queryKey: ['users', filters],
     queryFn: () => getUsers(filters),
+    staleTime: filters?.q ? 10000 : 30000,
   })
 }
 

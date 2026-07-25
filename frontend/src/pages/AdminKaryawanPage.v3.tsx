@@ -142,6 +142,8 @@ export default function AdminKaryawanPageV3() {
   var [roleFilter, setRoleFilter] = useState('')
   var debouncedSearch = useDebounce(search, 300)
 
+  var isSearching = search !== debouncedSearch
+
   var filterParams = useMemo(function() {
     var p: Record<string, string> = {}
     if (debouncedSearch) p.q = debouncedSearch
@@ -270,10 +272,11 @@ export default function AdminKaryawanPageV3() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Cari nama, email, atau jabatan..."
-            className="pl-9 h-9"
+            className={'pl-9 h-9 ' + (isSearching ? 'pr-8' : '')}
             value={search}
             onChange={function(e) { setSearch(e.target.value) }}
           />
+          {isSearching && <span className="absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />}
         </div>
         <div className="flex gap-1.5 shrink-0">
           {roleOptions.map(function(opt) {
