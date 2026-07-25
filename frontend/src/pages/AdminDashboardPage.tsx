@@ -8,32 +8,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CalendarCard } from '@/components/CalendarCard'
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck } from 'lucide-react'
-import { type ChartConfig } from '@/components/ui/chart'
 import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
+import { absensiChartConfig, pieDataItem } from '@/lib/chart-config'
 import api from '@/api/axios'
 import type { User } from '@/types'
 
 const today = new Date()
 const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
-
-const barChartConfig = {
-  tidakHadir: { label: 'Alfa', color: 'color-mix(in srgb, var(--color-status-tidakHadir) 50%, transparent)' },
-  hadir: { label: 'Hadir', color: 'color-mix(in srgb, var(--color-status-hadir) 50%, transparent)' },
-  izin: { label: 'Izin', color: 'color-mix(in srgb, var(--color-status-izin) 50%, transparent)' },
-  terlambat: { label: 'Terlambat', color: 'color-mix(in srgb, var(--color-status-terlambat) 50%, transparent)' },
-  sakit: { label: 'Sakit', color: 'color-mix(in srgb, var(--color-status-sakit) 50%, transparent)' },
-  cuti: { label: 'Cuti', color: 'color-mix(in srgb, var(--color-status-cuti) 50%, transparent)' },
-} satisfies ChartConfig
-
-const pieChartConfig = {
-  hadir: { label: 'Hadir', color: 'color-mix(in srgb, var(--color-status-hadir) 50%, transparent)' },
-  terlambat: { label: 'Terlambat', color: 'color-mix(in srgb, var(--color-status-terlambat) 50%, transparent)' },
-  izin: { label: 'Izin', color: 'color-mix(in srgb, var(--color-status-izin) 50%, transparent)' },
-  sakit: { label: 'Sakit', color: 'color-mix(in srgb, var(--color-status-sakit) 50%, transparent)' },
-  cuti: { label: 'Cuti', color: 'color-mix(in srgb, var(--color-status-cuti) 50%, transparent)' },
-  tidakHadir: { label: 'Alfa', color: 'color-mix(in srgb, var(--color-status-tidakHadir) 50%, transparent)' },
-} satisfies ChartConfig
 
 const pieId = 'pie-kehadiran'
 
@@ -60,12 +42,12 @@ export default function AdminDashboardPage() {
     var cutiTotal = monthData.data.reduce(function(sum, d) { return sum + (d.cuti || 0) }, 0)
     var alfaTotal = monthData.data.reduce(function(sum, d) { return sum + (d.tidakHadir || 0) }, 0)
     return [
-      { name: 'hadir', value: hadirTotal, fill: 'var(--color-status-hadir)' },
-      { name: 'terlambat', value: terlambatTotal, fill: 'var(--color-status-terlambat)' },
-      { name: 'izin', value: izinTotal, fill: 'var(--color-status-izin)' },
-      { name: 'sakit', value: sakitTotal, fill: 'var(--color-status-sakit)' },
-      { name: 'cuti', value: cutiTotal, fill: 'var(--color-status-cuti)' },
-      { name: 'tidakHadir', value: alfaTotal, fill: 'var(--color-status-tidakHadir)' },
+      pieDataItem('hadir', hadirTotal),
+      pieDataItem('terlambat', terlambatTotal),
+      pieDataItem('izin', izinTotal),
+      pieDataItem('sakit', sakitTotal),
+      pieDataItem('cuti', cutiTotal),
+      pieDataItem('tidakHadir', alfaTotal),
     ]
   }, [monthData])
 
@@ -151,7 +133,7 @@ export default function AdminDashboardPage() {
           <CardContent className="px-4 md:px-5 pb-4 md:pb-5">
             <WeekAttendanceChart
               data={chart}
-              config={barChartConfig}
+              config={absensiChartConfig}
               legendOrder={['cuti', 'sakit', 'terlambat', 'izin', 'hadir', 'tidakHadir']}
               loading={isLoading}
             />
@@ -171,7 +153,7 @@ export default function AdminDashboardPage() {
             <AttendancePieChart
               id={pieId}
               data={donutData}
-              config={pieChartConfig}
+              config={absensiChartConfig}
               centerLabel={hadirPct + '%'}
               centerSub="hadir"
               loading={monthLoading}

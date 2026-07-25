@@ -14,6 +14,7 @@ import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib
 import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, ChevronsUpDown, LogIn, LogOut, CheckCircle2 } from 'lucide-react'
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
 import { CardDescription } from '@/components/ui/card'
+import { absensiChartConfig, pieDataItem, statusColor } from '@/lib/chart-config'
 
 const now = new Date()
 const curMonth = now.getMonth()
@@ -82,10 +83,10 @@ export default function DashboardPage() {
       else counts.tidakHadir++
     })
     return [
-      { name: 'hadir', value: counts.hadir, fill: 'var(--color-status-hadir)' },
-      { name: 'pulang_cepat', value: counts.pulangCepat, fill: 'var(--color-status-pulang-cepat)' },
-      { name: 'terlambat', value: counts.terlambat, fill: 'var(--color-status-terlambat)' },
-      { name: 'tidakHadir', value: counts.tidakHadir, fill: 'var(--color-status-tidakHadir)' },
+      pieDataItem('hadir', counts.hadir),
+      pieDataItem('pulang_cepat', counts.pulangCepat),
+      pieDataItem('terlambat', counts.terlambat),
+      pieDataItem('tidakHadir', counts.tidakHadir),
     ]
   }, [recentAbsensi])
 
@@ -99,10 +100,10 @@ export default function DashboardPage() {
   const pctMonth = totalMonth > 0 ? Math.round((totalKehadiran / totalMonth) * 100) : 0
 
   const pieMonthData = useMemo(() => [
-    { name: 'hadir', value: monthStats.hadir, fill: 'var(--color-status-hadir)' },
-    { name: 'pulang_cepat', value: monthStats.pulangCepat, fill: 'var(--color-status-pulang-cepat)' },
-    { name: 'terlambat', value: monthStats.terlambat, fill: 'var(--color-status-terlambat)' },
-    { name: 'izin/sakit', value: monthStats.izinSakit, fill: 'var(--color-status-sakit)' },
+    pieDataItem('hadir', monthStats.hadir),
+    pieDataItem('pulang_cepat', monthStats.pulangCepat),
+    pieDataItem('terlambat', monthStats.terlambat),
+    { name: 'izin/sakit', value: monthStats.izinSakit, fill: statusColor('sakit') },
   ], [monthStats.hadir, monthStats.pulangCepat, monthStats.terlambat, monthStats.izinSakit])
 
   if (!user) return null
@@ -210,12 +211,7 @@ export default function DashboardPage() {
             <AttendancePieChart
               id="pie-7hari"
               data={pie7Data}
-              config={{
-                hadir: { label: 'Hadir', color: 'color-mix(in srgb, var(--color-status-hadir) 50%, transparent)' },
-                pulang_cepat: { label: 'Pulang Cepat', color: 'color-mix(in srgb, var(--color-status-pulang-cepat) 50%, transparent)' },
-                terlambat: { label: 'Terlambat', color: 'color-mix(in srgb, var(--color-status-terlambat) 50%, transparent)' },
-                tidakHadir: { label: 'Alfa', color: 'color-mix(in srgb, var(--color-status-tidakHadir) 50%, transparent)' },
-              }}
+              config={absensiChartConfig}
               centerLabel={pct7 + '%'}
               centerSub="kehadiran"
               loading={weekLoading}
@@ -236,12 +232,7 @@ export default function DashboardPage() {
             <AttendancePieChart
               id="pie-bulan"
               data={pieMonthData}
-              config={{
-                hadir: { label: 'Hadir', color: 'color-mix(in srgb, var(--color-status-hadir) 50%, transparent)' },
-                pulang_cepat: { label: 'Pulang Cepat', color: 'color-mix(in srgb, var(--color-status-pulang-cepat) 50%, transparent)' },
-                terlambat: { label: 'Terlambat', color: 'color-mix(in srgb, var(--color-status-terlambat) 50%, transparent)' },
-                'izin/sakit': { label: 'Izin/Sakit', color: 'color-mix(in srgb, var(--color-status-sakit) 50%, transparent)' },
-              }}
+              config={{ ...absensiChartConfig, 'izin/sakit': { label: 'Izin/Sakit', color: statusColor('sakit') } }}
               centerLabel={pctMonth + '%'}
               centerSub="kehadiran"
             />

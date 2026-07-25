@@ -177,46 +177,43 @@ export default function AdminKaryawanPageV3() {
     )
 
     var actionsDesktop = (
-      <div className="hidden lg:flex flex-col items-center justify-center gap-0.5 bg-muted/30 rounded-r-xl border-l border-border/40 px-2">
-        <Button
-          variant="ghost"
-          size="icon-sm"
+      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-12">
+        <button
+          type="button"
+          className="flex-1 flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white transition-colors min-h-[48px]"
           onClick={function(e) { e.stopPropagation(); openEdit(u) }}
         >
           <Pencil className="h-4 w-4" />
-        </Button>
+        </button>
         {u.id !== currentUser?.id && (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-destructive/70 hover:text-destructive"
+          <button
+            type="button"
+            className="flex-1 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white transition-colors border-t border-white/20 min-h-[48px]"
             onClick={function(e) { e.stopPropagation(); setDeleteTarget(u) }}
           >
             <Trash2 className="h-4 w-4" />
-          </Button>
+          </button>
         )}
       </div>
     )
 
     var actionsMobile = (
-      <div className="flex lg:hidden items-center justify-between px-3.5 py-2 bg-muted/30 rounded-b-xl border-t border-border/40">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 text-xs h-7"
+      <div className="flex lg:hidden rounded-b-xl overflow-hidden border-t border-border/40">
+        <button
+          type="button"
+          className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-3 text-sm font-medium transition-colors min-h-[44px]"
           onClick={function(e) { e.stopPropagation(); openEdit(u) }}
         >
-          <Pencil className="h-3.5 w-3.5" /> Edit
-        </Button>
+          <Pencil className="h-4 w-4" /> Edit
+        </button>
         {u.id !== currentUser?.id && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-xs h-7 text-destructive hover:text-destructive border-destructive/20 hover:border-destructive/40"
+          <button
+            type="button"
+            className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3 text-sm font-medium transition-colors border-l border-white/20 min-h-[44px]"
             onClick={function(e) { e.stopPropagation(); setDeleteTarget(u) }}
           >
-            <Trash2 className="h-3.5 w-3.5" /> Hapus
-          </Button>
+            <Trash2 className="h-4 w-4" /> Hapus
+          </button>
         )}
       </div>
     )
