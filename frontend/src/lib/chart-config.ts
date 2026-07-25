@@ -21,3 +21,21 @@ export const absensiChartConfig: ChartConfig = {
 }
 
 export type StatusKey = keyof typeof absensiChartConfig
+
+/* ── Category-based Chart Config ── */
+
+export function categoryColor(colorVar: string): string {
+  return `color-mix(in srgb, ${colorVar} ${OPACITY}, transparent)`
+}
+
+import { CATEGORY_COLORS_MAP, CATEGORY_LABEL } from './constants'
+
+export const categoryChartConfig: ChartConfig = Object.fromEntries(
+  Object.entries(CATEGORY_LABEL).map(function(e) {
+    var catId = e[0]; var label = e[1]
+    var colorVar = CATEGORY_COLORS_MAP[catId] || 'var(--color-status-hadir)'
+    return [catId, { label: label, color: categoryColor(colorVar) }]
+  })
+) as ChartConfig
+
+export type CategoryKey = keyof typeof categoryChartConfig

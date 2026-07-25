@@ -75,3 +75,59 @@ export const STATUS_COLORS_MAP: Record<string, string> = {
   cuti:         'var(--color-status-cuti)',
   tidakHadir:   'var(--color-status-tidakHadir)',
 }
+
+/* ── Category Badge & Label (new) ── */
+
+export const CATEGORY_BADGE: Record<string, string> = {
+  /* Physical */
+  physical_standard:  'bg-[var(--color-status-hadir)] text-white border-0',
+  physical_flexible:  'bg-[var(--color-status-hadir)] text-white border-0',
+  physical_field:     'bg-[var(--color-status-hadir)] text-white border-0',
+  physical_overtime:  'bg-[var(--color-status-hadir)] text-white border-0',
+  physical_violation: 'bg-[var(--color-status-terlambat)] text-black border-0',
+  /* Permit */
+  leave_annual:       'bg-[var(--color-status-cuti)] text-black border-0',
+  leave_maternity:    'bg-[var(--color-status-cuti)] text-black border-0',
+  leave_long:         'bg-[var(--color-status-cuti)] text-black border-0',
+  permit_sick:        'bg-[var(--color-status-sakit)] text-white border-0',
+  permit_personal:    'bg-[var(--color-status-izin)] text-black border-0',
+  permit_general:     'bg-[var(--color-status-izin)] text-black border-0',
+  /* Unpermit */
+  unpermit_absent:    'bg-[var(--color-status-tidakHadir)] text-white border-0',
+  unpermit_partial:   'bg-[var(--color-status-tidakHadir)] text-white border-0',
+  unpermit_suspension:'bg-[var(--color-status-tidakHadir)] text-white border-0',
+}
+
+export const CATEGORY_LABEL: Record<string, string> = {
+  physical_standard:  'Hadir Standar',
+  physical_flexible:  'Hadir Fleksibel',
+  physical_field:     'Dinas Luar',
+  physical_overtime:  'Lembur',
+  physical_violation: 'Pelanggaran Jam',
+  leave_annual:       'Cuti Tahunan',
+  leave_maternity:    'Cuti Melahirkan',
+  leave_long:         'Cuti Besar',
+  permit_sick:        'Izin Sakit',
+  permit_personal:    'Izin Personal',
+  permit_general:     'Izin Umum',
+  unpermit_absent:    'Alfa',
+  unpermit_partial:   'Mangkir Parsial',
+  unpermit_suspension:'Skorsing',
+}
+
+export const CATEGORY_COLORS_MAP: Record<string, string> = {
+  physical_standard:  'var(--color-status-hadir)',
+  physical_flexible:  'var(--color-status-hadir)',
+  physical_field:     'var(--color-status-hadir)',
+  physical_overtime:  'var(--color-status-hadir)',
+  physical_violation: 'var(--color-status-terlambat)',
+  leave_annual:       'var(--color-status-cuti)',
+  leave_maternity:    'var(--color-status-cuti)',
+  leave_long:         'var(--color-status-cuti)',
+  permit_sick:        'var(--color-status-sakit)',
+  permit_personal:    'var(--color-status-izin)',
+  permit_general:     'var(--color-status-izin)',
+  unpermit_absent:    'var(--color-status-tidakHadir)',
+  unpermit_partial:   'var(--color-status-tidakHadir)',
+  unpermit_suspension:'var(--color-status-tidakHadir)',
+}
