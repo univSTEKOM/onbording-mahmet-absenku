@@ -180,7 +180,7 @@ export default function AdminKaryawanPageV3() {
       <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-12">
         <button
           type="button"
-          className="flex-1 flex items-center justify-center bg-emerald-500/80 hover:bg-emerald-500 text-white transition-colors min-h-[48px]"
+          className="flex-1 flex items-center justify-center bg-emerald-500/60 hover:bg-emerald-500/80 text-white transition-colors min-h-[48px]"
           onClick={function(e) { e.stopPropagation(); openEdit(u) }}
         >
           <Pencil className="h-4 w-4" />
@@ -188,7 +188,7 @@ export default function AdminKaryawanPageV3() {
         {u.id !== currentUser?.id && (
           <button
             type="button"
-            className="flex-1 flex items-center justify-center bg-red-500/80 hover:bg-red-500 text-white transition-colors border-t border-white/20 min-h-[48px]"
+            className="flex-1 flex items-center justify-center bg-red-500/60 hover:bg-red-500/80 text-white transition-colors border-t border-white/20 min-h-[48px]"
             onClick={function(e) { e.stopPropagation(); setDeleteTarget(u) }}
           >
             <Trash2 className="h-4 w-4" />
@@ -201,7 +201,7 @@ export default function AdminKaryawanPageV3() {
       <div className="flex lg:hidden rounded-b-xl overflow-hidden border-t border-border/40">
         <button
           type="button"
-          className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/80 hover:bg-emerald-500 text-white py-3 text-sm font-medium transition-colors min-h-[44px]"
+          className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/60 hover:bg-emerald-500/80 text-white py-3 text-sm font-medium transition-colors min-h-[44px]"
           onClick={function(e) { e.stopPropagation(); openEdit(u) }}
         >
           <Pencil className="h-4 w-4" /> Edit
@@ -209,7 +209,7 @@ export default function AdminKaryawanPageV3() {
         {u.id !== currentUser?.id && (
           <button
             type="button"
-            className="flex-1 flex items-center justify-center gap-2 bg-red-500/80 hover:bg-red-500 text-white py-3 text-sm font-medium transition-colors border-l border-white/20 min-h-[44px]"
+            className="flex-1 flex items-center justify-center gap-2 bg-red-500/60 hover:bg-red-500/80 text-white py-3 text-sm font-medium transition-colors border-l border-white/20 min-h-[44px]"
             onClick={function(e) { e.stopPropagation(); setDeleteTarget(u) }}
           >
             <Trash2 className="h-4 w-4" /> Hapus
