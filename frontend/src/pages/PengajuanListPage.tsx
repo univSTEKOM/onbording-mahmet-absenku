@@ -6,11 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
-import { FilterDialog, type FilterValues } from '@/components/shared/FilterDialog'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { PengajuanCard } from '@/components/pengajuan/PengajuanCard'
 import { PengajuanDetailDialog } from '@/components/pengajuan/PengajuanDetailDialog'
-import { PlusCircle, RefreshCw, Clock, CheckCircle2, FileText, Filter } from 'lucide-react'
+import { PlusCircle, RefreshCw, FileText, X } from 'lucide-react'
 import type { Pengajuan } from '@/types'
 
 const ITEMS_PER_PAGE = 10
@@ -21,155 +20,180 @@ export default function PengajuanListPage() {
   const deleteMutation = useDeletePengajuan()
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
   const [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [filter, setFilter] = useState<FilterValues>({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })
+  const [filterJenis, setFilterJenis] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
   const [page, setPage] = useState(1)
   const skId = useId()
 
-  const filtered = pengajuan?.filter((p) => {
-    const matchStatus = !filter.status || p.status === filter.status
-    const matchJenis = !filter.jenis || p.jenis === filter.jenis
-    const matchDate = (!filter.dateFrom || p.tanggalMulai >= filter.dateFrom) && (!filter.dateTo || p.tanggalMulai <= filter.dateTo)
-    const matchSearch = !filter.search || p.alasan.toLowerCase().includes(filter.search.toLowerCase())
-    return matchStatus && matchJenis && matchDate && matchSearch
+  const filtered = pengajuan?.filter(function(p) {
+    var matchStatus = !filterStatus || p.status === filterStatus
+    var matchJenis = !filterJenis || p.jenis === filterJenis
+    return matchStatus && matchJenis
   }) || []
 
-  const total = pengajuan?.length || 0
-  const pending = pengajuan?.filter((p) => p.status === 'pending').length || 0
-  const approved = pengajuan?.filter((p) => p.status === 'approved').length || 0
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
-  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+  var total = pengajuan?.length || 0
+  var pending = pengajuan?.filter(function(p) { return p.status === 'pending' }).length || 0
+  var approved = pengajuan?.filter(function(p) { return p.status === 'approved' }).length || 0
+  var totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
+  var paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  const hasActiveFilter = filter.search || filter.jenis || filter.status || filter.dateFrom || filter.dateTo
+  var hasActiveFilter = filterJenis || filterStatus
+
+  function clearFilters() {
+    setFilterJenis('')
+    setFilterStatus('')
+    setPage(1)
+  }
+
+  var jenisOptions = [
+    { value: 'cuti', label: 'Cuti' },
+    { value: 'izin', label: 'Izin' },
+    { value: 'sakit', label: 'Sakit' },
+  ]
+
+  var statusOptions = [
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Disetujui' },
+    { value: 'rejected', label: 'Ditolak' },
+  ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Pengajuan</h1>
-          <p className="text-muted-foreground">Izin & cuti karyawan</p>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Pengajuan</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Izin & cuti karyawan</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
+            <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
           </Button>
-          <Button className="gap-2" onClick={() => navigate({ to: '/pengajuan/baru' })}>
-            <PlusCircle className="h-4 w-4" /> Ajukan Baru
+          <Button className="gap-2" onClick={function() { navigate({ to: '/pengajuan/baru' }) }}>
+            <PlusCircle className="h-4 w-4" /> Ajukan
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <Card>
-          <CardContent className="py-3 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><FileText className="h-4 w-4 text-primary" /></div>
-            <div>
-              <p className="text-xs text-muted-foreground">Total</p>
-              <p className="text-lg font-bold">{total}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-3 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30"><Clock className="h-4 w-4 text-yellow-600" /></div>
-            <div>
-              <p className="text-xs text-muted-foreground">Pending</p>
-              <p className="text-lg font-bold text-yellow-600">{pending}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-3 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30"><CheckCircle2 className="h-4 w-4 text-green-600" /></div>
-            <div>
-              <p className="text-xs text-muted-foreground">Disetujui</p>
-              <p className="text-lg font-bold text-green-600">{approved}</p>
-            </div>
-          </CardContent>
-        </Card>
+        {[
+          { label: 'Total', value: total, icon: FileText, color: 'text-primary', bg: 'bg-primary/10' },
+          { label: 'Pending', value: pending, icon: FileText, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+          { label: 'Disetujui', value: approved, icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+        ].map(function(stat) {
+          var Icon = stat.icon
+          return (
+            <Card key={stat.label}>
+              <CardContent className="py-3 px-3 md:py-4 md:px-4 flex items-center gap-3">
+                <div className={'p-2 rounded-lg shrink-0 ' + stat.bg}>
+                  <Icon className={'h-4 w-4 ' + stat.color} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] md:text-xs text-muted-foreground truncate">{stat.label}</p>
+                  <p className={'text-base md:text-lg font-bold ' + stat.color}>{stat.value}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
-      <div className="flex items-center gap-3">
-        <Button
-          variant={hasActiveFilter ? 'default' : 'outline'}
-          size="sm"
-          className="gap-2"
-          onClick={() => setFilterOpen(true)}
-        >
-          <Filter className="h-4 w-4" />
-          Filter
-          {hasActiveFilter && <span className="ml-1 w-2 h-2 rounded-full bg-primary-foreground" />}
-        </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-1.5">
+          {jenisOptions.map(function(opt) {
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={function() { setFilterJenis(filterJenis === opt.value ? '' : opt.value); setPage(1) }}
+                className={'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
+                  filterJenis === opt.value
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                {opt.label}
+                {filterJenis === opt.value && <X className="h-3 w-3" />}
+              </button>
+            )
+          })}
+        </div>
+        <span className="text-muted-foreground/40 text-xs">|</span>
+        <div className="flex flex-wrap gap-1.5">
+          {statusOptions.map(function(opt) {
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={function() { setFilterStatus(filterStatus === opt.value ? '' : opt.value); setPage(1) }}
+                className={'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
+                  filterStatus === opt.value
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                {opt.label}
+                {filterStatus === opt.value && <X className="h-3 w-3" />}
+              </button>
+            )
+          })}
+        </div>
         {hasActiveFilter && (
-          <Button variant="ghost" size="sm" onClick={() => { setFilter({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' }); setPage(1) }}>
-            Hapus filter
-          </Button>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+          >
+            Hapus filter ({filtered.length})
+          </button>
         )}
-        <div className="flex-1" />
-        <span className="text-sm text-muted-foreground">{filtered.length} hasil</span>
       </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {Array.from({ length: 4 }, (_, i) => ({ id: `${skId}-s${i}` })).map((item) => (
-            <Skeleton key={item.id} className="h-32 w-full rounded-xl" />
-          ))}
+          {Array.from({ length: 4 }, function(_, i) { return { id: skId + '-s' + i } }).map(function(item) {
+            return <Skeleton key={item.id} className="h-32 w-full rounded-xl" />
+          })}
         </div>
-      ) : paginated.length ? (
+      ) : paginated.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {paginated.map((p) => (
-            <PengajuanCard
-              key={p.id}
-              pengajuan={p}
-              variant="karyawan"
-              onEdit={(id) => {
-                const target = pengajuan?.find(x => x.id === id)
-                if (target) navigate({ to: '/pengajuan/baru', state: { edit: target } })
-              }}
-              onDelete={(id) => setDeleteConfirmId(id)}
-              onClick={(p) => setDetailTarget(p)}
-            />
-          ))}
+          {paginated.map(function(p) {
+            return (
+              <PengajuanCard
+                key={p.id}
+                pengajuan={p}
+                variant="karyawan"
+                onEdit={function(id) {
+                  var target = pengajuan?.find(function(x) { return x.id === id })
+                  if (target) navigate({ to: '/pengajuan/baru', state: { edit: target } })
+                }}
+                onDelete={function(id) { setDeleteConfirmId(id) }}
+                onClick={function(p) { setDetailTarget(p) }}
+              />
+            )
+          })}
         </div>
       ) : (
-        <EmptyState
-          message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada pengajuan'}
-          icon={FileText}
-        />
+        <EmptyState message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada pengajuan'} icon={FileText} />
       )}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      <FilterDialog
-        open={filterOpen}
-        onOpenChange={setFilterOpen}
-        values={filter}
-        onApply={setFilter}
-        onReset={() => setFilter({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })}
-        searchPlaceholder="Cari alasan..."
-        statusOptions={[
-          { value: 'pending', label: 'Pending' },
-          { value: 'approved', label: 'Disetujui' },
-          { value: 'rejected', label: 'Ditolak' },
-        ]}
-      />
-
       <PengajuanDetailDialog
         open={!!detailTarget}
-        onOpenChange={(o) => { if (!o) setDetailTarget(null) }}
+        onOpenChange={function(o) { if (!o) setDetailTarget(null) }}
         pengajuan={detailTarget}
         variant="karyawan"
-        onDelete={(id) => { setDetailTarget(null); setDeleteConfirmId(id) }}
+        onDelete={function(id) { setDetailTarget(null); setDeleteConfirmId(id) }}
       />
 
       <ConfirmDialog
         open={deleteConfirmId !== null}
-        onOpenChange={(o) => { if (!o) setDeleteConfirmId(null) }}
+        onOpenChange={function(o) { if (!o) setDeleteConfirmId(null) }}
         title="Hapus Pengajuan"
         actions={[
           {
             label: 'Hapus',
-            onClick: () => { if (deleteConfirmId) { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null) } },
+            onClick: function() { if (deleteConfirmId !== null) { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null) } },
             variant: 'destructive' as const,
           },
         ]}
