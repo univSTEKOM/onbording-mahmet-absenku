@@ -60,6 +60,9 @@ export interface DayAttendanceData {
   sakit: number
   cuti: number
   tidakHadir: number
+  present?: number
+  absentPermit?: number
+  absentUnpermit?: number
 }
 
 export interface MonthAttendanceData {

@@ -630,19 +630,6 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
   const monday = new Date(today)
   monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
 
-  /* ── Category type helper ── */
-  function catType(record) {
-    var m = record.mainCategory || ''
-    if (m === 'physical_present') return 'present'
-    if (m === 'absent_permit') return 'absent_permit'
-    if (m === 'absent_unpermit') return 'absent_unpermit'
-    /* Fallback: map legacy status */
-    var s = record.status || ''
-    if (['hadir', 'terlambat', 'pulang_cepat'].includes(s)) return 'present'
-    if (['izin', 'sakit', 'cuti'].includes(s)) return 'absent_permit'
-    return 'absent_unpermit'
-  }
-
   const pengajuan = router.db.get('pengajuan').value()
   const chart = []
   for (let i = 0; i < 7; i++) {
@@ -707,6 +694,18 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
 
 const APP_RELEASE_DATE = process.env.APP_RELEASE_DATE || '2026-07-13'
 
+/* ── Category type helper ── */
+function catType(record) {
+  var m = record.mainCategory || ''
+  if (m === 'physical_present') return 'present'
+  if (m === 'absent_permit') return 'absent_permit'
+  if (m === 'absent_unpermit') return 'absent_unpermit'
+  var s = record.status || ''
+  if (['hadir', 'terlambat', 'pulang_cepat'].includes(s)) return 'present'
+  if (['izin', 'sakit', 'cuti'].includes(s)) return 'absent_permit'
+  return 'absent_unpermit'
+}
+
 server.get('/api/dashboard/month', async (req, res) => {
   const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
   if (!session) return res.status(401).json({ message: 'Unauthorized' })
@@ -748,6 +747,9 @@ server.get('/api/dashboard/month', async (req, res) => {
     const sakit = dayAbsensi.filter((x) => x.status === 'sakit').length + dayPengajuan.filter((x) => x.jenis === 'sakit').length
     const cuti = dayAbsensi.filter((x) => x.status === 'cuti').length + dayPengajuan.filter((x) => x.jenis === 'cuti').length
     const totalLain = izin + sakit + cuti
+    var present = dayAbsensi.filter(function(x) { return catType(x) === 'present' }).length
+    var absentPermit = dayAbsensi.filter(function(x) { return catType(x) === 'absent_permit' }).length + dayPengajuan.filter(function(x) { return x.jenis === 'izin' }).length
+    var absentUnpermit = dayAbsensi.filter(function(x) { return catType(x) === 'absent_unpermit' }).length
     data.push({
       tanggal: tgl,
       hadir,
@@ -758,6 +760,9 @@ server.get('/api/dashboard/month', async (req, res) => {
       sakit,
       cuti,
       tidakHadir: Math.max(0, total - hadir - pulangCepat - terlambat - checkInOnly - totalLain),
+      present,
+      absentPermit,
+      absentUnpermit,
     })
   }
 
