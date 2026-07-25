@@ -237,13 +237,13 @@ export default function AdminRiwayatPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 5 }, function(_, i) { return { id: 'ar-sk-' + i } }).map(function(item) {
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+          {Array.from({ length: 6 }, function(_, i) { return { id: 'ar-sk-' + i } }).map(function(item) {
             return <Skeleton key={item.id} className="h-24 w-full rounded-xl" />
           })}
         </div>
       ) : filtered && filtered.length > 0 ? (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
           {filtered.map(function(a) {
             var u = users?.find(function(u) { return u.id === a.userId })
             var tgl = new Date(a.tanggal + 'T00:00:00')
@@ -255,47 +255,49 @@ export default function AdminRiwayatPage() {
                 className="rounded-xl border border-border bg-card hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 onClick={function() { setDetail(a) }}
               >
-                <div className="px-4 py-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex flex-col items-center w-9 shrink-0 pt-0.5">
-                      <span className="text-[10px] text-muted-foreground leading-none">{tgl.toLocaleDateString('id-ID', { weekday: 'short' })}</span>
-                      <span className="text-base font-bold leading-tight">{tgl.getDate()}</span>
-                      <span className="text-[10px] text-muted-foreground leading-none">{tgl.toLocaleDateString('id-ID', { month: 'short' })}</span>
+                <div className="p-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex flex-col items-center w-8 shrink-0">
+                      <span className="text-[9px] text-muted-foreground leading-none">{tgl.toLocaleDateString('id-ID', { weekday: 'short' })}</span>
+                      <span className="text-sm font-bold leading-tight">{tgl.getDate()}</span>
+                      <span className="text-[9px] text-muted-foreground leading-none">{tgl.toLocaleDateString('id-ID', { month: 'short' })}</span>
                     </div>
 
-                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                      <Avatar className="h-8 w-8 ring-2 ring-border/50 shrink-0">
-                        <AvatarImage src={u?.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
-                        <AvatarFallback className="text-xs bg-muted text-muted-foreground">{initials}</AvatarFallback>
-                      </Avatar>
+                    <Avatar className="h-8 w-8 ring-2 ring-border/50 shrink-0">
+                      <AvatarImage src={u?.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+                      <AvatarFallback className="text-xs bg-muted text-muted-foreground">{initials}</AvatarFallback>
+                    </Avatar>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-semibold truncate">{u?.nama || '-'}</p>
-                          <Badge variant="secondary" className={absensiStatusBadge[a.status] + ' shrink-0'}>{absensiStatusLabel[a.status]}</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">{u?.email || '-'}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <p className="text-sm font-semibold truncate">{u?.nama || '-'}</p>
+                        <Badge variant="secondary" className={absensiStatusBadge[a.status] + ' shrink-0'}>{absensiStatusLabel[a.status]}</Badge>
                       </div>
+                      <p className="text-xs text-muted-foreground truncate">{u?.email || '-'}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-border/40">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <LogIn className="h-3.5 w-3.5 text-emerald-600" />
+                  <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/40">
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <LogIn className="h-3 w-3 text-emerald-600" />
                       {formatJam(a.checkIn)}
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <LogOut className="h-3.5 w-3.5 text-red-600" />
+                    <span className="text-muted-foreground/30">|</span>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <LogOut className="h-3 w-3 text-red-600" />
                       {formatJam(a.checkOut)}
                     </div>
                     {a.checkIn && (
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
-                        <Clock className="h-3.5 w-3.5 text-blue-600" />
-                        {hitungJam(a.checkIn, a.checkOut)}
-                      </div>
+                      <>
+                        <span className="text-muted-foreground/30">|</span>
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Clock className="h-3 w-3 text-blue-600" />
+                          {hitungJam(a.checkIn, a.checkOut)}
+                        </div>
+                      </>
                     )}
                     {a.faceVerified && (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" />
                     )}
                   </div>
                 </div>
