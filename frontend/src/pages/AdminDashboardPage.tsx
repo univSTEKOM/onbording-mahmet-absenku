@@ -13,37 +13,37 @@ import { absensiChartConfig, pieDataItem } from '@/lib/chart-config'
 import api from '@/api/axios'
 import type { User } from '@/types'
 
-var today = new Date()
-var currentMonth = today.getMonth()
-var currentYear = today.getFullYear()
+const today = new Date()
+const currentMonth = today.getMonth()
+const currentYear = today.getFullYear()
 
-var pieId = 'pie-kehadiran'
+const pieId = 'pie-kehadiran'
 
-var monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
 export default function AdminDashboardPage() {
-  var navigate = useNavigate()
-  var { data: adminData, isLoading, refetch, isFetching } = useAdminWeek()
-  var { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
-  var { data: pendingUsers } = useQuery({
+  const navigate = useNavigate()
+  const { data: adminData, isLoading, refetch, isFetching } = useAdminWeek()
+  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
+  const { data: pendingUsers } = useQuery({
     queryKey: ['users', 'pending'],
     queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data as User[] }) },
   })
 
-  var s = adminData?.summary
-  var chart = adminData?.chart || []
-  var pendingCount = pendingUsers?.length || 0
-  var totalKaryawan = s?.totalKaryawan || 0
-  var [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const s = adminData?.summary
+  const chart = adminData?.chart || []
+  const pendingCount = pendingUsers?.length || 0
+  const totalKaryawan = s?.totalKaryawan || 0
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  var donutData = useMemo(function() {
+  const donutData = useMemo(function() {
     if (!monthData?.data) return []
-    var hadirTotal = monthData.data.reduce(function(sum, d) { return sum + (d.hadir || 0) }, 0)
-    var terlambatTotal = monthData.data.reduce(function(sum, d) { return sum + (d.terlambat || 0) }, 0)
-    var izinTotal = monthData.data.reduce(function(sum, d) { return sum + (d.izin || 0) }, 0)
-    var sakitTotal = monthData.data.reduce(function(sum, d) { return sum + (d.sakit || 0) }, 0)
-    var cutiTotal = monthData.data.reduce(function(sum, d) { return sum + (d.cuti || 0) }, 0)
-    var alfaTotal = monthData.data.reduce(function(sum, d) { return sum + (d.tidakHadir || 0) }, 0)
+    const hadirTotal = monthData.data.reduce(function(sum, d) { return sum + (d.hadir || 0) }, 0)
+    const terlambatTotal = monthData.data.reduce(function(sum, d) { return sum + (d.terlambat || 0) }, 0)
+    const izinTotal = monthData.data.reduce(function(sum, d) { return sum + (d.izin || 0) }, 0)
+    const sakitTotal = monthData.data.reduce(function(sum, d) { return sum + (d.sakit || 0) }, 0)
+    const cutiTotal = monthData.data.reduce(function(sum, d) { return sum + (d.cuti || 0) }, 0)
+    const alfaTotal = monthData.data.reduce(function(sum, d) { return sum + (d.tidakHadir || 0) }, 0)
     return [
       pieDataItem('hadir', hadirTotal),
       pieDataItem('terlambat', terlambatTotal),
@@ -54,11 +54,11 @@ export default function AdminDashboardPage() {
     ]
   }, [monthData])
 
-  var totalAbsen = donutData.reduce(function(s, d) { return s + d.value }, 0)
-  var hadirVal = donutData[0]?.value ?? 0
-  var hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
+  const totalAbsen = donutData.reduce(function(s, d) { return s + d.value }, 0)
+  const hadirVal = donutData[0]?.value ?? 0
+  const hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
 
-  var statsData = [
+  const statsData = [
     {
       label: 'Total Karyawan',
       value: isLoading ? '-' : String(totalKaryawan),
@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
         {statsData.map(function(stat) {
-          var Icon = stat.icon
+          const Icon = stat.icon
           return (
             <Card key={stat.label} className={'border-t-2 ' + stat.accent}>
               <CardContent className="p-3 md:p-4">

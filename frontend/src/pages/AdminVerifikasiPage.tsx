@@ -27,17 +27,17 @@ interface VerifikasiUserCardProps {
 }
 
 const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCardProps) {
-  var u = p.user
-  var nameRef = useRef<HTMLParagraphElement>(null)
-  var [isOverflow, setIsOverflow] = useState(false)
+  const u = p.user
+  const nameRef = useRef<HTMLParagraphElement>(null)
+  const [isOverflow, setIsOverflow] = useState(false)
 
   useEffect(function() {
-    var el = nameRef.current
+    const el = nameRef.current
     if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
   }, [u.nama])
 
-  var initials = (u.nama || '?').charAt(0).toUpperCase()
-  var joinedDate = u.createdAt
+  const initials = (u.nama || '?').charAt(0).toUpperCase()
+  const joinedDate = u.createdAt
     ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     : '-'
 
@@ -159,28 +159,28 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
 })
 
 export default function AdminVerifikasiPage() {
-  var queryClient = useQueryClient()
-  var [rejectTarget, setRejectTarget] = useState<User | null>(null)
-  var [rejectNote, setRejectNote] = useState('')
-  var [deleteTarget, setDeleteTarget] = useState<User | null>(null)
-  var [detailTarget, setDetailTarget] = useState<User | null>(null)
+  const queryClient = useQueryClient()
+  const [rejectTarget, setRejectTarget] = useState<User | null>(null)
+  const [rejectNote, setRejectNote] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+  const [detailTarget, setDetailTarget] = useState<User | null>(null)
 
-  var { data: pendingUsers, isLoading, refetch, isFetching } = useQuery({
+  const { data: pendingUsers, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['users', 'pending'],
     queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data as User[] }) },
   })
 
-  var approveMutation = useMutation({
+  const approveMutation = useMutation({
     mutationFn: function(id: string) { return api.patch('/api/users/' + id + '/status', { status: 'approved' }) },
     onSuccess: function() { queryClient.invalidateQueries({ queryKey: ['users'] }); toast.success('User berhasil disetujui') },
   })
 
-  var rejectMutation = useMutation({
+  const rejectMutation = useMutation({
     mutationFn: function(p: { id: string; note: string }) { return api.patch('/api/users/' + p.id + '/status', { status: 'rejected', note: p.note }) },
     onSuccess: function() { queryClient.invalidateQueries({ queryKey: ['users'] }); setRejectTarget(null); setRejectNote(''); toast.success('User ditolak') },
   })
 
-  var deleteMutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: function(id: string) { return api.delete('/api/users/' + id) },
     onSuccess: function() { queryClient.invalidateQueries({ queryKey: ['users'] }); setDeleteTarget(null); toast.success('User berhasil dihapus') },
   })
@@ -270,12 +270,12 @@ export default function AdminVerifikasiPage() {
             <DialogTitle>Detail</DialogTitle>
           </DialogHeader>
           {detailTarget && function(u) {
-            var initials = (u.nama || '?').charAt(0).toUpperCase()
-            var joinedDate = u.createdAt
+            const initials = (u.nama || '?').charAt(0).toUpperCase()
+            const joinedDate = u.createdAt
               ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
               : '-'
 
-            var fields = [
+            const fields = [
               { icon: Mail, label: 'Email', value: u.email },
               { icon: Briefcase, label: 'Jabatan', value: u.jabatan || '-' },
               { icon: Phone, label: 'Telepon', value: u.phone || '-' },
@@ -304,7 +304,7 @@ export default function AdminVerifikasiPage() {
 
                   <div className="space-y-3">
                     {fields.map(function(f) {
-                      var Icon = f.icon
+                      const Icon = f.icon
                       return (
                         <div key={f.label} className="flex items-center gap-3 text-sm">
                           <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center shrink-0">

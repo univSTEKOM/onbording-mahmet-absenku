@@ -11,7 +11,7 @@ import { aggregateByType, aggregateByMainCategory, aggregateBySubCategory } from
 
 describe('attendance-categories', function() {
   it('has 3 main categories', function() {
-    var mains = getMainCategories()
+    const mains = getMainCategories()
     expect(mains.length).toBe(3)
     expect(mains[0].type).toBe('present')
     expect(mains[1].type).toBe('absent_permit')
@@ -19,12 +19,12 @@ describe('attendance-categories', function() {
   })
 
   it('has 14 sub categories', function() {
-    var subs = ALL_CATEGORIES.filter(function(c) { return c.parentId !== null })
+    const subs = ALL_CATEGORIES.filter(function(c) { return c.parentId !== null })
     expect(subs.length).toBe(14)
   })
 
   it('physical_present has 5 sub categories', function() {
-    var subs = getSubCategories('physical_present')
+    const subs = getSubCategories('physical_present')
     expect(subs.length).toBe(5)
     expect(subs[0].id).toBe('physical_standard')
     expect(subs[1].id).toBe('physical_flexible')
@@ -60,7 +60,7 @@ describe('attendance-categories', function() {
   })
 
   it('getCategoryTree returns 3 main with subs', function() {
-    var tree = getCategoryTree()
+    const tree = getCategoryTree()
     expect(tree.length).toBe(3)
     expect(tree[0].main.id).toBe('physical_present')
     expect(tree[0].subs.length).toBe(5)
@@ -82,7 +82,7 @@ describe('attendance-categories', function() {
 })
 
 describe('attendance-aggregate', function() {
-  var records = [
+  const records = [
     { mainCategory: 'physical_present', subCategory: 'physical_standard', checkIn: '2026-07-24T07:45:00Z', checkOut: '2026-07-24T16:30:00Z' },
     { mainCategory: 'physical_present', subCategory: 'physical_standard', checkIn: '2026-07-25T07:50:00Z', checkOut: '2026-07-25T16:00:00Z' },
     { mainCategory: 'absent_permit', subCategory: 'permit_sick' },
@@ -91,7 +91,7 @@ describe('attendance-aggregate', function() {
   ]
 
   it('aggregateByType counts by type', function() {
-    var result = aggregateByType(records)
+    const result = aggregateByType(records)
     expect(result.length).toBe(3)
     expect(result[0]).toEqual({ type: 'present', count: 2 })
     expect(result[1]).toEqual({ type: 'absent_permit', count: 2 })
@@ -99,20 +99,20 @@ describe('attendance-aggregate', function() {
   })
 
   it('aggregateByMainCategory counts by main category', function() {
-    var result = aggregateByMainCategory(records)
+    const result = aggregateByMainCategory(records)
     expect(result.length).toBe(3)
-    var physical = result.find(function(r) { return r.id === 'physical_present' })
+    const physical = result.find(function(r) { return r.id === 'physical_present' })
     expect(physical?.count).toBe(2)
-    var permit = result.find(function(r) { return r.id === 'absent_permit' })
+    const permit = result.find(function(r) { return r.id === 'absent_permit' })
     expect(permit?.count).toBe(2)
-    var unpermit = result.find(function(r) { return r.id === 'absent_unpermit' })
+    const unpermit = result.find(function(r) { return r.id === 'absent_unpermit' })
     expect(unpermit?.count).toBe(1)
   })
 
   it('aggregateBySubCategory counts by sub category', function() {
-    var result = aggregateBySubCategory(records)
+    const result = aggregateBySubCategory(records)
     expect(result.length).toBe(4)
-    var std = result.find(function(r) { return r.id === 'physical_standard' })
+    const std = result.find(function(r) { return r.id === 'physical_standard' })
     expect(std?.count).toBe(2)
   })
 })

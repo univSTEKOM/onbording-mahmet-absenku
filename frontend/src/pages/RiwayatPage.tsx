@@ -79,8 +79,8 @@ export default function RiwayatPage() {
   const [detailDate, setDetailDate] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState('')
 
-  var dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
-  var dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
+  const dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
+  const dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
 
   const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: allPengajuan } = useAllPengajuan()
@@ -269,7 +269,7 @@ export default function RiwayatPage() {
       ) : absensi && absensi.length > 0 ? (
         <div className="space-y-2">
           {absensi.map(function(a) {
-            var tgl = new Date(a.tanggal + 'T00:00:00')
+            const tgl = new Date(a.tanggal + 'T00:00:00')
             return (
               <Card
                 key={a.id}

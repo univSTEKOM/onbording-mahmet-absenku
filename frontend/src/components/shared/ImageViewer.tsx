@@ -10,8 +10,8 @@ interface ImageViewerProps {
 }
 
 export function ImageViewer(p: ImageViewerProps) {
-  var open = p.open
-  var onClose = p.onClose
+  const open = p.open
+  const onClose = p.onClose
 
   useEffect(function() {
     if (!open) return

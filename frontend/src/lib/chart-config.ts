@@ -31,8 +31,8 @@ export function categoryColor(colorVar: string): string {
 
 export const categoryChartConfig: ChartConfig = Object.fromEntries(
   Object.entries(CATEGORY_LABEL).map(function(e) {
-    var catId = e[0]; var label = e[1]
-    var colorVar = CATEGORY_COLORS_MAP[catId] || 'var(--color-status-hadir)'
+    const catId = e[0]; var label = e[1]
+    const colorVar = CATEGORY_COLORS_MAP[catId] || 'var(--color-status-hadir)'
     return [catId, { label: label, color: categoryColor(colorVar) }]
   })
 ) as ChartConfig

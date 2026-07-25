@@ -4,12 +4,12 @@ const VERSION = 3
 import AdminKaryawanPageV1 from './AdminKaryawanPage.v1'
 import AdminKaryawanPageV3 from './AdminKaryawanPage.v3'
 
-var pages: Record<number, React.ComponentType> = {
+const pages: Record<number, React.ComponentType> = {
   1: AdminKaryawanPageV1,
   3: AdminKaryawanPageV3,
 }
 
-var Page = pages[VERSION] || AdminKaryawanPageV3
+const Page = pages[VERSION] || AdminKaryawanPageV3
 
 export default function AdminKaryawanPage() {
   return <Page />

@@ -4,9 +4,9 @@ export function exportToCsv(filename: string, headers: string[], rows: string[][
     ...rows.map((row) =>
       row.map((cell) => {
         /* Prevent CSV formula injection */
-        var safe = cell
+        let safe = cell
         if (/^[=+\-@]/.test(safe)) safe = "'" + safe
-        var escaped = safe.replace(/"/g, '""')
+        const escaped = safe.replace(/"/g, '""')
         return safe.includes(',') || safe.includes('"') || safe.includes('\n')
           ? '"' + escaped + '"'
           : safe

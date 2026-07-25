@@ -36,17 +36,17 @@ interface KaryawanUserCardProps {
 }
 
 const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps) {
-  var u = p.user
-  var nameRef = useRef<HTMLParagraphElement>(null)
-  var [isOverflow, setIsOverflow] = useState(false)
+  const u = p.user
+  const nameRef = useRef<HTMLParagraphElement>(null)
+  const [isOverflow, setIsOverflow] = useState(false)
 
   useEffect(function() {
-    var el = nameRef.current
+    const el = nameRef.current
     if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
   }, [u.nama])
 
-  var initials = (u.nama || '?').charAt(0).toUpperCase()
-  var joinedDate = u.createdAt
+  const initials = (u.nama || '?').charAt(0).toUpperCase()
+  const joinedDate = u.createdAt
     ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     : '-'
 
@@ -136,38 +136,38 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
 })
 
 export default function AdminKaryawanPageV3() {
-  var navigate = useNavigate()
-  var { user: currentUser } = useAuth()
-  var [search, setSearch] = useState('')
-  var [roleFilter, setRoleFilter] = useState('')
-  var debouncedSearch = useDebounce(search, 300)
+  const navigate = useNavigate()
+  const { user: currentUser } = useAuth()
+  const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState('')
+  const debouncedSearch = useDebounce(search, 300)
 
-  var isSearching = search !== debouncedSearch
+  const isSearching = search !== debouncedSearch
 
-  var filterParams = useMemo(function() {
-    var p: Record<string, string> = {}
+  const filterParams = useMemo(function() {
+    const p: Record<string, string> = {}
     if (debouncedSearch) p.q = debouncedSearch
     if (roleFilter) p.role = roleFilter
     return p
   }, [debouncedSearch, roleFilter])
 
-  var { data: users, isLoading, refetch, isFetching } = useUsers(filterParams)
-  var queryClient = useQueryClient()
-  var [saving, setSaving] = useState(false)
+  const { data: users, isLoading, refetch, isFetching } = useUsers(filterParams)
+  const queryClient = useQueryClient()
+  const [saving, setSaving] = useState(false)
 
-  var [modalOpen, setModalOpen] = useState(false)
-  var [editTarget, setEditTarget] = useState<User | null>(null)
-  var [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const, phone: '', alamat: '' })
-  var [formError, setFormError] = useState('')
-  var [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<User | null>(null)
+  const [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const, phone: '', alamat: '' })
+  const [formError, setFormError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  var [deleteTarget, setDeleteTarget] = useState<User | null>(null)
-  var [resetFace, setResetFace] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+  const [resetFace, setResetFace] = useState(false)
 
-  var filtered = users
+  const filtered = users
 
-  var adminCount = filtered?.filter(function(u) { return u.role === 'admin' }).length || 0
-  var karyawanCount = filtered?.filter(function(u) { return u.role === 'karyawan' }).length || 0
+  const adminCount = filtered?.filter(function(u) { return u.role === 'admin' }).length || 0
+  const karyawanCount = filtered?.filter(function(u) { return u.role === 'karyawan' }).length || 0
 
   function openCreate() {
     setEditTarget(null)
@@ -189,7 +189,7 @@ export default function AdminKaryawanPageV3() {
 
   async function handleSave() {
     setFormError('')
-    var errs: Record<string, string> = {}
+    const errs: Record<string, string> = {}
     if (!form.nama?.trim()) errs.nama = 'Nama harus diisi'
     else if (form.nama.length > MAX_NAMA_LENGTH) errs.nama = 'Maksimal ' + MAX_NAMA_LENGTH + ' karakter'
     if (!form.email?.trim()) errs.email = 'Email harus diisi'
@@ -197,7 +197,7 @@ export default function AdminKaryawanPageV3() {
     if (!form.jabatan?.trim()) errs.jabatan = 'Jabatan harus diisi'
     else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = 'Maksimal ' + MAX_JABATAN_LENGTH + ' karakter'
     if (form.phone) {
-      var digits = form.phone.replace(/\D/g, '')
+      const digits = form.phone.replace(/\D/g, '')
       if (digits.length < MIN_PHONE_DIGITS) errs.phone = 'Minimal ' + MIN_PHONE_DIGITS + ' angka'
       else if (digits.length > MAX_PHONE_DIGITS) errs.phone = 'Maksimal ' + MAX_PHONE_DIGITS + ' angka'
     }
@@ -210,14 +210,14 @@ export default function AdminKaryawanPageV3() {
         await api.patch('/api/users/' + editTarget.id, { ...form, ...(resetFace ? { faceDescriptor: '' } : {}) } as Partial<User>)
         toast.success('Karyawan berhasil diupdate')
       } else {
-        var generatedPassword = Math.random().toString(36).slice(2, 14)
+        const generatedPassword = Math.random().toString(36).slice(2, 14)
         await api.post('/api/register', { ...form, password: generatedPassword, name: form.nama, role: form.role })
         toast.success('Karyawan berhasil ditambahkan')
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setModalOpen(false)
     } catch (err: unknown) {
-      var msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal menyimpan'
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal menyimpan'
       setFormError(msg)
     } finally {
       setSaving(false)
@@ -240,7 +240,7 @@ export default function AdminKaryawanPageV3() {
     return fd?.startsWith('[') ?? false
   }
 
-  var roleOptions = [
+  const roleOptions = [
     { value: '', label: 'Semua' },
     { value: 'karyawan', label: 'Karyawan' },
     { value: 'admin', label: 'Admin' },

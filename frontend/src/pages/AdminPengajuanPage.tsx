@@ -17,43 +17,43 @@ import { toast } from 'sonner'
 import { RefreshCw, CheckCircle2, XCircle, FileText, Clock, X } from 'lucide-react'
 import type { Pengajuan, PengajuanStatus } from '@/types'
 
-var ITEMS_PER_PAGE = 10
+const ITEMS_PER_PAGE = 10
 
 export default function AdminPengajuanPage() {
-  var { data: users } = useUsers()
-  var [filterJenis, setFilterJenis] = useState('')
-  var [filterStatus, setFilterStatus] = useState('')
-  var { data: allPengajuan, isLoading, refetch, isFetching } = useAllPengajuan({
+  const { data: users } = useUsers()
+  const [filterJenis, setFilterJenis] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const { data: allPengajuan, isLoading, refetch, isFetching } = useAllPengajuan({
     jenis: filterJenis || undefined,
     status: filterStatus || undefined,
   })
-  var updateStatus = useUpdatePengajuanStatus()
-  var skId = useId()
-  var [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
-  var [confirmTarget, setConfirmTarget] = useState<Pengajuan | null>(null)
-  var [confirmAction, setConfirmAction] = useState<PengajuanStatus | null>(null)
-  var [rejectNote, setRejectNote] = useState('')
-  var [page, setPage] = useState(1)
+  const updateStatus = useUpdatePengajuanStatus()
+  const skId = useId()
+  const [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<Pengajuan | null>(null)
+  const [confirmAction, setConfirmAction] = useState<PengajuanStatus | null>(null)
+  const [rejectNote, setRejectNote] = useState('')
+  const [page, setPage] = useState(1)
 
-  var monthStart = new Date(); monthStart.setDate(1)
-  var monthStr = monthStart.toISOString().split('T')[0]
-  var monthData = allPengajuan?.filter(function(p) { return p.createdAt >= monthStr }) || []
+  const monthStart = new Date(); monthStart.setDate(1)
+  const monthStr = monthStart.toISOString().split('T')[0]
+  const monthData = allPengajuan?.filter(function(p) { return p.createdAt >= monthStr }) || []
 
-  var totalMonth = monthData.length
-  var pendingMonth = monthData.filter(function(p) { return p.status === 'pending' }).length
-  var approvedMonth = monthData.filter(function(p) { return p.status === 'approved' }).length
-  var rejectedMonth = monthData.filter(function(p) { return p.status === 'rejected' }).length
+  const totalMonth = monthData.length
+  const pendingMonth = monthData.filter(function(p) { return p.status === 'pending' }).length
+  const approvedMonth = monthData.filter(function(p) { return p.status === 'approved' }).length
+  const rejectedMonth = monthData.filter(function(p) { return p.status === 'rejected' }).length
 
-  var dataList = allPengajuan || []
+  const dataList = allPengajuan || []
 
-  var sorted = [...dataList].sort(function(a, b) {
+  const sorted = [...dataList].sort(function(a, b) {
     if (a.status === 'pending' && b.status !== 'pending') return -1
     if (a.status !== 'pending' && b.status === 'pending') return 1
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
 
-  var totalPages = Math.max(1, Math.ceil(sorted.length / ITEMS_PER_PAGE))
-  var paginated = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+  const totalPages = Math.max(1, Math.ceil(sorted.length / ITEMS_PER_PAGE))
+  const paginated = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
   function openConfirm(p: Pengajuan, status: PengajuanStatus) {
     setConfirmTarget(p)
@@ -73,7 +73,7 @@ export default function AdminPengajuanPage() {
     )
   }
 
-  var hasActiveFilter = filterJenis || filterStatus
+  const hasActiveFilter = filterJenis || filterStatus
 
   function clearFilters() {
     setFilterJenis('')
@@ -81,13 +81,13 @@ export default function AdminPengajuanPage() {
     setPage(1)
   }
 
-  var jenisOptions = [
+  const jenisOptions = [
     { value: 'cuti', label: 'Cuti' },
     { value: 'izin', label: 'Izin' },
     { value: 'sakit', label: 'Sakit' },
   ]
 
-  var statusOptions = [
+  const statusOptions = [
     { value: 'pending', label: 'Pending' },
     { value: 'approved', label: 'Disetujui' },
     { value: 'rejected', label: 'Ditolak' },
@@ -113,7 +113,7 @@ export default function AdminPengajuanPage() {
           { label: 'Disetujui', value: approvedMonth, icon: CheckCircle2, color: 'text-emerald-600', bg: '' },
           { label: 'Ditolak', value: rejectedMonth, icon: XCircle, color: 'text-red-600', bg: '' },
         ].map(function(stat) {
-          var Icon = stat.icon
+          const Icon = stat.icon
           return (
             <Card key={stat.label} className={stat.bg}>
               <CardContent className="py-3 md:py-4">
@@ -188,7 +188,7 @@ export default function AdminPengajuanPage() {
       ) : paginated.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {paginated.map(function(p) {
-            var pengaju = users?.find(function(u) { return u.id === p.userId })
+            const pengaju = users?.find(function(u) { return u.id === p.userId })
             return (
               <PengajuanCard
                 key={p.id}
@@ -196,11 +196,11 @@ export default function AdminPengajuanPage() {
                 variant="admin"
                 pengaju={pengaju}
                 onApprove={function(id) {
-                  var target = sorted.find(function(x) { return x.id === id })
+                  const target = sorted.find(function(x) { return x.id === id })
                   if (target) openConfirm(target, 'approved')
                 }}
                 onReject={function(id) {
-                  var target = sorted.find(function(x) { return x.id === id })
+                  const target = sorted.find(function(x) { return x.id === id })
                   if (target) openConfirm(target, 'rejected')
                 }}
                 onClick={function(p) { setDetailTarget(p) }}
@@ -221,11 +221,11 @@ export default function AdminPengajuanPage() {
         variant="admin"
         pengaju={detailTarget ? users?.find(function(u) { return u.id === detailTarget.userId }) : undefined}
         onApprove={function(id) {
-          var target = sorted.find(function(x) { return x.id === id })
+          const target = sorted.find(function(x) { return x.id === id })
           if (target) openConfirm(target, 'approved')
         }}
         onReject={function(id) {
-          var target = sorted.find(function(x) { return x.id === id })
+          const target = sorted.find(function(x) { return x.id === id })
           if (target) openConfirm(target, 'rejected')
         }}
       />

@@ -17,9 +17,9 @@ import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
 import { CardDescription } from '@/components/ui/card'
 import { absensiChartConfig, pieDataItem, statusColor } from '@/lib/chart-config'
 
-var now = new Date()
-var curMonth = now.getMonth()
-var curYear = now.getFullYear()
+const now = new Date()
+const curMonth = now.getMonth()
+const curYear = now.getFullYear()
 
 function formatJam(iso: string | null): string {
   if (!iso) return '-'
@@ -28,15 +28,15 @@ function formatJam(iso: string | null): string {
 
 function hitungJam(checkIn: string | null, checkOut: string | null): string {
   if (!checkIn) return '-'
-  var keluar = checkOut ? new Date(checkOut).getTime() : Date.now()
-  var selisih = Math.max(0, keluar - new Date(checkIn).getTime())
-  var jam = Math.floor(selisih / (1000 * 60 * 60))
-  var menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
+  const keluar = checkOut ? new Date(checkOut).getTime() : Date.now()
+  const selisih = Math.max(0, keluar - new Date(checkIn).getTime())
+  const jam = Math.floor(selisih / (1000 * 60 * 60))
+  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
   return jam + 'j ' + menit + 'm'
 }
 
 function getGreeting(): { text: string; icon: typeof Sun } {
-  var hour = now.getHours()
+  const hour = now.getHours()
   if (hour < 12) return { text: 'Selamat pagi', icon: Sunrise }
   if (hour < 15) return { text: 'Selamat siang', icon: Sun }
   if (hour < 18) return { text: 'Selamat sore', icon: Sun }
@@ -44,26 +44,26 @@ function getGreeting(): { text: string; icon: typeof Sun } {
 }
 
 export default function DashboardPage() {
-  var { user } = useAuth()
-  var navigate = useNavigate()
-  var [detailDate, setDetailDate] = useState<string | null>(null)
-  var { data: recentAbsensi, isLoading: weekLoading } = useRecentAbsensi()
-  var { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
-  var { data: allAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
-  var { data: todayAbsensi } = useAbsensiList({ userId: user?.id, tanggal: now.toISOString().split('T')[0] })
-  var { data: dayDetail } = useAbsensiList(
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [detailDate, setDetailDate] = useState<string | null>(null)
+  const { data: recentAbsensi, isLoading: weekLoading } = useRecentAbsensi()
+  const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
+  const { data: allAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
+  const { data: todayAbsensi } = useAbsensiList({ userId: user?.id, tanggal: now.toISOString().split('T')[0] })
+  const { data: dayDetail } = useAbsensiList(
     detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
   )
-  var { data: allPengajuan } = useAllPengajuan()
+  const { data: allPengajuan } = useAllPengajuan()
 
-  var dayPengajuan = detailDate && allPengajuan
+  const dayPengajuan = detailDate && allPengajuan
     ? allPengajuan.find(function(p) { return p.status === 'approved' && p.userId === user?.id && p.tanggalMulai <= detailDate && p.tanggalSelesai >= detailDate })
     : null
 
-  var isCheckedIn = !!todayAbsensi?.[0]?.checkIn
-  var isCheckedOut = !!todayAbsensi?.[0]?.checkOut
+  const isCheckedIn = !!todayAbsensi?.[0]?.checkIn
+  const isCheckedOut = !!todayAbsensi?.[0]?.checkOut
 
-  var monthStats = {
+  const monthStats = {
     total: allAbsensi?.filter(function(a) { return a.tanggal.startsWith(curYear + '-' + String(curMonth + 1).padStart(2, '0')) }).length || 0,
     hadir: allAbsensi?.filter(function(a) { return a.tanggal.startsWith(curYear + '-' + String(curMonth + 1).padStart(2, '0')) && a.status === 'hadir' }).length || 0,
     pulangCepat: allAbsensi?.filter(function(a) { return a.tanggal.startsWith(curYear + '-' + String(curMonth + 1).padStart(2, '0')) && a.status === 'pulang_cepat' }).length || 0,
@@ -71,14 +71,14 @@ export default function DashboardPage() {
     izinSakit: allAbsensi?.filter(function(a) { return a.tanggal.startsWith(curYear + '-' + String(curMonth + 1).padStart(2, '0')) && ['izin', 'sakit', 'cuti'].includes(a.status) }).length || 0,
   }
 
-  var recent5 = useMemo(function() {
-    var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 7)
-    var cutoffStr = cutoff.toISOString().split('T')[0]
+  const recent5 = useMemo(function() {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 7)
+    const cutoffStr = cutoff.toISOString().split('T')[0]
     return allAbsensi?.filter(function(a) { return a.tanggal >= cutoffStr }).slice(0, 5) || []
   }, [allAbsensi])
 
-  var pie7Data = useMemo(function() {
-    var counts: Record<string, number> = { hadir: 0, pulangCepat: 0, terlambat: 0, tidakHadir: 0 }
+  const pie7Data = useMemo(function() {
+    const counts: Record<string, number> = { hadir: 0, pulangCepat: 0, terlambat: 0, tidakHadir: 0 }
     recentAbsensi?.forEach(function(item) {
       if (item.status === 'hadir') counts.hadir++
       else if (item.status === 'pulang_cepat') counts.pulangCepat++
@@ -93,16 +93,16 @@ export default function DashboardPage() {
     ]
   }, [recentAbsensi])
 
-  var total7 = pie7Data.reduce(function(s, d) { return s + d.value }, 0)
-  var hadir7 = pie7Data[0].value
-  var pulangCepat7 = pie7Data[1].value
-  var pct7 = total7 > 0 ? Math.round(((hadir7 + pulangCepat7) / total7) * 100) : 0
+  const total7 = pie7Data.reduce(function(s, d) { return s + d.value }, 0)
+  const hadir7 = pie7Data[0].value
+  const pulangCepat7 = pie7Data[1].value
+  const pct7 = total7 > 0 ? Math.round(((hadir7 + pulangCepat7) / total7) * 100) : 0
 
-  var totalMonth = monthStats.hadir + monthStats.pulangCepat + monthStats.terlambat + monthStats.izinSakit
-  var totalKehadiran = monthStats.hadir + monthStats.pulangCepat
-  var pctMonth = totalMonth > 0 ? Math.round((totalKehadiran / totalMonth) * 100) : 0
+  const totalMonth = monthStats.hadir + monthStats.pulangCepat + monthStats.terlambat + monthStats.izinSakit
+  const totalKehadiran = monthStats.hadir + monthStats.pulangCepat
+  const pctMonth = totalMonth > 0 ? Math.round((totalKehadiran / totalMonth) * 100) : 0
 
-  var pieMonthData = useMemo(function() {
+  const pieMonthData = useMemo(function() {
     return [
       pieDataItem('hadir', monthStats.hadir),
       pieDataItem('pulang_cepat', monthStats.pulangCepat),
@@ -113,19 +113,19 @@ export default function DashboardPage() {
 
   if (!user) return null
 
-  var todayStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-  var todayAbsen = todayAbsensi?.[0]
-  var greeting = getGreeting()
-  var GreetIcon = greeting.icon
+  const todayStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const todayAbsen = todayAbsensi?.[0]
+  const greeting = getGreeting()
+  const GreetIcon = greeting.icon
 
-  var statsData = [
+  const statsData = [
     { label: 'Hadir', value: totalKehadiran + ' hari', icon: CalendarDays, accent: 'border-t-emerald-500', iconBg: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
     { label: 'Pulang Cepat', value: monthStats.pulangCepat + ' kali', icon: ChevronsUpDown, accent: 'border-t-orange-500', iconBg: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' },
     { label: 'Terlambat', value: monthStats.terlambat + ' kali', icon: TrendingUp, accent: 'border-t-amber-500', iconBg: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
     { label: 'Izin / Sakit', value: monthStats.izinSakit + ' hari', icon: Clock, accent: 'border-t-blue-500', iconBg: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
   ]
 
-  var progress = isCheckedOut ? 100 : isCheckedIn ? 60 : 0
+  const progress = isCheckedOut ? 100 : isCheckedIn ? 60 : 0
 
   return (
     <div className="space-y-5 md:space-y-6">
@@ -183,7 +183,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
         {statsData.map(function(stat) {
-          var Icon = stat.icon
+          const Icon = stat.icon
           return (
             <Card key={stat.label} className={'border-t-2 ' + stat.accent}>
               <CardContent className="p-3 md:p-4">
@@ -299,10 +299,10 @@ export default function DashboardPage() {
           {recent5.length > 0 ? (
             <div className="space-y-0 divide-y divide-border/50">
               {recent5.map(function(a) {
-                var tgl = new Date(a.tanggal + 'T00:00:00')
-                var dayName = tgl.toLocaleDateString('id-ID', { weekday: 'short' })
-                var dayNum = tgl.getDate()
-                var monthShort = tgl.toLocaleDateString('id-ID', { month: 'short' })
+                const tgl = new Date(a.tanggal + 'T00:00:00')
+                const dayName = tgl.toLocaleDateString('id-ID', { weekday: 'short' })
+                const dayNum = tgl.getDate()
+                const monthShort = tgl.toLocaleDateString('id-ID', { month: 'short' })
                 return (
                   <div key={a.id} className="flex items-center gap-3 py-2.5">
                     <div className="flex flex-col items-center w-8 shrink-0">

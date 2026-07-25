@@ -67,7 +67,7 @@ export default function PengajuanFormPage() {
         {
           onSuccess: function() { navigate({ to: '/pengajuan' }) },
           onError: function(err) {
-            var msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal memperbarui'
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal memperbarui'
             setApiError(msg)
           },
         }
@@ -78,7 +78,7 @@ export default function PengajuanFormPage() {
         {
           onSuccess: function() { navigate({ to: '/pengajuan' }) },
           onError: function(err) {
-            var msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengajukan'
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengajukan'
             setApiError(msg)
           },
         }

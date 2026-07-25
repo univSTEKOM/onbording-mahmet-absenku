@@ -18,14 +18,14 @@ const roleConfig: Record<string, { label: string; light: string; dark: string }>
   },
 }
 
-var sizeClasses: Record<string, string> = {
+const sizeClasses: Record<string, string> = {
   sm: 'text-[10px] px-2 py-0.5',
   md: 'text-xs px-2.5 py-1',
 }
 
 export function RoleBadge(p: RoleBadgeProps) {
-  var cfg = roleConfig[p.role] || roleConfig.karyawan
-  var sizeClass = sizeClasses[p.size || 'sm']
+  const cfg = roleConfig[p.role] || roleConfig.karyawan
+  const sizeClass = sizeClasses[p.size || 'sm']
 
   return (
     <span className={'inline-flex items-center gap-1 rounded-full font-medium border-0 shrink-0 ' + sizeClass + ' ' + cfg.light + ' ' + cfg.dark}>

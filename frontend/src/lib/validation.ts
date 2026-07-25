@@ -52,32 +52,32 @@ const phoneSchema = z
 /* ── Public Validation Functions (API tetap sama) ── */
 
 function firstError(result: z.SafeParseError<unknown>): string {
-  var e = result.error.errors[0]
+  const e = result.error.errors[0]
   return e?.message || 'Validasi gagal'
 }
 
 export function validateEmail(email: string): string | null {
-  var result = emailSchema.safeParse(email)
+  const result = emailSchema.safeParse(email)
   return result.success ? null : firstError(result)
 }
 
 export function validatePassword(password: string): string | null {
-  var result = passwordSchema.safeParse(password)
+  const result = passwordSchema.safeParse(password)
   return result.success ? null : firstError(result)
 }
 
 export function validateNama(nama: string): string | null {
-  var result = namaSchema.safeParse(nama)
+  const result = namaSchema.safeParse(nama)
   return result.success ? null : firstError(result)
 }
 
 export function validateJabatan(jabatan: string): string | null {
-  var result = jabatanSchema.safeParse(jabatan)
+  const result = jabatanSchema.safeParse(jabatan)
   return result.success ? null : firstError(result)
 }
 
 export function validatePhone(phone: string): string | null {
-  var result = phoneSchema.safeParse(phone)
+  const result = phoneSchema.safeParse(phone)
   return result.success ? null : firstError(result)
 }
 

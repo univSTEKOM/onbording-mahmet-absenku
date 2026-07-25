@@ -17,18 +17,18 @@ export interface TypeCount {
 }
 
 function getType(mainCat: string, subCat: string): string {
-  var cat = CATEGORY_MAP[subCat] || CATEGORY_MAP[mainCat]
+  const cat = CATEGORY_MAP[subCat] || CATEGORY_MAP[mainCat]
   return cat?.type || 'present'
 }
 
 export function aggregateByMainCategory(records: AttendanceRecord[]): CategoryCount[] {
-  var map: Record<string, number> = {}
+  const map: Record<string, number> = {}
   records.forEach(function(r) {
-    var key = r.mainCategory || 'unknown'
+    const key = r.mainCategory || 'unknown'
     map[key] = (map[key] || 0) + 1
   })
   return Object.entries(map).map(function(e) {
-    var cat = CATEGORY_MAP[e[0]]
+    const cat = CATEGORY_MAP[e[0]]
     return {
       id: e[0],
       label: cat?.label || e[0],
@@ -40,13 +40,13 @@ export function aggregateByMainCategory(records: AttendanceRecord[]): CategoryCo
 }
 
 export function aggregateBySubCategory(records: AttendanceRecord[]): CategoryCount[] {
-  var map: Record<string, number> = {}
+  const map: Record<string, number> = {}
   records.forEach(function(r) {
-    var key = r.subCategory || 'unknown'
+    const key = r.subCategory || 'unknown'
     map[key] = (map[key] || 0) + 1
   })
   return Object.entries(map).map(function(e) {
-    var cat = CATEGORY_MAP[e[0]]
+    const cat = CATEGORY_MAP[e[0]]
     return {
       id: e[0],
       label: cat?.label || e[0],
@@ -58,9 +58,9 @@ export function aggregateBySubCategory(records: AttendanceRecord[]): CategoryCou
 }
 
 export function aggregateByType(records: AttendanceRecord[]): TypeCount[] {
-  var present = 0; var permit = 0; var unpermit = 0
+  let present = 0; let permit = 0; let unpermit = 0
   records.forEach(function(r) {
-    var t = getType(r.mainCategory, r.subCategory)
+    const t = getType(r.mainCategory, r.subCategory)
     if (t === 'present') present++
     else if (t === 'absent_permit') permit++
     else if (t === 'absent_unpermit') unpermit++
@@ -74,21 +74,21 @@ export function aggregateByType(records: AttendanceRecord[]): TypeCount[] {
 
 export function countPresent(records: AttendanceRecord[]): number {
   return records.filter(function(r) {
-    var cat = CATEGORY_MAP[r.subCategory] || CATEGORY_MAP[r.mainCategory]
+    const cat = CATEGORY_MAP[r.subCategory] || CATEGORY_MAP[r.mainCategory]
     return cat?.type === 'present'
   }).length
 }
 
 export function countAbsentPermit(records: AttendanceRecord[]): number {
   return records.filter(function(r) {
-    var cat = CATEGORY_MAP[r.subCategory] || CATEGORY_MAP[r.mainCategory]
+    const cat = CATEGORY_MAP[r.subCategory] || CATEGORY_MAP[r.mainCategory]
     return cat?.type === 'absent_permit'
   }).length
 }
 
 export function countAbsentUnpermit(records: AttendanceRecord[]): number {
   return records.filter(function(r) {
-    var cat = CATEGORY_MAP[r.subCategory] || CATEGORY_MAP[r.mainCategory]
+    const cat = CATEGORY_MAP[r.subCategory] || CATEGORY_MAP[r.mainCategory]
     return cat?.type === 'absent_unpermit'
   }).length
 }

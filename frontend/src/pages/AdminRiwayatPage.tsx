@@ -18,11 +18,11 @@ import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
 import type { Absensi } from '@/types'
 
-var PAGE_SIZE = 15 /* Admin sees more rows than employee (10) */
-var curMonth = new Date().getMonth()
-var curYear = new Date().getFullYear()
+const PAGE_SIZE = 15 /* Admin sees more rows than employee (10) */
+const curMonth = new Date().getMonth()
+const curYear = new Date().getFullYear()
 
-var STATUS_OPTIONS = [
+const STATUS_OPTIONS = [
   { value: 'hadir', label: 'Hadir' },
   { value: 'terlambat', label: 'Terlambat' },
   { value: 'pulang_cepat', label: 'Pulang Cepat' },
@@ -40,52 +40,52 @@ function formatJam(iso: string | null): string {
 
 function hitungJam(checkIn: string | null, checkOut: string | null): string {
   if (!checkIn) return '-'
-  var selisih = Math.max(0, (checkOut ? new Date(checkOut).getTime() : Date.now()) - new Date(checkIn).getTime())
-  var jam = Math.floor(selisih / (1000 * 60 * 60))
-  var menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
+  const selisih = Math.max(0, (checkOut ? new Date(checkOut).getTime() : Date.now()) - new Date(checkIn).getTime())
+  const jam = Math.floor(selisih / (1000 * 60 * 60))
+  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
   return jam + 'j ' + menit + 'm'
 }
 
 function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } | null {
   if (!preset) return null
-  var today = new Date().toISOString().split('T')[0]
+  const today = new Date().toISOString().split('T')[0]
   switch (preset) {
     case 'hari_ini':
       return { dateFrom: today, dateTo: today }
     case 'kemarin': {
-      var d = new Date(); d.setDate(d.getDate() - 1)
+      const d = new Date(); d.setDate(d.getDate() - 1)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: d.toISOString().split('T')[0] }
     }
     case '7_hari': {
-      var d = new Date(); d.setDate(d.getDate() - 7)
+      const d = new Date(); d.setDate(d.getDate() - 7)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: today }
     }
     case 'bulan_ini': {
-      var d = new Date(); d.setDate(1)
+      const d = new Date(); d.setDate(1)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: today }
     }
   }
 }
 
 export default function AdminRiwayatPage() {
-  var [page, setPage] = useState(1)
-  var [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
-  var [calendarDate, setCalendarDate] = useState<string | null>(null)
-  var [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
-  var [selectedMainCategory, setSelectedMainCategory] = useState('')
-  var [search, setSearch] = useState('')
-  var debouncedSearch = useDebounce(search, 400)
-  var isSearching = search !== debouncedSearch
-  var [detail, setDetail] = useState<Absensi | null>(null)
-  var [previewImage, setPreviewImage] = useState('')
+  const [page, setPage] = useState(1)
+  const [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
+  const [calendarDate, setCalendarDate] = useState<string | null>(null)
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [selectedMainCategory, setSelectedMainCategory] = useState('')
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 400)
+  const isSearching = search !== debouncedSearch
+  const [detail, setDetail] = useState<Absensi | null>(null)
+  const [previewImage, setPreviewImage] = useState('')
 
-  var { data: users } = useUsers()
-  var { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
+  const { data: users } = useUsers()
+  const { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
 
-  var dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
-  var dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
+  const dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
+  const dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
 
-  var queryParams: Record<string, string | number | string[] | undefined> = {
+  const queryParams: Record<string, string | number | string[] | undefined> = {
     _sort: 'tanggal',
     _order: 'desc',
     _page: page,
@@ -97,12 +97,12 @@ export default function AdminRiwayatPage() {
   if (selectedMainCategory) queryParams.mainCategory = selectedMainCategory
   if (debouncedSearch) queryParams.q = debouncedSearch
 
-  var { data, isLoading, refetch, isFetching } = useSearchAbsensi(queryParams)
+  const { data, isLoading, refetch, isFetching } = useSearchAbsensi(queryParams)
 
-  var absensi = data?.data
-  var totalPages = data?.totalPages || 1
+  const absensi = data?.data
+  const totalPages = data?.totalPages || 1
 
-  var hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0 || search.trim() !== '' || !!selectedMainCategory
+  const hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0 || search.trim() !== '' || !!selectedMainCategory
 
   function toggleStatus(status: string) {
     setSelectedStatuses(function(prev) {
@@ -267,9 +267,9 @@ exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0]
       ) : absensi && absensi.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
           {absensi.map(function(a) {
-            var u = users?.find(function(u) { return u.id === a.userId })
-            var tgl = new Date(a.tanggal + 'T00:00:00')
-            var initials = (u?.nama || '?').charAt(0).toUpperCase()
+            const u = users?.find(function(u) { return u.id === a.userId })
+            const tgl = new Date(a.tanggal + 'T00:00:00')
+            const initials = (u?.nama || '?').charAt(0).toUpperCase()
 
             return (
               <div
