@@ -15,7 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import api from '@/api/axios'
 import type { User } from '@/types'
-import { CheckCircle2, XCircle, RefreshCw, Trash2, Ban, UserPlus, Clock, Briefcase, CalendarDays, Mail, Phone, MapPin } from 'lucide-react'
+import { CheckCircle2, XCircle, RefreshCw, Trash2, UserPlus, Clock, Briefcase, CalendarDays, Mail, Phone, MapPin } from 'lucide-react'
 
 interface VerifikasiUserCardProps {
   user: User
@@ -265,48 +265,110 @@ export default function AdminVerifikasiPage() {
       </Dialog>
 
       <Dialog open={!!detailTarget} onOpenChange={function(o) { if (!o) setDetailTarget(null) }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Detail {detailTarget?.nama}</DialogTitle>
+        <DialogContent className="sm:max-w-md gap-0 p-0">
+          <DialogHeader className="px-6 pt-6 pb-0">
+            <DialogTitle>Detail</DialogTitle>
           </DialogHeader>
-          {detailTarget && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <span className="text-muted-foreground">Nama</span><span className="font-medium">{detailTarget.nama}</span>
-                <span className="text-muted-foreground">Email</span><span>{detailTarget.email}</span>
-                <span className="text-muted-foreground">Jabatan</span><span>{detailTarget.jabatan || '-'}</span>
-                <span className="text-muted-foreground">Telepon</span><span>{detailTarget.phone || '-'}</span>
-                <span className="text-muted-foreground">Alamat</span><span>{detailTarget.alamat || '-'}</span>
-                <span className="text-muted-foreground">Tanggal Daftar</span><span>{new Date(detailTarget.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-              </div>
-              {detailTarget.rejectionNotes && detailTarget.rejectionNotes.length > 0 && (
-                <div className="pt-3 border-t">
-                  <p className="text-sm font-medium mb-2">Riwayat Verifikasi</p>
-                  <div className="space-y-2">
-                    {detailTarget.rejectionNotes.map(function(n) {
+          {detailTarget && function(u) {
+            var initials = (u.nama || '?').charAt(0).toUpperCase()
+            var joinedDate = u.createdAt
+              ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+              : '-'
+
+            var fields = [
+              { icon: Mail, label: 'Email', value: u.email },
+              { icon: Briefcase, label: 'Jabatan', value: u.jabatan || '-' },
+              { icon: Phone, label: 'Telepon', value: u.phone || '-' },
+              { icon: MapPin, label: 'Alamat', value: u.alamat || '-' },
+              { icon: CalendarDays, label: 'Terdaftar', value: joinedDate },
+            ]
+
+            return (
+              <>
+                <div className="px-6 py-5">
+                  <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-border/50">
+                    <Avatar className="h-12 w-12 ring-2 ring-amber-200 dark:ring-amber-800/50 shrink-0">
+                      <AvatarImage src={u.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+                      <AvatarFallback className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-base font-semibold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="text-base font-semibold truncate">{u.nama}</p>
+                      <span className="inline-flex items-center gap-1 rounded-full text-[10px] font-medium px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 mt-0.5">
+                        <Clock className="h-2.5 w-2.5" />
+                        Pending
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {fields.map(function(f) {
+                      var Icon = f.icon
                       return (
-                        <div key={n.createdAt} className="flex gap-2 text-sm">
-                          <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                          <div>
-                            <p>{n.note}</p>
-                            <p className="text-xs text-muted-foreground">{new Date(n.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                        <div key={f.label} className="flex items-center gap-3 text-sm">
+                          <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center shrink-0">
+                            <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] text-muted-foreground leading-none mb-0.5">{f.label}</p>
+                            <p className="font-medium truncate">{f.value}</p>
                           </div>
                         </div>
                       )
                     })}
                   </div>
                 </div>
-              )}
-              <div className="flex gap-2 pt-2">
-                <Button size="sm" className="gap-1.5" onClick={function() { approveMutation.mutate(detailTarget.id); setDetailTarget(null) }}>
-                  <CheckCircle2 className="h-4 w-4" /> Setujui
-                </Button>
-                <Button size="sm" variant="outline" className="gap-1.5 text-destructive hover:text-destructive" onClick={function() { setRejectTarget(detailTarget); setDetailTarget(null) }}>
-                  <Ban className="h-4 w-4" /> Tolak
-                </Button>
-              </div>
-            </div>
-          )}
+
+                {u.rejectionNotes && u.rejectionNotes.length > 0 && (
+                  <div className="px-6 pb-3">
+                    <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+                      <p className="text-xs font-semibold text-destructive mb-2 flex items-center gap-1.5">
+                        <XCircle className="h-3.5 w-3.5" />
+                        Riwayat Penolakan
+                      </p>
+                      <div className="space-y-2">
+                        {u.rejectionNotes.map(function(n) {
+                          return (
+                            <div key={n.createdAt} className="text-xs">
+                              <p>{n.note}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">
+                                {new Date(n.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )
+          }(detailTarget)}
+          <DialogFooter className="flex sm:flex-row gap-0 p-0 border-t border-border/40 rounded-b-xl overflow-hidden">
+            <button
+              type="button"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-xs font-medium transition-colors min-h-[44px]"
+              onClick={function() { if (detailTarget) { approveMutation.mutate(detailTarget.id); setDetailTarget(null) } }}
+              disabled={approveMutation.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4" /> Setujui
+            </button>
+            <button
+              type="button"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white py-3 text-xs font-medium transition-colors border-l border-white/20 min-h-[44px]"
+              onClick={function() { if (detailTarget) { setRejectTarget(detailTarget); setDetailTarget(null) } }}
+            >
+              <XCircle className="h-4 w-4" /> Tolak
+            </button>
+            <button
+              type="button"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-red-600/60 hover:bg-red-600/80 text-white py-3 text-xs font-medium transition-colors border-l border-white/20 min-h-[44px]"
+              onClick={function() { if (detailTarget) { setDeleteTarget(detailTarget); setDetailTarget(null) } }}
+            >
+              <Trash2 className="h-4 w-4" /> Hapus
+            </button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
