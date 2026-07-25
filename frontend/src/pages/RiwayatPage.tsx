@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useAbsensiListPaginated, useAbsensiList } from '@/hooks/useAbsensi'
 import { useMonthAttendance } from '@/hooks/useDashboard'
@@ -14,7 +14,7 @@ import { Pagination } from '@/components/shared/Pagination'
 import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { ImageViewer } from '@/components/shared/ImageViewer'
-import { Download, RefreshCw, CheckCircle2, History, X } from 'lucide-react'
+import { Download, RefreshCw, CheckCircle2, History, CalendarDays, X } from 'lucide-react'
 import type { Absensi } from '@/types'
 
 const PAGE_SIZE = 10
@@ -71,15 +71,13 @@ export default function RiwayatPage() {
   const [page, setPage] = useState(1)
   const [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
   const [calendarDate, setCalendarDate] = useState<string | null>(null)
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set())
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [detail, setDetail] = useState<Absensi | null>(null)
   const [detailDate, setDetailDate] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState('')
 
-  const dateRange = useMemo(() => {
-    if (calendarDate) return { dateFrom: calendarDate, dateTo: calendarDate }
-    return getDateRange(quickDate)
-  }, [quickDate, calendarDate])
+  var dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
+  var dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
 
   const { data: monthData } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: allPengajuan } = useAllPengajuan()
@@ -88,61 +86,49 @@ export default function RiwayatPage() {
   )
 
   const dayPengajuan = detailDate && allPengajuan
-    ? allPengajuan.find(
-        (p) =>
-          p.status === 'approved' &&
-          p.userId === user?.id &&
-          p.tanggalMulai <= detailDate &&
-          p.tanggalSelesai >= detailDate,
-      )
+    ? allPengajuan.find(function(p) { return p.status === 'approved' && p.userId === user?.id && p.tanggalMulai <= detailDate && p.tanggalSelesai >= detailDate })
     : null
 
   const { data, isLoading, refetch, isFetching } = useAbsensiListPaginated({
     userId: user?.id,
     _sort: 'tanggal', _order: 'desc',
     _page: page, _limit: PAGE_SIZE,
-    ...(dateRange ? { tanggal_gte: dateRange.dateFrom } : {}),
-    ...(dateRange ? { tanggal_lte: dateRange.dateTo } : {}),
+    ...(dateFrom ? { tanggal_gte: dateFrom } : {}),
+    ...(dateTo ? { tanggal_lte: dateTo } : {}),
+    ...(selectedStatuses.length > 0 ? { status: selectedStatuses } : {}),
   })
 
   const absensi = data?.data
   const totalPages = data?.totalPages || 1
 
-  const filtered = useMemo(() => {
-    if (!absensi || selectedStatuses.size === 0) return absensi
-    return absensi.filter((a) => selectedStatuses.has(a.status))
-  }, [absensi, selectedStatuses])
+  const hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0
 
-  const toggleStatus = useCallback((status: string) => {
-    setSelectedStatuses((prev) => {
-      const next = new Set(prev)
-      if (next.has(status)) next.delete(status)
-      else next.add(status)
-      return next
+  function toggleStatus(status: string) {
+    setSelectedStatuses(function(prev) {
+      if (prev.includes(status)) return prev.filter(function(s) { return s !== status })
+      return [...prev, status]
     })
     setPage(1)
-  }, [])
+  }
 
-  const clearAll = useCallback(() => {
+  function clearAll() {
     setQuickDate('hari_ini')
     setCalendarDate(null)
-    setSelectedStatuses(new Set())
+    setSelectedStatuses([])
     setPage(1)
-  }, [])
+  }
 
-  const setQuickDateAndReset = useCallback((preset: QuickDate) => {
+  function setQuickDateFn(preset: QuickDate) {
     setQuickDate(preset)
     setCalendarDate(null)
     setPage(1)
-  }, [])
+  }
 
-  const handleDayClick = useCallback((tgl: string) => {
+  function handleDayClick(tgl: string) {
     setCalendarDate(tgl === calendarDate ? null : tgl)
     setQuickDate(null)
     setPage(1)
-  }, [calendarDate])
-
-  const hasActiveFilter = calendarDate !== null || selectedStatuses.size > 0
+  }
 
   return (
     <div className="space-y-5 md:space-y-6">
@@ -153,10 +139,10 @@ export default function RiwayatPage() {
         </div>
         <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => {
-            if (!filtered?.length) return
+            if (!absensi?.length) return
             exportToCsv('riwayat-absensi-' + new Date().toISOString().split('T')[0],
               ['Tanggal', 'Masuk', 'Pulang', 'Durasi', 'Status'],
-              filtered.map((a) => [formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), hitungJam(a.checkIn, a.checkOut), a.status]))
+              absensi.map((a) => [formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), hitungJam(a.checkIn, a.checkOut), a.status]))
           }}>
             <Download className="h-4 w-4" /> CSV
           </Button>
@@ -207,15 +193,19 @@ export default function RiwayatPage() {
               key={preset.value}
               variant={quickDate === preset.value && !calendarDate ? 'default' : 'outline'}
               size="xs"
-              onClick={() => setQuickDateAndReset(quickDate === preset.value && !calendarDate ? null : preset.value)}
+              onClick={() => setQuickDateFn(quickDate === preset.value && !calendarDate ? null : preset.value)}
             >
               {preset.label}
             </Button>
           ))}
           {calendarDate && (
-            <Button variant="ghost" size="xs" onClick={() => setCalendarDate(null)}>
-              <X className="h-3 w-3" />
-            </Button>
+            <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
+              <CalendarDays className="h-3 w-3" />
+              {new Date(calendarDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+              <button onClick={() => setCalendarDate(null)} className="hover:text-foreground ml-0.5">
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
           )}
         </div>
 
@@ -226,14 +216,14 @@ export default function RiwayatPage() {
               type="button"
               onClick={() => toggleStatus(opt.value)}
               className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
-                selectedStatuses.has(opt.value)
+                selectedStatuses.includes(opt.value)
                   ? (absensiStatusBadge[opt.value] + ' border-transparent')
                   : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
               )}
             >
-              <span className={'w-1.5 h-1.5 rounded-full ' + (selectedStatuses.has(opt.value) ? 'bg-current' : 'bg-muted-foreground/40')} />
+              <span className={'w-1.5 h-1.5 rounded-full ' + (selectedStatuses.includes(opt.value) ? 'bg-current' : 'bg-muted-foreground/40')} />
               {opt.label}
-              {selectedStatuses.has(opt.value) && <X className="h-3 w-3" />}
+              {selectedStatuses.includes(opt.value) && <X className="h-3 w-3" />}
             </button>
           ))}
         </div>
@@ -243,7 +233,7 @@ export default function RiwayatPage() {
             <Button variant="ghost" size="xs" onClick={clearAll} className="gap-1 text-muted-foreground">
               <X className="h-3 w-3" /> Hapus filter
             </Button>
-            <span className="text-muted-foreground">{filtered?.length || 0} hasil</span>
+            <span className="text-muted-foreground">{absensi?.length || 0} hasil</span>
           </div>
         )}
       </div>
@@ -254,9 +244,9 @@ export default function RiwayatPage() {
             return <Skeleton key={item.id} className="h-24 w-full rounded-xl" />
           })}
         </div>
-      ) : filtered && filtered.length > 0 ? (
+      ) : absensi && absensi.length > 0 ? (
         <div className="space-y-2">
-          {filtered.map(function(a) {
+          {absensi.map(function(a) {
             var tgl = new Date(a.tanggal + 'T00:00:00')
             return (
               <Card
@@ -306,7 +296,7 @@ export default function RiwayatPage() {
         <EmptyState message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada riwayat absensi'} icon={History} />
       )}
 
-      {!hasActiveFilter && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Dialog open={!!detail} onOpenChange={function(o) { if (!o) setDetail(null) }}>
         <DialogContent className="sm:max-w-sm">
