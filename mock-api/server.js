@@ -691,6 +691,35 @@ server.get('/api/dashboard/month', async (req, res) => {
   res.json({ data, totalKaryawan: total })
 })
 
+/* ── Attendance Categories ── */
+const ATTENDANCE_CATEGORIES = [
+  /* Main */
+  { id: 'physical_present', parentId: null, label: 'Kehadiran Fisik', type: 'present', color: 'var(--color-status-hadir)', requiresApproval: false },
+  { id: 'absent_permit', parentId: null, label: 'Ketidakhadiran Berizin', type: 'absent_permit', color: 'var(--color-status-izin)', requiresApproval: true },
+  { id: 'absent_unpermit', parentId: null, label: 'Ketidakhadiran Tanpa Izin', type: 'absent_unpermit', color: 'var(--color-status-tidakHadir)', requiresApproval: false },
+  /* Physical */
+  { id: 'physical_standard', parentId: 'physical_present', label: 'Hadir Standar', type: 'present', color: 'var(--color-status-hadir)', requiresApproval: false },
+  { id: 'physical_flexible', parentId: 'physical_present', label: 'Hadir Fleksibel', type: 'present', color: 'var(--color-status-hadir)', requiresApproval: false },
+  { id: 'physical_field', parentId: 'physical_present', label: 'Dinas Luar', type: 'present', color: 'var(--color-status-hadir)', requiresApproval: true },
+  { id: 'physical_overtime', parentId: 'physical_present', label: 'Lembur', type: 'present', color: 'var(--color-status-hadir)', requiresApproval: true },
+  { id: 'physical_violation', parentId: 'physical_present', label: 'Pelanggaran Jam', type: 'present', color: 'var(--color-status-terlambat)', requiresApproval: false },
+  /* Permit */
+  { id: 'leave_annual', parentId: 'absent_permit', label: 'Cuti Tahunan', type: 'absent_permit', color: 'var(--color-status-cuti)', requiresApproval: true },
+  { id: 'leave_maternity', parentId: 'absent_permit', label: 'Cuti Melahirkan', type: 'absent_permit', color: 'var(--color-status-cuti)', requiresApproval: true },
+  { id: 'leave_long', parentId: 'absent_permit', label: 'Cuti Besar', type: 'absent_permit', color: 'var(--color-status-cuti)', requiresApproval: true },
+  { id: 'permit_sick', parentId: 'absent_permit', label: 'Izin Sakit', type: 'absent_permit', color: 'var(--color-status-sakit)', requiresApproval: true },
+  { id: 'permit_personal', parentId: 'absent_permit', label: 'Izin Personal', type: 'absent_permit', color: 'var(--color-status-izin)', requiresApproval: true },
+  { id: 'permit_general', parentId: 'absent_permit', label: 'Izin Umum', type: 'absent_permit', color: 'var(--color-status-izin)', requiresApproval: true },
+  /* Unpermit */
+  { id: 'unpermit_absent', parentId: 'absent_unpermit', label: 'Alfa', type: 'absent_unpermit', color: 'var(--color-status-tidakHadir)', requiresApproval: false },
+  { id: 'unpermit_partial', parentId: 'absent_unpermit', label: 'Mangkir Parsial', type: 'absent_unpermit', color: 'var(--color-status-tidakHadir)', requiresApproval: false },
+  { id: 'unpermit_suspension', parentId: 'absent_unpermit', label: 'Skorsing', type: 'absent_unpermit', color: 'var(--color-status-tidakHadir)', requiresApproval: true },
+]
+
+server.get('/api/attendance-categories', function(req, res) {
+  res.json(ATTENDANCE_CATEGORIES)
+})
+
 server.get('/api/absensi/search', async (req, res) => {
   try {
     const query = (req.query.q || '').toLowerCase()
