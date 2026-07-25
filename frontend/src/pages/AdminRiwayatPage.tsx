@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react'
-import { useAbsensiListPaginated } from '@/hooks/useAbsensi'
+import { useState } from 'react'
+import { useSearchAbsensi } from '@/hooks/useAbsensi'
 import { useMonthAttendance } from '@/hooks/useDashboard'
+import { useDebounce } from '@/hooks/useDebounce'
 import { useUsers } from '@/hooks/useUsers'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { ImageViewer } from '@/components/shared/ImageViewer'
-import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock } from 'lucide-react'
+import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
 import type { Absensi } from '@/types'
 
 var PAGE_SIZE = 15
@@ -67,63 +68,54 @@ function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } |
 }
 
 export default function AdminRiwayatPage() {
-  var { data: users } = useUsers()
   var [page, setPage] = useState(1)
   var [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
   var [calendarDate, setCalendarDate] = useState<string | null>(null)
-  var [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set())
+  var [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   var [search, setSearch] = useState('')
+  var debouncedSearch = useDebounce(search, 400)
   var [detail, setDetail] = useState<Absensi | null>(null)
   var [previewImage, setPreviewImage] = useState('')
 
+  var { data: users } = useUsers()
   var { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
 
-  var dateRange = useMemo(function() {
-    if (calendarDate) return { dateFrom: calendarDate, dateTo: calendarDate }
-    return getDateRange(quickDate)
-  }, [quickDate, calendarDate])
+  var dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
+  var dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
 
-  var { data, isLoading, refetch, isFetching } = useAbsensiListPaginated({
-    _sort: 'tanggal', _order: 'desc',
-    _page: page, _limit: PAGE_SIZE,
-    ...(dateRange ? { tanggal_gte: dateRange.dateFrom } : {}),
-    ...(dateRange ? { tanggal_lte: dateRange.dateTo } : {}),
-  })
+  var queryParams: Record<string, string | number | undefined> = {
+    _sort: 'tanggal',
+    _order: 'desc',
+    _page: page,
+    _limit: PAGE_SIZE,
+  }
+  if (dateFrom) queryParams.tanggal_gte = dateFrom
+  if (dateTo) queryParams.tanggal_lte = dateTo
+  if (selectedStatuses.length > 0) queryParams.status = selectedStatuses
+  if (debouncedSearch) queryParams.q = debouncedSearch
+
+  var { data, isLoading, refetch, isFetching } = useSearchAbsensi(queryParams)
 
   var absensi = data?.data
   var totalPages = data?.totalPages || 1
 
-  var filtered = useMemo(function() {
-    var result = absensi
-    if (selectedStatuses.size > 0) {
-      result = result?.filter(function(a) { return selectedStatuses.has(a.status) })
-    }
-    if (search.trim()) {
-      result = result?.filter(function(a) {
-        var nama = users?.find(function(u) { return u.id === a.userId })?.nama || ''
-        return nama.toLowerCase().includes(search.toLowerCase())
-      })
-    }
-    return result
-  }, [absensi, selectedStatuses, search, users])
+  var hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0 || search.trim() !== ''
 
   function toggleStatus(status: string) {
-    var next = new Set(selectedStatuses)
-    if (next.has(status)) next.delete(status)
-    else next.add(status)
-    setSelectedStatuses(next)
+    setSelectedStatuses(function(prev) {
+      if (prev.includes(status)) return prev.filter(function(s) { return s !== status })
+      return [...prev, status]
+    })
     setPage(1)
   }
 
   function clearAll() {
     setQuickDate('hari_ini')
     setCalendarDate(null)
-    setSelectedStatuses(new Set())
+    setSelectedStatuses([])
     setSearch('')
     setPage(1)
   }
-
-  var hasActiveFilter = calendarDate !== null || selectedStatuses.size > 0 || search.trim() !== ''
 
   return (
     <div className="space-y-5 md:space-y-6">
@@ -134,10 +126,10 @@ export default function AdminRiwayatPage() {
         </div>
         <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" className="gap-2" onClick={function() {
-            if (!filtered?.length) return
+            if (!absensi?.length) return
             exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0],
               ['Karyawan', 'Tanggal', 'Masuk', 'Pulang', 'Status'],
-              filtered.map(function(a) {
+              absensi.map(function(a) {
                 return [users?.find(function(u) { return u.id === a.userId })?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status]
               }))
           }}>
@@ -191,9 +183,13 @@ export default function AdminRiwayatPage() {
             )
           })}
           {calendarDate && (
-            <Button variant="ghost" size="xs" onClick={function() { setCalendarDate(null) }}>
-              <X className="h-3 w-3" />
-            </Button>
+            <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
+              <CalendarDays className="h-3 w-3" />
+              {new Date(calendarDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+              <button onClick={() => setCalendarDate(null)} className="hover:text-foreground ml-0.5">
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
           )}
         </div>
 
@@ -205,14 +201,14 @@ export default function AdminRiwayatPage() {
                 type="button"
                 onClick={function() { toggleStatus(opt.value) }}
                 className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
-                  selectedStatuses.has(opt.value)
+                  selectedStatuses.includes(opt.value)
                     ? (absensiStatusBadge[opt.value] + ' border-transparent')
                     : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
                 )}
               >
-                <span className={'w-1.5 h-1.5 rounded-full ' + (selectedStatuses.has(opt.value) ? 'bg-current' : 'bg-muted-foreground/40')} />
+                <span className={'w-1.5 h-1.5 rounded-full ' + (selectedStatuses.includes(opt.value) ? 'bg-current' : 'bg-muted-foreground/40')} />
                 {opt.label}
-                {selectedStatuses.has(opt.value) && <X className="h-3 w-3" />}
+                {selectedStatuses.includes(opt.value) && <X className="h-3 w-3" />}
               </button>
             )
           })}
@@ -233,7 +229,7 @@ export default function AdminRiwayatPage() {
             <Button variant="ghost" size="xs" onClick={clearAll} className="gap-1 text-muted-foreground">
               <X className="h-3 w-3" /> Hapus filter
             </Button>
-            <span className="text-muted-foreground">{filtered?.length || 0} hasil</span>
+            <span className="text-muted-foreground">{absensi?.length || 0} hasil</span>
           </div>
         )}
       </div>
@@ -244,9 +240,9 @@ export default function AdminRiwayatPage() {
             return <Skeleton key={item.id} className="h-24 w-full rounded-xl" />
           })}
         </div>
-      ) : filtered && filtered.length > 0 ? (
+      ) : absensi && absensi.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
-          {filtered.map(function(a) {
+          {absensi.map(function(a) {
             var u = users?.find(function(u) { return u.id === a.userId })
             var tgl = new Date(a.tanggal + 'T00:00:00')
             var initials = (u?.nama || '?').charAt(0).toUpperCase()
@@ -266,7 +262,7 @@ export default function AdminRiwayatPage() {
                     </div>
 
                     <Avatar className="h-8 w-8 ring-2 ring-border/50 shrink-0">
-                      <AvatarImage src={u?.foto && !u.foto.startsWith('[') ? u.foto : undefined} />
+                      <AvatarImage src={u?.foto || undefined} />
                       <AvatarFallback className="text-xs bg-muted text-muted-foreground">{initials}</AvatarFallback>
                     </Avatar>
 
@@ -367,3 +363,4 @@ export default function AdminRiwayatPage() {
     </div>
   )
 }
+
