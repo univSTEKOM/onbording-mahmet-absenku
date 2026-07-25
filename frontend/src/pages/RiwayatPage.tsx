@@ -11,9 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
-import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
+import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
-import { Download, RefreshCw, LogIn, LogOut, CheckCircle2, History, Clock, X } from 'lucide-react'
+import { Download, RefreshCw, CheckCircle2, History, X } from 'lucide-react'
 import type { Absensi } from '@/types'
 
 const PAGE_SIZE = 10
@@ -39,8 +39,9 @@ function hitungJam(checkIn: string | null, checkOut: string | null): string {
   return `${jam}j ${menit}m`
 }
 
-function namaHari(tanggal: string): string {
-  return new Date(tanggal).toLocaleDateString('id-ID', { weekday: 'long' })
+function formatJam(iso: string | null): string {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 }
 
 function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } | null {
@@ -139,25 +140,21 @@ export default function RiwayatPage() {
     setPage(1)
   }, [calendarDate])
 
-  const activeDateLabel = calendarDate
-    ? new Date(calendarDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-    : null
-
   const hasActiveFilter = calendarDate !== null || selectedStatuses.size > 0
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Riwayat Kehadiran</h1>
-          <p className="text-muted-foreground">Daftar absensi Anda</p>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Riwayat Kehadiran</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Daftar absensi Anda</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => {
             if (!filtered?.length) return
             exportToCsv('riwayat-absensi-' + new Date().toISOString().split('T')[0],
-              ['Tanggal', 'Hari', 'Masuk', 'Pulang', 'Durasi', 'Status'],
-              filtered.map((a) => [formatCsvDate(a.tanggal), namaHari(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), hitungJam(a.checkIn, a.checkOut), a.status]))
+              ['Tanggal', 'Masuk', 'Pulang', 'Durasi', 'Status'],
+              filtered.map((a) => [formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), hitungJam(a.checkIn, a.checkOut), a.status]))
           }}>
             <Download className="h-4 w-4" /> CSV
           </Button>
@@ -168,7 +165,7 @@ export default function RiwayatPage() {
       </div>
 
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="p-4 md:p-5">
           {monthData ? (
             <AttendanceCalendar
               year={curYear}
@@ -177,7 +174,7 @@ export default function RiwayatPage() {
               onDayClick={handleDayClick}
             />
           ) : (
-            <Skeleton className="h-[300px] w-full rounded-lg" />
+            <Skeleton className="h-[260px] md:h-[300px] w-full rounded-lg" />
           )}
         </CardContent>
       </Card>
@@ -196,21 +193,8 @@ export default function RiwayatPage() {
         />
       )}
 
-      <div className="space-y-4">
-        {calendarDate && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Tanggal dipilih:</span>
-            <Badge variant="secondary" className="text-sm px-3 py-1">
-              {activeDateLabel}
-              <button onClick={() => setCalendarDate(null)} className="ml-2 hover:text-foreground">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          </div>
-        )}
-
+      <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground mr-1">Cepat:</span>
           {([
             { label: 'Hari Ini', value: 'hari_ini' as const },
             { label: 'Kemarin', value: 'kemarin' as const },
@@ -220,44 +204,42 @@ export default function RiwayatPage() {
             <Button
               key={preset.value}
               variant={quickDate === preset.value && !calendarDate ? 'default' : 'outline'}
-              size="sm"
+              size="xs"
               onClick={() => setQuickDateAndReset(quickDate === preset.value && !calendarDate ? null : preset.value)}
             >
               {preset.label}
             </Button>
           ))}
-          {quickDate !== null && !calendarDate && (
-            <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={() => setQuickDateAndReset(null)}>
-              <X className="h-3 w-3" /> Hapus
-            </Button>
-          )}
           {calendarDate && (
-            <Button variant="ghost" size="sm" onClick={() => setCalendarDate(null)}>
-              <X className="h-3 w-3" /> Hapus tanggal
+            <Button variant="ghost" size="xs" onClick={() => setCalendarDate(null)}>
+              <X className="h-3 w-3" />
             </Button>
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground mr-1">Status:</span>
+        <div className="flex flex-wrap items-center gap-1.5">
           {STATUS_OPTIONS.map((opt) => (
-            <Button
+            <button
               key={opt.value}
-              variant={selectedStatuses.has(opt.value) ? 'secondary' : 'outline'}
-              size="sm"
-              className={selectedStatuses.has(opt.value) ? absensiStatusBadge[opt.value] : ''}
+              type="button"
               onClick={() => toggleStatus(opt.value)}
+              className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
+                selectedStatuses.has(opt.value)
+                  ? (absensiStatusBadge[opt.value] + ' border-transparent')
+                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
             >
+              <span className={'w-1.5 h-1.5 rounded-full ' + (selectedStatuses.has(opt.value) ? 'bg-current' : 'bg-muted-foreground/40')} />
               {opt.label}
-              {selectedStatuses.has(opt.value) && <X className="h-3 w-3 ml-1" />}
-            </Button>
+              {selectedStatuses.has(opt.value) && <X className="h-3 w-3" />}
+            </button>
           ))}
         </div>
 
         {hasActiveFilter && (
-          <div className="flex items-center gap-2 text-sm">
-            <Button variant="ghost" size="sm" onClick={clearAll} className="gap-1">
-              <X className="h-3 w-3" /> Hapus semua filter
+          <div className="flex items-center gap-2 text-xs">
+            <Button variant="ghost" size="xs" onClick={clearAll} className="gap-1 text-muted-foreground">
+              <X className="h-3 w-3" /> Hapus filter
             </Button>
             <span className="text-muted-foreground">{filtered?.length || 0} hasil</span>
           </div>
@@ -266,64 +248,65 @@ export default function RiwayatPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 3 }, (_, i) => ({ id: 'rw-sk-' + i })).map((item) => <Skeleton key={item.id} className="h-32 w-full rounded-xl" />)}
+          {Array.from({ length: 3 }, function(_, i) { return { id: 'rw-sk-' + i } }).map(function(item) {
+            return <Skeleton key={item.id} className="h-24 w-full rounded-xl" />
+          })}
         </div>
-      ) : filtered?.length ? (
-        <>
-          <div className="space-y-3">
-            {filtered.map((a) => (
-              <Card key={a.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => setDetail(a)}>
-                <CardContent className="py-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary shrink-0">
-                      <span className="text-xs font-bold leading-none">{new Date(a.tanggal).getDate()}</span>
-                      <span className="text-[10px] leading-none mt-0.5">{new Date(a.tanggal).toLocaleDateString('id-ID', { month: 'short' })}</span>
+      ) : filtered && filtered.length > 0 ? (
+        <div className="space-y-2">
+          {filtered.map(function(a) {
+            var tgl = new Date(a.tanggal + 'T00:00:00')
+            return (
+              <Card
+                key={a.id}
+                className="hover:bg-muted/30 transition-colors cursor-pointer"
+                onClick={function() { setDetail(a) }}
+              >
+                <CardContent className="py-3 px-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-center w-9 shrink-0">
+                      <span className="text-[10px] text-muted-foreground leading-none">{tgl.toLocaleDateString('id-ID', { weekday: 'short' })}</span>
+                      <span className="text-base font-bold leading-tight">{tgl.getDate()}</span>
+                      <span className="text-[10px] text-muted-foreground leading-none">{tgl.toLocaleDateString('id-ID', { month: 'short' })}</span>
                     </div>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-medium">{new Date(a.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                          <p className="text-xs text-muted-foreground">{namaHari(a.tanggal)}</p>
-                        </div>
-                        <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge>
+                    <div className="flex-1 min-w-0 grid grid-cols-3 gap-1.5 text-center">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Masuk</p>
+                        <p className="text-xs font-medium">{formatJam(a.checkIn)}</p>
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/50">
-                          <LogIn className="h-3 w-3 text-green-600 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-muted-foreground leading-none">Masuk</p>
-                            <p className="text-xs font-medium leading-tight truncate">{a.checkIn ? new Date(a.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/50">
-                          <LogOut className="h-3 w-3 text-red-600 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-muted-foreground leading-none">Pulang</p>
-                            <p className="text-xs font-medium leading-tight truncate">{a.checkOut ? new Date(a.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/50">
-                          <Clock className="h-3 w-3 text-blue-600 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-muted-foreground leading-none">Durasi</p>
-                            <p className="text-xs font-medium leading-tight truncate">{hitungJam(a.checkIn, a.checkOut)}</p>
-                          </div>
-                        </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Pulang</p>
+                        <p className="text-xs font-medium">{formatJam(a.checkOut)}</p>
                       </div>
-                      {a.faceVerified && <p className="text-xs text-green-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Wajah terverifikasi</p>}
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Durasi</p>
+                        <p className="text-xs font-medium">{hitungJam(a.checkIn, a.checkOut)}</p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 flex flex-col items-center gap-0.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: STATUS_COLORS_MAP[a.status] || '#999' }} />
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        {absensiStatusLabel[a.status]}
+                      </span>
                     </div>
                   </div>
+                  {a.faceVerified && (
+                    <div className="flex items-center gap-1 mt-1.5 text-[10px] text-emerald-600 justify-end">
+                      <CheckCircle2 className="h-3 w-3" /> Wajah terverifikasi
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            ))}
-          </div>
-          {!hasActiveFilter && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
-        </>
+            )
+          })}
+        </div>
       ) : (
         <EmptyState message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada riwayat absensi'} icon={History} />
       )}
 
-      <Dialog open={!!detail} onOpenChange={(o) => { if (!o) setDetail(null) }}>
+      {!hasActiveFilter && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
+
+      <Dialog open={!!detail} onOpenChange={function(o) { if (!o) setDetail(null) }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Detail Absensi</DialogTitle>
@@ -335,24 +318,26 @@ export default function RiwayatPage() {
             <div className="space-y-4">
               {detail.photos && detail.photos.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
-                  {detail.photos.map((p) => (
-                    <div key={p.type + p.capturedAt}>
-                      <p className="text-xs text-muted-foreground mb-1 capitalize">{p.type === 'check_in' ? 'Check In' : 'Check Out'}</p>
-                      <div className="rounded-lg overflow-hidden border">
-                        <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
+                  {detail.photos.map(function(p) {
+                    return (
+                      <div key={p.type + p.capturedAt}>
+                        <p className="text-xs text-muted-foreground mb-1 capitalize">{p.type === 'check_in' ? 'Check In' : 'Check Out'}</p>
+                        <div className="rounded-lg overflow-hidden border">
+                          <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="p-3 rounded-lg bg-muted">
                   <p className="text-xs text-muted-foreground">Check In</p>
-                  <p className="font-medium">{detail.checkIn ? new Date(detail.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
+                  <p className="font-medium">{detail.checkIn ? formatJam(detail.checkIn) : '-'}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted">
                   <p className="text-xs text-muted-foreground">Check Out</p>
-                  <p className="font-medium">{detail.checkOut ? new Date(detail.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
+                  <p className="font-medium">{detail.checkOut ? formatJam(detail.checkOut) : '-'}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted">
                   <p className="text-xs text-muted-foreground">Durasi</p>
@@ -364,7 +349,7 @@ export default function RiwayatPage() {
                 </div>
               </div>
               {detail.faceVerified && (
-                <p className="text-xs text-green-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Wajah terverifikasi</p>
+                <p className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Wajah terverifikasi</p>
               )}
             </div>
           )}
