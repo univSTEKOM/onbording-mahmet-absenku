@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { absensiStatusBadge, absensiStatusLabel, pengajuanJenisLabel, pengajuanJenisBadge, APP_RELEASE_DATE } from '@/lib/constants'
@@ -175,6 +177,7 @@ interface DayDetailDialogProps {
 }
 
 export function DayDetailDialog({ tanggal, userStatus, pengajuan, allStatus, onClose }: DayDetailDialogProps) {
+  const [previewImage, setPreviewImage] = useState('')
   const date = new Date(tanggal + 'T00:00:00')
   const dayName = date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -213,7 +216,7 @@ export function DayDetailDialog({ tanggal, userStatus, pengajuan, allStatus, onC
                       <p className="text-xs text-muted-foreground mb-0.5 capitalize">
                         {p.type === 'check_in' ? 'Check In' : 'Check Out'}
                       </p>
-                      <div className="rounded-lg overflow-hidden border">
+                      <div className="rounded-lg overflow-hidden border cursor-pointer hover:opacity-80 transition-opacity" onClick={function() { setPreviewImage(p.url) }}>
                         <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
                       </div>
                     </div>
@@ -264,6 +267,8 @@ export function DayDetailDialog({ tanggal, userStatus, pengajuan, allStatus, onC
           </div>
         )}
       </DialogContent>
+
+      <ImageViewer open={!!previewImage} imageUrl={previewImage} onClose={function() { setPreviewImage('') }} />
     </Dialog>
   )
 }

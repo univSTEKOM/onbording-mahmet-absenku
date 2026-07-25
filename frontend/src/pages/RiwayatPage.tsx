@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
+import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Download, RefreshCw, CheckCircle2, History, X } from 'lucide-react'
 import type { Absensi } from '@/types'
 
@@ -73,6 +74,7 @@ export default function RiwayatPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set())
   const [detail, setDetail] = useState<Absensi | null>(null)
   const [detailDate, setDetailDate] = useState<string | null>(null)
+  const [previewImage, setPreviewImage] = useState('')
 
   const dateRange = useMemo(() => {
     if (calendarDate) return { dateFrom: calendarDate, dateTo: calendarDate }
@@ -322,7 +324,7 @@ export default function RiwayatPage() {
                     return (
                       <div key={p.type + p.capturedAt}>
                         <p className="text-xs text-muted-foreground mb-1 capitalize">{p.type === 'check_in' ? 'Check In' : 'Check Out'}</p>
-                        <div className="rounded-lg overflow-hidden border">
+                        <div className="rounded-lg overflow-hidden border cursor-pointer hover:opacity-80 transition-opacity" onClick={function() { setPreviewImage(p.url) }}>
                           <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
                         </div>
                       </div>
@@ -355,6 +357,8 @@ export default function RiwayatPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ImageViewer open={!!previewImage} imageUrl={previewImage} onClose={function() { setPreviewImage('') }} />
     </div>
   )
 }

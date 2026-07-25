@@ -13,6 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
+import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock } from 'lucide-react'
 import type { Absensi } from '@/types'
 
@@ -73,6 +74,7 @@ export default function AdminRiwayatPage() {
   var [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set())
   var [search, setSearch] = useState('')
   var [detail, setDetail] = useState<Absensi | null>(null)
+  var [previewImage, setPreviewImage] = useState('')
 
   var { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
 
@@ -327,7 +329,7 @@ export default function AdminRiwayatPage() {
                     return (
                       <div key={p.type + p.capturedAt}>
                         <p className="text-xs text-muted-foreground mb-1 capitalize">{p.type === 'check_in' ? 'Check In' : 'Check Out'}</p>
-                        <div className="rounded-lg overflow-hidden border">
+                        <div className="rounded-lg overflow-hidden border cursor-pointer hover:opacity-80 transition-opacity" onClick={function() { setPreviewImage(p.url) }}>
                           <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
                         </div>
                       </div>
@@ -360,6 +362,8 @@ export default function AdminRiwayatPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ImageViewer open={!!previewImage} imageUrl={previewImage} onClose={function() { setPreviewImage('') }} />
     </div>
   )
 }

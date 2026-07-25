@@ -12,6 +12,7 @@ import { PhoneInput } from '@/components/ui/phone-input'
 import { toast } from 'sonner'
 import { Camera, Loader2, Save, Pencil } from 'lucide-react'
 import { ImageCropperDialog } from '@/components/shared/ImageCropperDialog'
+import { ImageViewer } from '@/components/shared/ImageViewer'
 
 export default function ProfilPage() {
   const { user, updateUser } = useAuth()
@@ -23,6 +24,7 @@ export default function ProfilPage() {
   const [fotoPreview, setFotoPreview] = useState(user?.foto || '')
   const [photoChanged, setPhotoChanged] = useState(false)
   const [cropSource, setCropSource] = useState<string | null>(null)
+  const [previewAvatar, setPreviewAvatar] = useState('')
 
   useEffect(() => {
     if (!editing) return
@@ -106,7 +108,7 @@ export default function ProfilPage() {
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
             <div className="relative">
-              <Avatar className="h-24 w-24 ring-2 ring-border">
+              <Avatar className={'h-24 w-24 ring-2 ring-border ' + (fotoPreview ? 'cursor-pointer' : '')} onClick={function() { if (fotoPreview) setPreviewAvatar(fotoPreview) }}>
                 <AvatarImage src={fotoPreview || undefined} />
                 <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
               </Avatar>
@@ -202,6 +204,8 @@ export default function ProfilPage() {
         onCropComplete={handleCropComplete}
         onCancel={() => setCropSource(null)}
       />
+
+      <ImageViewer open={!!previewAvatar} imageUrl={previewAvatar} onClose={function() { setPreviewAvatar('') }} />
     </div>
   )
 }
