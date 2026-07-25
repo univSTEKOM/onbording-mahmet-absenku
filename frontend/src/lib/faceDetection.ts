@@ -14,17 +14,19 @@ export async function detectFace(
   input: HTMLVideoElement | HTMLCanvasElement,
   timeoutMs = 10000
 ): Promise<faceapi.WithFaceDescriptor<faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }>> | null> {
-  const timer = setTimeout(() => {
-    throw new Error('Timeout: wajah tidak terdeteksi dalam batas waktu')
-  }, timeoutMs)
+  let timedOut = false
+  const timer = setTimeout(() => { timedOut = true }, timeoutMs)
 
   try {
+    if (timedOut) return null
     const result = await faceapi
       .detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
       .withFaceLandmarks()
       .withFaceDescriptor()
 
     return result || null
+  } catch {
+    return null
   } finally {
     clearTimeout(timer)
   }
@@ -32,19 +34,21 @@ export async function detectFace(
 
 export async function detectAllFaces(
   input: HTMLVideoElement | HTMLCanvasElement,
-  timeoutMs = 5000
+  timeoutMs = 3000
 ): Promise<faceapi.WithFaceDescriptor<faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }>>[]> {
-  const timer = setTimeout(() => {
-    throw new Error('Timeout')
-  }, timeoutMs)
+  let timedOut = false
+  const timer = setTimeout(() => { timedOut = true }, timeoutMs)
 
   try {
+    if (timedOut) return []
     const results = await faceapi
       .detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
       .withFaceLandmarks()
       .withFaceDescriptor()
 
     return results || []
+  } catch {
+    return []
   } finally {
     clearTimeout(timer)
   }

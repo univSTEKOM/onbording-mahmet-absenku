@@ -144,8 +144,7 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-2">
+                <div className="space-y-2">
                     <Label htmlFor="jabatan">Jabatan</Label>
                     <Input
                       id="jabatan" name="jabatan" type="text" placeholder="Staff IT"
@@ -165,7 +164,6 @@ export default function RegisterPage() {
                     />
                     {errors.phone && <p className="text-xs text-destructive animate-in fade-in duration-200">{errors.phone}</p>}
                   </div>
-                </div>
               </div>
 
               <Button type="submit" className="w-full gap-2" size="lg" disabled={loading}>

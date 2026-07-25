@@ -22,7 +22,7 @@ interface WebcamCaptureProps {
   onFaceStatus?: (status: FaceStatus) => void
 }
 
-const SCAN_DELAY = 150
+const SCAN_DELAY = 300
 const STABLE_THRESHOLD = 10
 const MIN_FACE_AREA = 5000
 

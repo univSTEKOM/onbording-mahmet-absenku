@@ -54,7 +54,7 @@ export function PhoneInput({
   return (
     <div className={cn('flex gap-0', className)}>
       <Select value={country} onValueChange={(v) => onCountryChange?.(v || '+62')}>
-        <SelectTrigger className="w-[90px] rounded-r-none border-r-0 shrink-0">
+        <SelectTrigger className="w-[70px] rounded-r-none border-r-0 shrink-0">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

@@ -146,7 +146,7 @@ export default function ProfilPage() {
                   <Input value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className={errors.jabatan ? 'border-destructive' : ''} />
                   {errors.jabatan && <p className="text-xs text-destructive">{errors.jabatan}</p>}
                 </div>
-                <div className="space-y-2">
+                <div className="sm:col-span-2 space-y-2">
                   <Label>Telepon</Label>
                   <PhoneInput
                     value={form.phone}

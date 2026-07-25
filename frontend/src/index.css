@@ -132,6 +132,12 @@
   min-height: 100svh;
 }
 
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+
 @keyframes tour-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
