@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 interface ImageViewerProps {
@@ -27,9 +28,9 @@ export function ImageViewer(p: ImageViewerProps) {
 
   if (!p.open) return null
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-in fade-in duration-200"
       onClick={p.onClose}
     >
       <button
@@ -47,6 +48,7 @@ export function ImageViewer(p: ImageViewerProps) {
         className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
         onClick={function(e) { e.stopPropagation() }}
       />
-    </div>
+    </div>,
+    document.body
   )
 }
