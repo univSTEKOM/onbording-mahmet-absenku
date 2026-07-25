@@ -4,7 +4,6 @@ import { useMonthAttendance } from '@/hooks/useDashboard'
 import { useAbsensiList, useAbsensiListPaginated } from '@/hooks/useAbsensi'
 import { useAllPengajuan } from '@/hooks/usePengajuan'
 import { ProfileInfoCard } from '@/components/pengguna/ProfileInfoCard'
-import { StatsCard } from '@/components/shared/StatsCard'
 import { DayDetailDialog } from '@/components/AttendanceCalendar'
 import { CalendarCard } from '@/components/CalendarCard'
 import { Pagination } from '@/components/shared/Pagination'
@@ -17,21 +16,21 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, FileText, CalendarDays, Clock, CheckCircle2, ChevronsUpDown, AlertTriangle } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { ArrowLeft, FileText, CalendarDays, Clock, CheckCircle2, ChevronsUpDown } from 'lucide-react'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import type { User, Pengajuan } from '@/types'
 
-const ITEMS_PER_PAGE = 8
+var ITEMS_PER_PAGE = 8
 
 function durasiJam(checkIn: string | null, checkOut: string | null) {
   if (!checkIn) return '-'
-  const masuk = new Date(checkIn).getTime()
-  const keluar = checkOut ? new Date(checkOut).getTime() : Date.now()
-  const ms = keluar - masuk
-  const jam = Math.floor(ms / (1000 * 60 * 60))
-  const menit = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
-  return `${jam}j ${menit}m`
+  var masuk = new Date(checkIn).getTime()
+  var keluar = checkOut ? new Date(checkOut).getTime() : Date.now()
+  var ms = keluar - masuk
+  var jam = Math.floor(ms / (1000 * 60 * 60))
+  var menit = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+  return jam + 'j ' + menit + 'm'
 }
 
 function formatWaktu(date: string | null) {
@@ -44,59 +43,53 @@ function formatTanggal(date: string) {
 }
 
 export default function AdminDetailKaryawanPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const stateUser = (location.state as { user?: User })?.user
-  const user = stateUser || null
+  var navigate = useNavigate()
+  var location = useLocation()
+  var stateUser = (location.state as { user?: User })?.user
+  var user = stateUser || null
 
-  const now = new Date()
-  const curYear = now.getFullYear()
-  const curMonth = now.getMonth() + 1
-  const [page, setPage] = useState(1)
-  const [pengajuanDetail, setPengajuanDetail] = useState<Pengajuan | null>(null)
-  const [detailDate, setDetailDate] = useState<string | null>(null)
+  var now = new Date()
+  var curYear = now.getFullYear()
+  var curMonth = now.getMonth() + 1
+  var [page, setPage] = useState(1)
+  var [pengajuanDetail, setPengajuanDetail] = useState<Pengajuan | null>(null)
+  var [detailDate, setDetailDate] = useState<string | null>(null)
 
-  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(curYear, curMonth, user?.id)
-  const { data: absensiData, isLoading: absensiLoading } = useAbsensiListPaginated({
+  var { data: monthData, isLoading: monthLoading } = useMonthAttendance(curYear, curMonth, user?.id)
+  var { data: absensiData, isLoading: absensiLoading } = useAbsensiListPaginated({
     userId: user?.id,
     _sort: 'tanggal',
     _order: 'desc',
     _page: page,
     _limit: ITEMS_PER_PAGE,
   })
-  const { data: allPengajuan } = useAllPengajuan()
-  const { data: dayDetail } = useAbsensiList(
+  var { data: allPengajuan } = useAllPengajuan()
+  var { data: dayDetail } = useAbsensiList(
     detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
   )
 
-  const dayPengajuan = detailDate && allPengajuan
-    ? allPengajuan.find(
-        (p) =>
-          p.status === 'approved' &&
-          p.userId === user?.id &&
-          p.tanggalMulai <= detailDate &&
-          p.tanggalSelesai >= detailDate,
-      )
+  var dayPengajuan = detailDate && allPengajuan
+    ? allPengajuan.find(function(p) {
+        return p.status === 'approved' && p.userId === user?.id && p.tanggalMulai <= detailDate && p.tanggalSelesai >= detailDate
+      })
     : null
 
-  const userPengajuan = useMemo(() =>
-    allPengajuan?.filter((p) => p.userId === user?.id) || [],
-    [allPengajuan, user?.id]
-  )
+  var userPengajuan = useMemo(function() {
+    return allPengajuan?.filter(function(p) { return p.userId === user?.id }) || []
+  }, [allPengajuan, user?.id])
 
-  const hadirMonth = monthData?.data?.filter((d) => d.hadir > 0).length || 0
-  const pulangCepatMonth = monthData?.data?.filter((d) => d.pulangCepat > 0).length || 0
-  const terlambatMonth = monthData?.data?.filter((d) => d.terlambat > 0).length || 0
-  const izinMonth = monthData?.data?.filter((d) => d.izin > 0 || d.sakit > 0 || d.cuti > 0).length || 0
+  var hadirMonth = monthData?.data?.filter(function(d) { return d.hadir > 0 }).length || 0
+  var pulangCepatMonth = monthData?.data?.filter(function(d) { return d.pulangCepat > 0 }).length || 0
+  var terlambatMonth = monthData?.data?.filter(function(d) { return d.terlambat > 0 }).length || 0
+  var izinMonth = monthData?.data?.filter(function(d) { return d.izin > 0 || d.sakit > 0 || d.cuti > 0 }).length || 0
 
-  const isKaryawan = user?.role === 'karyawan'
+  var isKaryawan = user?.role === 'karyawan'
 
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <AlertTriangle className="h-12 w-12 text-muted-foreground" />
-        <p className="text-muted-foreground">User tidak ditemukan</p>
-        <Button variant="outline" onClick={() => navigate({ to: '/admin/karyawan' })}>
+        <div className="text-muted-foreground">User tidak ditemukan</div>
+        <Button variant="outline" onClick={function() { navigate({ to: '/admin/karyawan' }) }}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Kembali
         </Button>
       </div>
@@ -104,102 +97,121 @@ export default function AdminDetailKaryawanPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" className="gap-2 -ml-2" onClick={() => navigate({ to: '/admin/karyawan' })}>
-        <ArrowLeft className="h-4 w-4" /> Kembali ke Kelola Karyawan
+    <div className="space-y-5 md:space-y-6">
+      <Button variant="ghost" size="sm" className="gap-2" onClick={function() { navigate({ to: '/admin/karyawan' }) }}>
+        <ArrowLeft className="h-4 w-4" /> Kembali
       </Button>
 
       <ProfileInfoCard user={user} />
 
       {isKaryawan && (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <StatsCard icon={CheckCircle2} label="Hadir" value={hadirMonth} />
-            <StatsCard icon={ChevronsUpDown} label="Pulang Cepat" value={pulangCepatMonth} />
-            <StatsCard icon={Clock} label="Terlambat" value={terlambatMonth} />
-            <StatsCard icon={FileText} label="Izin / Sakit" value={izinMonth} />
+          <div className="flex gap-3 md:gap-4 overflow-x-auto pb-1">
+            {[
+              { label: 'Hadir', value: hadirMonth, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+              { label: 'Pulang Cepat', value: pulangCepatMonth, icon: ChevronsUpDown, color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30' },
+              { label: 'Terlambat', value: terlambatMonth, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+              { label: 'Izin / Sakit', value: izinMonth, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+            ].map(function(stat) {
+              var Icon = stat.icon
+              return (
+                <Card key={stat.label} className="shrink-0 w-[130px] md:w-[150px]">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={'p-1.5 rounded-md ' + stat.bg}>
+                        <Icon className={'h-3.5 w-3.5 ' + stat.color} />
+                      </div>
+                      <span className="text-[11px] md:text-xs text-muted-foreground truncate">{stat.label}</span>
+                    </div>
+                    <p className={'text-base md:text-lg font-bold ' + stat.color}>{stat.value}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
 
           {monthLoading ? (
-            <Skeleton className="h-[300px] w-full rounded-lg" />
+            <Skeleton className="h-[260px] md:h-[300px] w-full rounded-lg" />
           ) : (
             <CalendarCard
               year={curYear}
               month={curMonth}
               data={monthData?.data || []}
               selectedDate={detailDate}
-              onSelectedDateChange={(tgl) => setDetailDate(tgl || null)}
+              onSelectedDateChange={function(tgl) { setDetailDate(tgl || null) }}
             />
           )}
 
           <div>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
+              <Clock className="h-4 w-4" />
               Riwayat Absensi
             </h3>
             {absensiLoading ? (
               <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={`abs-sk-${i}`} className="h-10 w-full rounded-lg" />
-                ))}
+                {Array.from({ length: 5 }, function(_, i) { return { id: 'det-abs-sk-' + i } }).map(function(item) {
+                  return <Skeleton key={item.id} className="h-10 w-full rounded-lg" />
+                })}
               </div>
-            ) : absensiData?.data?.length ? (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tanggal</TableHead>
-                      <TableHead>Masuk</TableHead>
-                      <TableHead>Pulang</TableHead>
-                      <TableHead>Durasi</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {absensiData.data.map((a) => (
-                      <TableRow key={a.id}>
-                        <TableCell className="font-medium">{formatTanggal(a.tanggal)}</TableCell>
-                        <TableCell>{formatWaktu(a.checkIn)}</TableCell>
-                        <TableCell>{formatWaktu(a.checkOut)}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{durasiJam(a.checkIn, a.checkOut)}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className={absensiStatusBadge[a.status]}>
-                            {absensiStatusLabel[a.status]}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <Pagination
-                  page={page}
-                  totalPages={absensiData.totalPages}
-                  onPageChange={setPage}
-                />
-              </>
+            ) : absensiData?.data && absensiData.data.length > 0 ? (
+              <div className="overflow-x-auto -mx-4 md:-mx-6">
+                <div className="min-w-[500px] px-4 md:px-6">
+                  <div className="rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Tanggal</TableHead>
+                          <TableHead>Masuk</TableHead>
+                          <TableHead>Pulang</TableHead>
+                          <TableHead>Durasi</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {absensiData.data.map(function(a) {
+                          return (
+                            <TableRow key={a.id} className="hover:bg-muted/30 transition-colors">
+                              <TableCell className="font-medium whitespace-nowrap">{formatTanggal(a.tanggal)}</TableCell>
+                              <TableCell className="whitespace-nowrap">{formatWaktu(a.checkIn)}</TableCell>
+                              <TableCell className="whitespace-nowrap">{formatWaktu(a.checkOut)}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{durasiJam(a.checkIn, a.checkOut)}</TableCell>
+                              <TableCell>
+                                <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </div>
             ) : (
               <EmptyState message="Belum ada riwayat absensi" icon={CalendarDays} />
             )}
+            {absensiData && absensiData.totalPages > 1 && (
+              <Pagination page={page} totalPages={absensiData.totalPages} onPageChange={setPage} />
+            )}
           </div>
 
-          <Separator />
-
           <div>
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
+              <FileText className="h-4 w-4" />
               Pengajuan Terkait
             </h3>
             {userPengajuan.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {userPengajuan.map((p) => (
-                  <PengajuanCard
-                    key={p.id}
-                    pengajuan={p}
-                    variant="admin"
-                    pengaju={user}
-                    onClick={(p) => setPengajuanDetail(p)}
-                  />
-                ))}
+                {userPengajuan.map(function(p) {
+                  return (
+                    <PengajuanCard
+                      key={p.id}
+                      pengajuan={p}
+                      variant="admin"
+                      pengaju={user}
+                      onClick={function(p) { setPengajuanDetail(p) }}
+                    />
+                  )
+                })}
               </div>
             ) : (
               <EmptyState message="Belum ada pengajuan" icon={FileText} />
@@ -208,7 +220,7 @@ export default function AdminDetailKaryawanPage() {
 
           <PengajuanDetailDialog
             open={!!pengajuanDetail}
-            onOpenChange={(o) => { if (!o) setPengajuanDetail(null) }}
+            onOpenChange={function(o) { if (!o) setPengajuanDetail(null) }}
             pengajuan={pengajuanDetail}
             variant="admin"
             pengaju={user}
@@ -224,7 +236,7 @@ export default function AdminDetailKaryawanPage() {
                 photos: dayDetail[0].photos,
               } : undefined}
               pengajuan={dayPengajuan || undefined}
-              onClose={() => setDetailDate(null)}
+              onClose={function() { setDetailDate(null) }}
             />
           )}
         </>
@@ -238,4 +250,3 @@ export default function AdminDetailKaryawanPage() {
     </div>
   )
 }
-
