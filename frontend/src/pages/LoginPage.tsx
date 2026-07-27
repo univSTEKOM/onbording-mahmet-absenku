@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Logo } from '@/components/Logo'
 import { Loader2, LogIn } from 'lucide-react'
 import { PasswordInput } from '@/components/shared/PasswordInput'
-import { validateEmail, validatePassword } from '@/lib/validation'
+import { validateEmail, validateLoginPassword } from '@/lib/validation'
 import { getApiErrorMessage } from '@/lib/utils'
 
 export default function LoginPage() {
@@ -24,7 +24,7 @@ export default function LoginPage() {
     const errs: Record<string, string> = {}
     const e = validateEmail(email)
     if (e) errs.email = e
-    const p = validatePassword(password)
+    const p = validateLoginPassword(password)
     if (p) errs.password = p
     setErrors(errs)
     return Object.keys(errs).length === 0

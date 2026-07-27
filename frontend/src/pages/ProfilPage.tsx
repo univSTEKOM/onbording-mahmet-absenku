@@ -201,7 +201,7 @@ export default function ProfilPage() {
               )}
 
               <Button onClick={() => setEditing(true)} className="w-full gap-2">
-                <Pencil className="h-4 w-4" /> Edit Profil
+                <Pencil className="h-4 w-4" /> Ubah Profil
               </Button>
             </div>
           )}

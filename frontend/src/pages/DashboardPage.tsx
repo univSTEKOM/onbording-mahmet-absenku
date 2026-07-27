@@ -16,24 +16,11 @@ import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, ChevronsUpD
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
 import { CardDescription } from '@/components/ui/card'
 import { absensiChartConfig, pieDataItem, statusColor } from '@/lib/chart-config'
+import { formatJam, hitungJam } from '@/lib/utils'
 
 const now = new Date()
 const curMonth = now.getMonth()
 const curYear = now.getFullYear()
-
-function formatJam(iso: string | null): string {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
-function hitungJam(checkIn: string | null, checkOut: string | null): string {
-  if (!checkIn) return '-'
-  const keluar = checkOut ? new Date(checkOut).getTime() : Date.now()
-  const selisih = Math.max(0, keluar - new Date(checkIn).getTime())
-  const jam = Math.floor(selisih / (1000 * 60 * 60))
-  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
-  return jam + 'j ' + menit + 'm'
-}
 
 function getGreeting(): { text: string; icon: typeof Sun } {
   const hour = now.getHours()

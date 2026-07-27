@@ -19,28 +19,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, FileText, CalendarDays, Clock, CheckCircle2, ChevronsUpDown } from 'lucide-react'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
+import { formatJam, hitungJam, formatTanggal } from '@/lib/utils'
 import type { User, Pengajuan } from '@/types'
 
 const ITEMS_PER_PAGE = 8
-
-function durasiJam(checkIn: string | null, checkOut: string | null) {
-  if (!checkIn) return '-'
-  const masuk = new Date(checkIn).getTime()
-  const keluar = checkOut ? new Date(checkOut).getTime() : Date.now()
-  const ms = keluar - masuk
-  const jam = Math.floor(ms / (1000 * 60 * 60))
-  const menit = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
-  return jam + 'j ' + menit + 'm'
-}
-
-function formatWaktu(date: string | null) {
-  if (!date) return '-'
-  return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
-function formatTanggal(date: string) {
-  return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-}
 
 export default function AdminDetailKaryawanPage() {
   const navigate = useNavigate()
@@ -172,9 +154,9 @@ export default function AdminDetailKaryawanPage() {
                           return (
                             <TableRow key={a.id} className="hover:bg-muted/30 transition-colors">
                               <TableCell className="font-medium whitespace-nowrap">{formatTanggal(a.tanggal)}</TableCell>
-                              <TableCell className="whitespace-nowrap">{formatWaktu(a.checkIn)}</TableCell>
-                              <TableCell className="whitespace-nowrap">{formatWaktu(a.checkOut)}</TableCell>
-                              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{durasiJam(a.checkIn, a.checkOut)}</TableCell>
+                              <TableCell className="whitespace-nowrap">{formatJam(a.checkIn)}</TableCell>
+                              <TableCell className="whitespace-nowrap">{formatJam(a.checkOut)}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{hitungJam(a.checkIn, a.checkOut)}</TableCell>
                               <TableCell>
                                 <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge>
                               </TableCell>

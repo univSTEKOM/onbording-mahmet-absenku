@@ -14,19 +14,7 @@ import {
 } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { LoadingState } from '@/components/shared/LoadingState'
-
-function formatJam(iso: string | null): string {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
-function hitungJam(checkIn: string | null, checkOut: string | null): string {
-  if (!checkIn) return '-'
-  const selisih = Math.max(0, (checkOut ? new Date(checkOut).getTime() : Date.now()) - new Date(checkIn).getTime())
-  const jam = Math.floor(selisih / (1000 * 60 * 60))
-  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
-  return `${jam}j ${menit}m`
-}
+import { formatJam, hitungJam } from '@/lib/utils'
 
 export default function AbsensiPage() {
   const { user } = useAuth()
@@ -176,7 +164,7 @@ export default function AbsensiPage() {
 
       <Card>
         <CardContent className="p-5 md:p-6">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Timeline</h3>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Linimasa</h3>
           <div className="space-y-0">
             {timelineSteps.map((step, i) => {
               const StepIcon = step.icon

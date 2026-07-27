@@ -17,6 +17,7 @@ import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
 import type { Absensi } from '@/types'
+import { formatJam, hitungJam } from '@/lib/utils'
 
 const PAGE_SIZE = 15 /* Admin sees more rows than employee (10) */
 const curMonth = new Date().getMonth()
@@ -32,19 +33,6 @@ const STATUS_OPTIONS = [
 ] as const
 
 type QuickDate = 'hari_ini' | 'kemarin' | '7_hari' | 'bulan_ini' | null
-
-function formatJam(iso: string | null): string {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
-function hitungJam(checkIn: string | null, checkOut: string | null): string {
-  if (!checkIn) return '-'
-  const selisih = Math.max(0, (checkOut ? new Date(checkOut).getTime() : Date.now()) - new Date(checkIn).getTime())
-  const jam = Math.floor(selisih / (1000 * 60 * 60))
-  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
-  return jam + 'j ' + menit + 'm'
-}
 
 function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } | null {
   if (!preset) return null

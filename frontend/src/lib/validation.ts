@@ -51,8 +51,8 @@ const phoneSchema = z
 
 /* ── Public Validation Functions (API tetap sama) ── */
 
-function firstError(result: z.SafeParseError<unknown>): string {
-  const e = result.error.errors[0]
+function firstError(result: { success: false; error: import('zod').ZodError }): string {
+  const e = result.error.issues[0]
   return e?.message || 'Validasi gagal'
 }
 
@@ -64,6 +64,11 @@ export function validateEmail(email: string): string | null {
 export function validatePassword(password: string): string | null {
   const result = passwordSchema.safeParse(password)
   return result.success ? null : firstError(result)
+}
+
+export function validateLoginPassword(password: string): string | null {
+  if (!password) return 'Password harus diisi'
+  return null
 }
 
 export function validateNama(nama: string): string | null {
