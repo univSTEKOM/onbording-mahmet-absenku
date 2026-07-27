@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { toast } from 'sonner'
 import { Camera, Loader2, Save, Pencil, CheckCircle2 } from 'lucide-react'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { ImageCropperDialog } from '@/components/shared/ImageCropperDialog'
 import { ImageViewer } from '@/components/shared/ImageViewer'
 
@@ -113,10 +114,15 @@ export default function ProfilPage() {
                 <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
               </Avatar>
               {editing && (
-                <button type="button" className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow-sm"
-                  onClick={() => fileInputRef.current?.click()}>
-                  <Camera className="h-3.5 w-3.5" />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow-sm"
+                      onClick={() => fileInputRef.current?.click()}>
+                      <Camera className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom"><p>Ganti foto profil</p></TooltipContent>
+                </Tooltip>
               )}
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
             </div>
