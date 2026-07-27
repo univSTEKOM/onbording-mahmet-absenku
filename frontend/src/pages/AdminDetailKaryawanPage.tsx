@@ -32,12 +32,12 @@ export default function AdminDetailKaryawanPage() {
 
   const now = new Date()
   const curYear = now.getFullYear()
-  const curMonth = now.getMonth() + 1
+  const curMonth = now.getMonth()
   const [page, setPage] = useState(1)
   const [pengajuanDetail, setPengajuanDetail] = useState<Pengajuan | null>(null)
   const [detailDate, setDetailDate] = useState<string | null>(null)
 
-  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(curYear, curMonth, user?.id)
+  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: absensiData, isLoading: absensiLoading } = useAbsensiListPaginated({
     userId: user?.id,
     _sort: 'tanggal',

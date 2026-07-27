@@ -163,15 +163,20 @@ server.post('/api/register', async (req, res) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'Format email tidak valid' })
     const existingProfile = router.db.get('users').find({ email }).value()
     if (existingProfile) return res.status(400).json({ message: 'Email sudah terdaftar. Gunakan email lain.' })
-    if (password.length < 8) return res.status(400).json({ message: 'Password minimal 8 karakter' })
-    if (!/[A-Z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kapital' })
-    if (!/[a-z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kecil' })
-    if (!/[0-9]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung angka' })
     if (nama.length > 100) return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
     if (jabatan && jabatan.length > 100) return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
 
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
     const isAdminAction = session?.user?.role === 'admin'
+
+    /* Admin dapat membuat user dengan password sederhana */
+    if (!isAdminAction) {
+      if (password.length < 8) return res.status(400).json({ message: 'Password minimal 8 karakter' })
+      if (!/[A-Z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kapital' })
+      if (!/[a-z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kecil' })
+      if (!/[0-9]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung angka' })
+    }
+
     const effectiveRole = isAdminAction ? role : 'karyawan'
     const effectiveStatus = isAdminAction ? 'approved' : 'pending'
 

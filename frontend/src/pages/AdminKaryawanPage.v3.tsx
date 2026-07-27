@@ -22,7 +22,8 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Separator } from '@/components/ui/separator'
 import { KaryawanUserCard } from '@/components/shared/KaryawanUserCard'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { Search, PlusCircle, RefreshCw, Users, Trash2 } from 'lucide-react'
+import { PasswordInput } from '@/components/shared/PasswordInput'
+import { Search, PlusCircle, RefreshCw, Users, Trash2, Key } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import api from '@/api/axios'
@@ -55,6 +56,9 @@ export default function AdminKaryawanPageV3() {
 
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
   const [resetFace, setResetFace] = useState(false)
+  const [passwordMode, setPasswordMode] = useState<'default' | 'custom'>('default')
+  const [customPassword, setCustomPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
   const filtered = users
 
@@ -67,6 +71,9 @@ export default function AdminKaryawanPageV3() {
     setFormError('')
     setFieldErrors({})
     setResetFace(false)
+    setPasswordMode('default')
+    setCustomPassword('')
+    setConfirmPassword('')
     setModalOpen(true)
   }
 
@@ -94,6 +101,11 @@ export default function AdminKaryawanPageV3() {
       else if (digits.length > MAX_PHONE_DIGITS) errs.phone = 'Maksimal ' + MAX_PHONE_DIGITS + ' angka'
     }
     if (form.alamat && form.alamat.length > MAX_ALAMAT_LENGTH) errs.alamat = 'Maksimal ' + MAX_ALAMAT_LENGTH + ' karakter'
+    if (!editTarget && passwordMode === 'custom') {
+      if (!customPassword) errs.customPassword = 'Password harus diisi'
+      else if (customPassword.length < 8) errs.customPassword = 'Minimal 8 karakter'
+      else if (customPassword !== confirmPassword) errs.confirmPassword = 'Password tidak cocok'
+    }
     if (Object.keys(errs).length > 0) { setFieldErrors(errs); return }
 
     setSaving(true)
@@ -102,8 +114,8 @@ export default function AdminKaryawanPageV3() {
         await api.patch('/api/users/' + editTarget.id, { ...form, ...(resetFace ? { faceDescriptor: '' } : {}) } as Partial<User>)
         toast.success('Karyawan berhasil diupdate')
       } else {
-        const generatedPassword = Math.random().toString(36).slice(2, 14)
-        await api.post('/api/register', { ...form, password: generatedPassword, name: form.nama, role: form.role })
+        const password = passwordMode === 'custom' ? customPassword : 'password'
+        await api.post('/api/register', { ...form, password, name: form.nama, role: form.role })
         toast.success('Karyawan berhasil ditambahkan')
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -292,7 +304,41 @@ export default function AdminKaryawanPageV3() {
               <PhoneInput value={form.phone || ''} onChange={function(v) { setForm({ ...form, phone: v }); setFieldErrors(function(p) { return { ...p, phone: '' } }) }} error={fieldErrors.phone} />
               {fieldErrors.phone && <p className="text-xs text-destructive">{fieldErrors.phone}</p>}
             </div>
-            {!editTarget && <p className="text-xs text-muted-foreground">Password akan digenerate otomatis</p>}
+            {!editTarget && (
+              <div className="space-y-3">
+                <Separator />
+                <Label>Password</Label>
+                <div className="flex gap-2">
+                  <Button type="button" variant={passwordMode === 'default' ? 'default' : 'outline'} size="sm" onClick={function() { setPasswordMode('default') }} className="flex-1 gap-2">
+                    <Key className="h-3.5 w-3.5" /> Default
+                  </Button>
+                  <Button type="button" variant={passwordMode === 'custom' ? 'default' : 'outline'} size="sm" onClick={function() { setPasswordMode('custom') }} className="flex-1 gap-2">
+                    Custom
+                  </Button>
+                </div>
+                {passwordMode === 'default' ? (
+                  <p className="text-xs text-muted-foreground">Password default: <code className="text-xs">password</code></p>
+                ) : (
+                  <div className="space-y-3">
+                    <PasswordInput
+                      id="customPassword"
+                      value={customPassword}
+                      onChange={function(e) { setCustomPassword(e.target.value); setFieldErrors(function(p) { return { ...p, customPassword: '' } }) }}
+                      error={fieldErrors.customPassword}
+                      placeholder="Minimal 8 karakter"
+                    />
+                    <PasswordInput
+                      id="confirmPassword"
+                      value={confirmPassword}
+                      onChange={function(e) { setConfirmPassword(e.target.value); setFieldErrors(function(p) { return { ...p, confirmPassword: '' } }) }}
+                      error={fieldErrors.confirmPassword}
+                      placeholder="Ulangi password"
+                      matchValue={customPassword}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             {editTarget && hasFaceData(editTarget.faceDescriptor) && (
               <>
                 <Separator />
