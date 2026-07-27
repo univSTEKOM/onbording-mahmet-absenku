@@ -1,7 +1,8 @@
 .agents/
 
-# Environment files
-.env
+# Environment files (subdir .env only, root .env is committed for dev)
+frontend/.env
+mock-api/.env
 
 # Database files
 mock-api/auth.db
