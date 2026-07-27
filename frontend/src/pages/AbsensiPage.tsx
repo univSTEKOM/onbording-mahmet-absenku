@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useAbsensiToday, useCheckIn, useCheckOut } from '@/hooks/useAbsensi'
 import { useAbsensiList } from '@/hooks/useAbsensi'
 import { Card, CardContent } from '@/components/ui/card'
@@ -46,7 +46,7 @@ export default function AbsensiPage() {
 
   const today = clock.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const currentTime = clock.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-  const checkInGate = useMemo(() => canCheckIn(), [clock])
+  const checkInGate = canCheckIn()
 
   const isCheckedIn = !!absensi?.checkIn
   const isCheckedOut = !!absensi?.checkOut
