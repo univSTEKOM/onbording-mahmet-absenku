@@ -87,7 +87,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={function(e) { e.preventDefault(); setConfirmOpen(true) }}>
+            <DropdownMenuItem onClick={function() { setConfirmOpen(true) }}>
               <LogOut className="mr-2 size-4" /> Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
