@@ -62,9 +62,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ...baseItems.slice(0, 1),
         { title: 'Verifikasi Karyawan', url: '/admin/verifikasi', icon: <UserCheck />, badge: pendingCount > 0 ? pendingCount : undefined },
         ...baseItems.slice(1).map((item) => {
-          const extended = { ...item }
-          if (item.title === 'Pengajuan' && pendingPengajuanCount > 0) extended.badge = pendingPengajuanCount
-          return extended
+          if (item.title === 'Pengajuan' && pendingPengajuanCount > 0) {
+            return Object.assign(Object.create(null), item, { badge: pendingPengajuanCount })
+          }
+          return item
         }),
       ]
     : baseItems

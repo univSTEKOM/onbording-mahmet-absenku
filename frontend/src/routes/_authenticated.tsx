@@ -25,9 +25,13 @@ function LoadingScreen({ timedOut }: { timedOut?: boolean }) {
       <div className="hidden md:flex w-64 flex-col border-r bg-sidebar p-4 gap-4">
         <Skeleton className="h-8 w-32" />
         <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={`sk-${i}`} className="h-9 w-full rounded-lg" />
-          ))}
+          {function() {
+            var skIdx = 0
+            return Array.from({ length: 4 }).map(function() {
+              skIdx++
+              return <Skeleton key={`sk-item-${skIdx}`} className="h-9 w-full rounded-lg" />
+            })
+          }()}
         </div>
         <div className="mt-auto flex items-center gap-3">
           <Skeleton className="h-9 w-9 rounded-full" />

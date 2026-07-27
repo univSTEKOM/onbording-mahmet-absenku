@@ -130,9 +130,12 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
         {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day) => (
           <div key={day} className="text-center text-[11px] font-semibold text-muted-foreground py-1">{day}</div>
         ))}
-        {calendarDays.map((day, i) => {
-          if (!day) return <div key={`ec-${year}-${month}-${i}`} />
-          const tgl = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+        {function() {
+          var cellIdx = 0
+          return calendarDays.map(function(day) {
+            cellIdx++
+            if (!day) return <div key={`gap-${year}-${month}-${cellIdx}`} />
+            const tgl = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
           const dayData = dataMap.get(tgl)
           const today = new Date().toISOString().split('T')[0] === tgl
           const isBeforeRelease = tgl < APP_RELEASE_DATE
@@ -158,7 +161,8 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
               </p>
             </button>
           )
-        })}
+        })
+      }()}
       </div>
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">

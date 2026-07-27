@@ -21,9 +21,11 @@ function ChartContainer({ id, config, children, className }: { id?: string; conf
     return vars
   }, [config])
 
+  const contextValue = React.useMemo(() => ({ config }), [config])
+
   return (
     <div id={id} className={cn('w-full', className)} style={colorVars as React.CSSProperties}>
-      <ChartContext.Provider value={{ config }}>
+      <ChartContext.Provider value={contextValue}>
         <ResponsiveContainer width="100%" height="100%">
           {children as React.ReactElement}
         </ResponsiveContainer>
