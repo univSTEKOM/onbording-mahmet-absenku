@@ -35,7 +35,10 @@ export default function RiwayatPage() {
       const start = new Date(p.tanggalMulai + 'T00:00:00')
       const end = new Date(p.tanggalSelesai + 'T00:00:00')
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        map.set(d.toISOString().split('T')[0], p.jenis)
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, '0')
+        const dd = String(d.getDate()).padStart(2, '0')
+        map.set(y + '-' + m + '-' + dd, p.jenis)
       }
     })
     return map

@@ -14,7 +14,7 @@ export function pieDataItem(name: string, value: number): { name: string; value:
 export const absensiChartConfig: ChartConfig = {
   hadir:        { label: 'Hadir',        color: statusColor('hadir') },
   terlambat:    { label: 'Terlambat',    color: statusColor('terlambat') },
-  pulang_cepat: { label: 'Pulang Cepat', color: statusColor('pulang_cepat') },
+  pulangCepat: { label: 'Pulang Cepat', color: statusColor('pulang_cepat') },
   izin:         { label: 'Izin',         color: statusColor('izin') },
   sakit:        { label: 'Sakit',        color: statusColor('sakit') },
   cuti:         { label: 'Cuti',         color: statusColor('cuti') },

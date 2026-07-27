@@ -10,6 +10,7 @@ export interface RecentAbsensiItem {
 export interface AdminWeekChartItem {
   name: string
   hadir: number
+  pulangCepat: number
   terlambat: number
   izin: number
   sakit: number

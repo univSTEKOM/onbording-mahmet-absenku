@@ -43,10 +43,13 @@ export function AttendancePieChart({ id, data, config, centerLabel, centerSub, l
             nameKey="name"
             innerRadius={60}
             strokeWidth={2}
-            shape={({ index, outerRadius = 0, ...props }: PieSectorDataItem & { index: number }) => (
-              <Sector {...props} fill={data[index]?.fill || 'var(--color-status-hadir)'}
+            shape={({ index, outerRadius = 0, ...props }: PieSectorDataItem & { index: number }) => {
+            const item = data[index]
+            return (
+              <Sector {...props} fill={item?.fill || config[item?.name]?.color || 'var(--color-status-hadir)'}
                 outerRadius={index === activeIndex ? outerRadius + 6 : outerRadius} />
-            )}
+            )
+          }}
             onMouseEnter={(_, index) => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(-1)}
           >

@@ -38,23 +38,23 @@ export default function AdminDashboardPage() {
   const donutData = useMemo(function() {
     if (!monthData?.data) return []
     const hadirTotal = monthData.data.reduce(function(sum, d) { return sum + (d.hadir || 0) }, 0)
+    const pulangCepatTotal = monthData.data.reduce(function(sum, d) { return sum + (d.pulangCepat || 0) }, 0)
     const terlambatTotal = monthData.data.reduce(function(sum, d) { return sum + (d.terlambat || 0) }, 0)
     const izinTotal = monthData.data.reduce(function(sum, d) { return sum + (d.izin || 0) }, 0)
     const sakitTotal = monthData.data.reduce(function(sum, d) { return sum + (d.sakit || 0) }, 0)
     const cutiTotal = monthData.data.reduce(function(sum, d) { return sum + (d.cuti || 0) }, 0)
-    const alfaTotal = monthData.data.reduce(function(sum, d) { return sum + (d.tidakHadir || 0) }, 0)
     return [
       pieDataItem('hadir', hadirTotal),
+      pieDataItem('pulangCepat', pulangCepatTotal),
       pieDataItem('terlambat', terlambatTotal),
       pieDataItem('izin', izinTotal),
       pieDataItem('sakit', sakitTotal),
       pieDataItem('cuti', cutiTotal),
-      pieDataItem('tidakHadir', alfaTotal),
     ]
   }, [monthData])
 
   const totalAbsen = donutData.reduce(function(s, d) { return s + d.value }, 0)
-  const hadirVal = donutData[0]?.value ?? 0
+  const hadirVal = (donutData[0]?.value || 0) + (donutData[1]?.value || 0)
   const hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
 
   const statsData = [
@@ -173,7 +173,7 @@ export default function AdminDashboardPage() {
             <WeekAttendanceChart
               data={chart}
               config={absensiChartConfig}
-              legendOrder={['cuti', 'sakit', 'terlambat', 'izin', 'hadir', 'tidakHadir']}
+              legendOrder={['cuti', 'sakit', 'terlambat', 'pulangCepat', 'izin', 'hadir', 'tidakHadir']}
               loading={isLoading}
             />
           </CardContent>
@@ -194,7 +194,7 @@ export default function AdminDashboardPage() {
               data={donutData}
               config={absensiChartConfig}
               centerLabel={hadirPct + '%'}
-              centerSub="hadir"
+              centerSub="hadir & pulang"
               loading={monthLoading}
             />
             <p className="text-[11px] text-muted-foreground text-center -mt-1">
