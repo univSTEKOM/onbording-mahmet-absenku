@@ -230,11 +230,6 @@ export default function AbsensiPage() {
         open={showFaceVerification}
         onOpenChange={setShowFaceVerification}
         onVerified={handleFaceVerified}
-        onSkip={() => {
-          setShowFaceVerification(false)
-          if (mode === 'in') checkInMutation.mutate({})
-          else if (absensi) checkOutMutation.mutate({ id: absensi.id })
-        }}
         mode={mode}
       />
     </div>
