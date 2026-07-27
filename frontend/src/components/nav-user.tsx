@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -40,14 +39,14 @@ export function NavUser() {
   const fotoSrc = user?.foto || undefined
 
   async function handleLogout() {
-    setConfirmOpen(false)
-    await logout()
     clearTourStorage(user?.id)
     clearVerificationTourStorage(user?.id)
+    setConfirmOpen(false)
+    await logout()
   }
 
   return (
-    <SidebarMenu data-slot="nav-user">
+    <><SidebarMenu data-slot="nav-user">
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger className="group flex w-full items-center gap-2 rounded-md p-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground aria-expanded:bg-muted [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate">
@@ -88,30 +87,30 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem onSelect={function(e) { e.preventDefault(); setConfirmOpen(true) }}>
-                  <LogOut className="mr-2 size-4" /> Logout
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Apakah Anda yakin ingin keluar? Product tour akan direset dan Anda akan diarahkan ke halaman login.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleLogout} className="gap-2">
-                    <LogOut className="h-4 w-4" /> Logout
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DropdownMenuItem onSelect={function(e) { e.preventDefault(); setConfirmOpen(true) }}>
+              <LogOut className="mr-2 size-4" /> Logout
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
+
+    <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
+          <AlertDialogDescription>
+            Apakah Anda yakin ingin keluar? Product tour akan direset dan Anda akan diarahkan ke halaman login.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction onClick={handleLogout} className="gap-2">
+            <LogOut className="h-4 w-4" /> Logout
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   )
 }
