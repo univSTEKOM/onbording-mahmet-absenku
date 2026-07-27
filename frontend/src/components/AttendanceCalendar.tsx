@@ -16,7 +16,9 @@ interface Props {
   onDayClick?: (tanggal: string) => void
 }
 
-const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+function monthName(m: number): string {
+  return new Date(2024, m, 1).toLocaleDateString('id-ID', { month: 'long' })
+}
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: 'bg-[var(--color-status-hadir)]/15 dark:bg-[var(--color-status-hadir)]/25',
@@ -121,7 +123,7 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-semibold text-base">{monthNames[month]} {year}</h3>
+        <h3 className="font-semibold text-base">{monthName(month)} {year}</h3>
       </div>
 
       <div className="grid grid-cols-7 gap-1">

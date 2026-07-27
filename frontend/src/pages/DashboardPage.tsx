@@ -312,7 +312,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: STATUS_COLORS_MAP[a.status] || '#999' }} />
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: STATUS_COLORS_MAP[a.status] || 'var(--color-status-tidakHadir)' }} />
                         <span className="text-xs font-medium truncate">{absensiStatusLabel[a.status]}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">

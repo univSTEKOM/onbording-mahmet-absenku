@@ -19,8 +19,6 @@ const currentYear = today.getFullYear()
 
 const pieId = 'pie-kehadiran'
 
-const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const { data: adminData, isLoading, refetch, isFetching } = useAdminWeek()
@@ -180,7 +178,7 @@ export default function AdminDashboardPage() {
             <div className="grid gap-0.5">
               <CardTitle className="text-sm md:text-base">Kehadiran Bulan Ini</CardTitle>
               <CardDescription className="text-[11px] md:text-xs">
-                {monthNames[currentMonth]} {currentYear}
+                {new Date(currentYear, currentMonth, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
               </CardDescription>
             </div>
           </CardHeader>

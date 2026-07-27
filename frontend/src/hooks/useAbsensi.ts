@@ -42,13 +42,15 @@ export function useCheckIn() {
   const { user } = useAuth()
 
   return useMutation({
-    mutationFn: (extra?: { photoUrl?: string }) =>
-      checkIn({
-        userId: user!.id,
+    mutationFn: (extra?: { photoUrl?: string }) => {
+      if (!user) throw new Error('Anda harus login untuk absen')
+      return checkIn({
+        userId: user.id,
         tanggal: new Date().toISOString().split('T')[0],
         checkIn: new Date().toISOString(),
         photos: extra?.photoUrl ? [{ type: 'check_in', url: extra.photoUrl, capturedAt: new Date().toISOString() }] : [],
-      }),
+      })
+    },
     onSuccess: () => {
       toast.success('Check-in berhasil')
       queryClient.invalidateQueries({ queryKey: ['absensi'] })
