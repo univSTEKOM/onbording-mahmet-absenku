@@ -13,8 +13,8 @@
 git clone <repo-url>
 cd on-boarding-trials
 
-# 2. Start — otomatis buat .env dari .env.example jika belum ada
-./start-docker.sh up -d
+# 2. Start
+docker compose up -d
 
 # 3. Cek status
 docker compose ps
