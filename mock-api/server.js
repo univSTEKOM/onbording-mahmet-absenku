@@ -168,6 +168,8 @@ server.post('/api/register', async (req, res) => {
 
     if (!email || !password || !nama) return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'Format email tidak valid' })
+    const existingProfile = router.db.get('users').find({ email }).value()
+    if (existingProfile) return res.status(400).json({ message: 'Email sudah terdaftar. Gunakan email lain.' })
     if (password.length < 8) return res.status(400).json({ message: 'Password minimal 8 karakter' })
     if (!/[A-Z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kapital' })
     if (!/[a-z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kecil' })
@@ -185,7 +187,9 @@ server.post('/api/register', async (req, res) => {
       asResponse: true,
     })
     if (response.status !== 200) {
-      return res.status(400).json({ message: 'Gagal mendaftar' })
+      const text = await response.text().catch(() => '')
+      const body = text ? JSON.parse(text) : {}
+      return res.status(400).json({ message: body?.message || 'Gagal mendaftar' })
     }
     const data = await response.json()
     const profile = {
@@ -200,7 +204,7 @@ server.post('/api/register', async (req, res) => {
     const rec = registerAttempts.get(ip)
     if (!rec) { registerAttempts.set(ip, { count: 1, start: Date.now() }) }
     else { rec.count++ }
-    res.status(400).json({ message: 'Gagal mendaftar' })
+    res.status(400).json({ message: e?.message || 'Gagal mendaftar' })
   }
 })
 

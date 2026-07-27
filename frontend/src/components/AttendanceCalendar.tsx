@@ -81,7 +81,7 @@ function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, is
   if (tanggal < APP_RELEASE_DATE) return ''
   if (tanggal > todayStr) return ''
   if (tanggal === todayStr && !hasAttendanceData(dayData)) return 'Hari Ini'
-  if (!dayData) return 'Alfa'
+  if (!dayData) return absensiStatusLabel.tidakHadir
   if (isAdmin && total) {
     const parts: string[] = []
     if (dayData.hadir > 0) parts.push(`${dayData.hadir}H`)
@@ -91,16 +91,16 @@ function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, is
     if (dayData.sakit > 0) parts.push(`${dayData.sakit}S`)
     if (dayData.cuti > 0) parts.push(`${dayData.cuti}C`)
     if (dayData.checkInOnly > 0) parts.push(`${dayData.checkInOnly}In`)
-    return parts.length > 0 ? parts.join(' ') : 'Alfa'
+    return parts.length > 0 ? parts.join(' ') : absensiStatusLabel.tidakHadir
   }
-  if (dayData.hadir > 0) return 'Hadir'
-  if (dayData.pulangCepat > 0) return 'Hadir'
-  if (dayData.terlambat > 0) return 'Hadir'
-  if (dayData.checkInOnly > 0) return 'Hadir'
-  if (dayData.izin > 0) return 'Izin'
-  if (dayData.sakit > 0) return 'Sakit'
-  if (dayData.cuti > 0) return 'Cuti'
-  return 'Alfa'
+  if (dayData.hadir > 0) return absensiStatusLabel.hadir
+  if (dayData.pulangCepat > 0) return absensiStatusLabel.hadir
+  if (dayData.terlambat > 0) return absensiStatusLabel.hadir
+  if (dayData.checkInOnly > 0) return absensiStatusLabel.hadir
+  if (dayData.izin > 0) return absensiStatusLabel.izin
+  if (dayData.sakit > 0) return absensiStatusLabel.sakit
+  if (dayData.cuti > 0) return absensiStatusLabel.cuti
+  return absensiStatusLabel.tidakHadir
 }
 
 export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClick }: Props) {
@@ -120,6 +120,40 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
     return map
   }, [data])
 
+  const calendarCells = useMemo(() => {
+    let cellIdx = 0
+    return calendarDays.map(function(day) {
+      cellIdx++
+      if (!day) return <div key={`gap-${year}-${month}-${cellIdx}`} />
+      const tgl = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      const dayData = dataMap.get(tgl)
+      const today = new Date().toISOString().split('T')[0] === tgl
+      const isBeforeRelease = tgl < APP_RELEASE_DATE
+      const isFuture = tgl > todayStr
+      const isDisabled = isBeforeRelease || isFuture
+      const isAdmin = totalKaryawan !== undefined && totalKaryawan > 1
+
+      return (
+        <button
+          key={tgl}
+          type="button"
+          onClick={() => isDisabled ? null : onDayClick?.(tgl)}
+          className={cn(
+            'rounded-lg p-1.5 text-center transition-colors border border-transparent text-left',
+            isDisabled ? 'cursor-default' : 'cursor-pointer hover:border-primary/40',
+            today && 'ring-2 ring-primary/40',
+            getDayCellColor(tgl, dayData, isAdmin),
+          )}
+        >
+          <p className={cn('text-sm font-medium', today && 'text-primary')}>{day}</p>
+          <p className="text-[10px] leading-tight mt-0.5 text-foreground/60">
+            {getDayLabel(tgl, dayData, isAdmin, totalKaryawan)}
+          </p>
+        </button>
+      )
+    })
+  }, [calendarDays, year, month, dataMap, onDayClick, totalKaryawan])
+
   return (
     <div className="space-y-4">
       <div>
@@ -130,39 +164,7 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
         {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day) => (
           <div key={day} className="text-center text-[11px] font-semibold text-muted-foreground py-1">{day}</div>
         ))}
-        {function() {
-          let cellIdx = 0
-          return calendarDays.map(function(day) {
-            cellIdx++
-            if (!day) return <div key={`gap-${year}-${month}-${cellIdx}`} />
-            const tgl = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-          const dayData = dataMap.get(tgl)
-          const today = new Date().toISOString().split('T')[0] === tgl
-          const isBeforeRelease = tgl < APP_RELEASE_DATE
-          const isFuture = tgl > todayStr
-          const isDisabled = isBeforeRelease || isFuture
-          const isAdmin = totalKaryawan !== undefined && totalKaryawan > 1
-
-          return (
-            <button
-              key={tgl}
-              type="button"
-              onClick={() => isDisabled ? null : onDayClick?.(tgl)}
-              className={cn(
-                'rounded-lg p-1.5 text-center transition-colors border border-transparent text-left',
-                isDisabled ? 'cursor-default' : 'cursor-pointer hover:border-primary/40',
-                today && 'ring-2 ring-primary/40',
-                getDayCellColor(tgl, dayData, isAdmin),
-              )}
-            >
-              <p className={cn('text-sm font-medium', today && 'text-primary')}>{day}</p>
-              <p className="text-[10px] leading-tight mt-0.5 text-foreground/60">
-                {getDayLabel(tgl, dayData, isAdmin, totalKaryawan)}
-              </p>
-            </button>
-          )
-        })
-      }()}
+        {calendarCells}
       </div>
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">

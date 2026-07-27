@@ -8,6 +8,7 @@ export const STATUS_CONFIG = {
   sakit:        { label: 'Sakit',        color: 'var(--color-status-sakit)' },
   cuti:         { label: 'Cuti',         color: 'var(--color-status-cuti)' },
   tidakHadir:   { label: 'Alfa',         color: 'var(--color-status-tidakHadir)' },
+  checkInOnly:  { label: 'Absen Masuk',  color: 'var(--color-status-izin)' },
 } as const
 
 export const absensiStatusBadge: Record<AbsensiStatus, string> = {
@@ -18,6 +19,7 @@ export const absensiStatusBadge: Record<AbsensiStatus, string> = {
   sakit:        'bg-[var(--color-status-sakit)] text-white border-0',
   cuti:         'bg-[var(--color-status-cuti)] text-white border-0',
   tidakHadir:   'bg-[var(--color-status-tidakHadir)] text-white border-0',
+  checkInOnly:  'bg-[var(--color-status-izin)] text-white border-0',
 }
 
 export const pengajuanStatusBadge: Record<PengajuanStatus, string> = {
@@ -66,6 +68,7 @@ export const absensiStatusLabel: Record<AbsensiStatus, string> = {
   sakit: 'Sakit',
   cuti: 'Cuti',
   tidakHadir: 'Alfa',
+  checkInOnly: 'Absen Masuk',
 }
 
 export const STATUS_COLORS_MAP: Record<string, string> = {
@@ -76,6 +79,7 @@ export const STATUS_COLORS_MAP: Record<string, string> = {
   sakit:        'var(--color-status-sakit)',
   cuti:         'var(--color-status-cuti)',
   tidakHadir:   'var(--color-status-tidakHadir)',
+  checkInOnly:  'var(--color-status-izin)',
 }
 
 /* ── Category Badge & Label (new) ── */

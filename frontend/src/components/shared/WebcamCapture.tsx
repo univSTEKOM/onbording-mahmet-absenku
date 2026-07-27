@@ -77,7 +77,7 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
     return () => stopCamera()
   }, [active, startCamera, stopCamera])
 
-  /* Detection loop — dual detection */
+  /* Detection loop */
   useEffect(() => {
     if (!active || !onAutoCapture) return
 
@@ -96,7 +96,6 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
       if (!overlay) return
 
       try {
-        /* Single face detection — untuk capture */
         const result = await detectFace(canvas, 500)
         const boxes: { x: number; y: number; width: number; height: number }[] = []
 
@@ -106,7 +105,6 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
           boxes.push({ x: box.x, y: box.y, width: box.width, height: box.height })
           drawFaceOverlay(overlay, w, h, boxes, faceStable)
 
-          /* Multi-face check — tiap 3 frame, ringan */
           frameRef.current++
           if (frameRef.current % 3 === 0) {
             const faceCount = await countFaces(canvas)

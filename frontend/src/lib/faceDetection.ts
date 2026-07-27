@@ -1,6 +1,8 @@
 const MODEL_URL = '/models'
 
 let faceapiRef: typeof import('face-api.js') | null = null
+let modelsLoaded = false
+let modelsLoadPromise: Promise<void> | null = null
 
 async function getFaceapi(): Promise<typeof import('face-api.js')> {
   if (!faceapiRef) {
@@ -10,12 +12,22 @@ async function getFaceapi(): Promise<typeof import('face-api.js')> {
 }
 
 export async function loadModels() {
-  const faceapi = await getFaceapi()
-  await Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-  ])
+  if (modelsLoaded) return
+  if (modelsLoadPromise) return modelsLoadPromise
+  modelsLoadPromise = (async () => {
+    const faceapi = await getFaceapi()
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+    ])
+    modelsLoaded = true
+  })()
+  return modelsLoadPromise
+}
+
+export function areModelsLoaded(): boolean {
+  return modelsLoaded
 }
 
 export async function detectFace(

@@ -212,7 +212,7 @@ export default function DashboardPage() {
             {total7 > 0 && (
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-2 text-[10px] text-muted-foreground justify-center">
                 {pie7Data.filter(function(d) { return d.value > 0 }).map(function(d) {
-                  return <span key={d.name} className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: d.fill }} /> {d.name}: {d.value}</span>
+                  return <span key={d.name} className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: d.fill }} /> {absensiStatusLabel[d.name as keyof typeof absensiStatusLabel] || d.name.replace(/_/g, ' ')}: {d.value}</span>
                 })}
               </div>
             )}
@@ -239,7 +239,7 @@ export default function DashboardPage() {
             {totalMonth > 0 && (
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-2 text-[10px] text-muted-foreground justify-center">
                 {pieMonthData.filter(function(d) { return d.value > 0 }).map(function(d) {
-                  return <span key={d.name} className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: d.fill }} /> {d.name}: {d.value}</span>
+                  return <span key={d.name} className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: d.fill }} /> {absensiStatusLabel[d.name as keyof typeof absensiStatusLabel] || d.name.replace(/_/g, ' ')}: {d.value}</span>
                 })}
               </div>
             )}

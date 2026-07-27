@@ -13,7 +13,7 @@ export type Role = 'admin' | 'karyawan'
 
 export type UserStatus = 'pending' | 'approved' | 'rejected'
 
-export type AbsensiStatus = 'hadir' | 'terlambat' | 'pulang_cepat' | 'izin' | 'sakit' | 'cuti' | 'tidakHadir'
+export type AbsensiStatus = 'hadir' | 'terlambat' | 'pulang_cepat' | 'izin' | 'sakit' | 'cuti' | 'tidakHadir' | 'checkInOnly'
 
 export type PengajuanJenis = 'cuti' | 'izin' | 'sakit'
 
