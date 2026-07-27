@@ -94,10 +94,10 @@
   --color-ring: var(--ring);
   --color-status-hadir: #1A535C;
   --color-status-terlambat: #FFE66D;
-  --color-status-pulang-cepat: #4ECDC4;
-  --color-status-izin: #4FC3F7;
-  --color-status-sakit: #BA68C8;
-  --color-status-cuti: #90A4AE;
+  --color-status-pulang-cepat: #2EA89E;
+  --color-status-izin: #3182CE;
+  --color-status-sakit: #805AD5;
+  --color-status-cuti: #718096;
   --color-status-tidakHadir: #FF6B6B;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);

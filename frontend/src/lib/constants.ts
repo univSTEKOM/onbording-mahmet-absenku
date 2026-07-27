@@ -13,10 +13,10 @@ export const STATUS_CONFIG = {
 export const absensiStatusBadge: Record<AbsensiStatus, string> = {
   hadir:        'bg-[var(--color-status-hadir)] text-white border-0',
   terlambat:    'bg-[var(--color-status-terlambat)] text-black border-0',
-  pulang_cepat: 'bg-[var(--color-status-pulang-cepat)] text-black border-0',
-  izin:         'bg-[var(--color-status-izin)] text-black border-0',
+  pulang_cepat: 'bg-[var(--color-status-pulang-cepat)] text-white border-0',
+  izin:         'bg-[var(--color-status-izin)] text-white border-0',
   sakit:        'bg-[var(--color-status-sakit)] text-white border-0',
-  cuti:         'bg-[var(--color-status-cuti)] text-black border-0',
+  cuti:         'bg-[var(--color-status-cuti)] text-white border-0',
   tidakHadir:   'bg-[var(--color-status-tidakHadir)] text-white border-0',
 }
 
