@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from 'react-international-phone'
 import { z } from 'zod'
 import {
   MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH,
@@ -35,19 +36,12 @@ const jabatanSchema = z
   .min(1, 'Jabatan harus diisi')
   .max(MAX_JABATAN_LENGTH, 'Jabatan maksimal ' + MAX_JABATAN_LENGTH + ' karakter')
 
-function stripNonDigits(v: string): string {
-  return v.replace(/\D/g, '')
-}
-
 const phoneSchema = z
   .string()
   .optional()
-  .transform(function(v) { return v ? stripNonDigits(v) : '' })
-  .pipe(
-    z.string().refine(function(v) {
-      return v === '' || (v.length >= 10 && v.length <= 15)
-    }, 'Nomor telepon harus 10-15 angka')
-  )
+  .refine(function(v) {
+    return !v || isValidPhoneNumber(v)
+  }, 'Nomor telepon tidak valid')
 
 /* ── Public Validation Functions (API tetap sama) ── */
 
