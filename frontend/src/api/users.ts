@@ -1,13 +1,8 @@
 import api from './axios'
-import type { User, UpdateUserData } from '@/types'
+import type { User, UpdateUserData, UserFilters } from '@/types'
 
-export async function getUsers(): Promise<User[]> {
-  const res = await api.get('/users')
-  return res.data
-}
-
-export async function getUser(id: string): Promise<User> {
-  const res = await api.get(`/users/${id}`)
+export async function getUsers(filters?: UserFilters): Promise<User[]> {
+  const res = await api.get('/users', { params: filters })
   return res.data
 }
 

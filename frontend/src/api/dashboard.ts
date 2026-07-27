@@ -7,14 +7,22 @@ export interface RecentAbsensiItem {
   status: string | null
 }
 
-export interface HrdWeekChartItem {
+export interface AdminWeekChartItem {
   name: string
   hadir: number
+  pulangCepat: number
   terlambat: number
+  izin: number
+  sakit: number
+  cuti: number
+  tidakHadir: number
+  present: number
+  absentPermit: number
+  absentUnpermit: number
   persen: number
 }
 
-export interface HrdWeekSummary {
+export interface AdminWeekSummary {
   totalKaryawan: number
   hadirHariIni: number
   terlambatHariIni: number
@@ -23,11 +31,14 @@ export interface HrdWeekSummary {
   totalAbsensiBulanIni: number
   weekAvg: number
   bestDay: { name: string; persen: number } | null
+  presentMonth: number
+  permitMonth: number
+  unpermitMonth: number
 }
 
-export interface HrdWeekData {
-  chart: HrdWeekChartItem[]
-  summary: HrdWeekSummary
+export interface AdminWeekData {
+  chart: AdminWeekChartItem[]
+  summary: AdminWeekSummary
 }
 
 export async function getRecentAbsensi(userId: string): Promise<RecentAbsensiItem[]> {
@@ -35,18 +46,24 @@ export async function getRecentAbsensi(userId: string): Promise<RecentAbsensiIte
   return res.data.data
 }
 
-export async function getHrdWeek(): Promise<HrdWeekData> {
-  const res = await api.get('/api/dashboard/hrd/week')
+export async function getAdminWeek(): Promise<AdminWeekData> {
+  const res = await api.get('/api/dashboard/admin/week')
   return res.data
 }
 
 export interface DayAttendanceData {
   tanggal: string
   hadir: number
+  pulangCepat: number
   terlambat: number
   checkInOnly: number
   izin: number
+  sakit: number
+  cuti: number
   tidakHadir: number
+  present?: number
+  absentPermit?: number
+  absentUnpermit?: number
 }
 
 export interface MonthAttendanceData {
@@ -54,7 +71,7 @@ export interface MonthAttendanceData {
   totalKaryawan: number
 }
 
-export async function getMonthAttendance(tahun: number, bulan: number): Promise<MonthAttendanceData> {
-  const res = await api.get('/api/dashboard/month', { params: { tahun, bulan } })
+export async function getMonthAttendance(tahun: number, bulan: number, userId?: string): Promise<MonthAttendanceData> {
+  const res = await api.get('/api/dashboard/month', { params: { tahun, bulan, ...(userId ? { userId } : {}) } })
   return res.data
 }

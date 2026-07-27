@@ -1,34 +1,46 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { getAuthClient } from '@/lib/auth-client'
-import { useUserContext } from '@/lib/user-context'
 import api from '@/api/axios'
 import type { User, LoginRequest, RegisterRequest } from '@/types'
 
-function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, profile: Record<string, unknown> | null): User | null {
+function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, profile: Record<string, unknown> | null | undefined): User | null {
   if (!sessionUser && !profile) return null
   const base = sessionUser || {} as Record<string, unknown>
   const p = profile || {} as Record<string, unknown>
   return {
-    id: String(p.id || base.id),
-    email: (p.email as string) || (base.email as string) || '',
-    password: '',
-    nama: (p.nama as string) || (base.name as string) || '',
-    jabatan: (p.jabatan as string) || (base.jabatan as string) || '',
-    role: (p.role as User['role']) || (base.role as User['role']) || 'karyawan',
-    status: (p.status as User['status']) || (base.status as User['status']) || 'approved',
-    rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) || [],
-    foto: (p.foto as string) || (base.image as string) || '',
-    phone: (p.phone as string) || (base.phone as string) || '',
-    alamat: (p.alamat as string) || (base.alamat as string) || '',
-    createdAt: (p.createdAt as string) || (base.createdAt as string) || '',
+    id: String(p.id ?? base.id),
+    email: (p.email as string) ?? (base.email as string) ?? '',
+    nama: (p.nama as string) ?? (base.name as string) ?? '',
+    jabatan: (p.jabatan as string) ?? (base.jabatan as string) ?? '',
+    role: (p.role as User['role']) ?? (base.role as User['role']) ?? 'karyawan',
+    status: (p.status as User['status']) ?? (base.status as User['status']) ?? 'approved',
+    rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) ?? [],
+    foto: (p.foto as string) ?? (base.image as string) ?? '',
+    faceDescriptor: (p.faceDescriptor as string) ?? (base.faceDescriptor as string) ?? '',
+    phone: (p.phone as string) ?? (base.phone as string) ?? '',
+    alamat: (p.alamat as string) ?? (base.alamat as string) ?? '',
+    createdAt: (p.createdAt as string) ?? (base.createdAt as string) ?? '',
+  }
+}
+
+async function fetchProfile(): Promise<Record<string, unknown> | null> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
+  try {
+    const res = await api.get('/api/me', { signal: controller.signal })
+    const profileData = (res.data as Record<string, unknown>)?.user as Record<string, unknown> | undefined
+    return profileData && typeof profileData === 'object' && Object.keys(profileData).length > 0 ? profileData : null
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
 export function useAuth() {
   const navigate = useNavigate()
-  const { profile, setProfile, profileReady, setProfileReady } = useUserContext()
+  const queryClient = useQueryClient()
 
   const authClientRef = useRef<ReturnType<typeof getAuthClient> | null>(null)
   if (!authClientRef.current) {
@@ -36,26 +48,18 @@ export function useAuth() {
   }
   const authClient = authClientRef.current
 
-  const { data: session, isPending, refetch } = authClient.useSession()
+  const { data: session, isPending: sessionPending, refetch } = authClient.useSession()
   const sessionUserId = session?.user?.id
 
-  useEffect(() => {
-    if (!sessionUserId) { setProfile(null); setProfileReady(true); return }
-    let cancelled = false
-    setProfileReady(false)
-    api.get('/api/me').then((r) => {
-      if (!cancelled) {
-        setProfile((r.data as Record<string, unknown>)?.user as Record<string, unknown> || null)
-      }
-    }).catch(() => {
-      if (!cancelled) setProfile(null)
-    }).finally(() => {
-      if (!cancelled) setProfileReady(true)
-    })
-    return () => { cancelled = true }
-  }, [sessionUserId, setProfile, setProfileReady])
+  const profileQuery = useQuery({
+    queryKey: ['auth', 'profile', sessionUserId],
+    queryFn: fetchProfile,
+    enabled: !!sessionUserId,
+    staleTime: 30000,
+    retry: 1,
+  })
 
-  const user = useMemo(() => mergeUserData(session?.user, profile), [session, profile])
+  const user = useMemo(() => mergeUserData(session?.user, profileQuery.data), [session, profileQuery.data])
 
   const login = useCallback(async (data: LoginRequest) => {
     const client = authClientRef.current!
@@ -79,8 +83,9 @@ export function useAuth() {
 
   const logout = useCallback(async () => {
     await authClientRef.current!.signOut()
+    queryClient.removeQueries({ queryKey: ['auth'] })
     navigate({ to: '/login' })
-  }, [navigate])
+  }, [navigate, queryClient])
 
   const updateUser = useCallback(async (data: Partial<User>) => {
     if (!sessionUserId) return
@@ -90,28 +95,31 @@ export function useAuth() {
     if (data.foto !== undefined) body.foto = data.foto
     if (data.phone !== undefined) body.phone = data.phone
     if (data.alamat !== undefined) body.alamat = data.alamat
+    if (data.faceDescriptor !== undefined) body.faceDescriptor = data.faceDescriptor
+    delete body.password
     await api.patch(`/users/${sessionUserId}`, body)
 
-    setProfile((prev) => ({
-      ...prev,
-      ...(data.nama !== undefined ? { nama: data.nama } : {}),
-      ...(data.jabatan !== undefined ? { jabatan: data.jabatan } : {}),
-      ...(data.phone !== undefined ? { phone: data.phone } : {}),
-      ...(data.alamat !== undefined ? { alamat: data.alamat } : {}),
-      ...(data.foto !== undefined ? { foto: data.foto } : {}),
-    }))
+    await queryClient.invalidateQueries({ queryKey: ['auth', 'profile', sessionUserId] })
     await refetch()
     toast.success('Profil berhasil diperbarui')
-  }, [sessionUserId, setProfile, refetch])
+  }, [sessionUserId, queryClient, refetch])
+
+  const isLoading = sessionPending || (!!sessionUserId && profileQuery.isLoading)
+
+  /* Periodic session check — detects deletion by admin */
+  useEffect(() => {
+    const id = setInterval(() => refetch(), 5 * 60 * 1000)
+    return () => clearInterval(id)
+  }, [refetch])
 
   return {
     user,
-    token: null,
-    isLoading: isPending || !profileReady,
+    isLoading,
     login,
     register,
     logout,
     updateUser,
+    refetch,
     isAdmin: user?.role === 'admin',
   }
 }

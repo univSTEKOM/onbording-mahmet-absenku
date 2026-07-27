@@ -7,7 +7,7 @@ import './index.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 1, staleTime: 0, refetchOnWindowFocus: true },
+    queries: { retry: 1, staleTime: 5 * 60 * 1000, refetchOnWindowFocus: true },
     mutations: {
       onError: (error: unknown) => {
         const err = error as { response?: { data?: { message?: string } } }

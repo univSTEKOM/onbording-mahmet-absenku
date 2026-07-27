@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { useLocation } from '@tanstack/react-router'
 import { NavMain } from '@/components/nav-main'
 import { NavUser } from '@/components/nav-user'
@@ -12,6 +13,8 @@ import {
 import { LayoutDashboard, History, FileText, Users, ShieldCheck, UserCheck } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/hooks/useAuth'
+import api from '@/api/axios'
+import type { User, Pengajuan } from '@/types'
 
 const karyawanItems = [
   { title: 'Dashboard', url: '/dashboard', icon: <LayoutDashboard /> },
@@ -21,11 +24,10 @@ const karyawanItems = [
 ]
 
 const adminItems = [
-  { title: 'Dashboard HRD', url: '/hrd/dashboard', icon: <LayoutDashboard /> },
-  { title: 'Verifikasi', url: '/hrd/verifikasi', icon: <UserCheck /> },
-  { title: 'Riwayat', url: '/hrd/riwayat', icon: <History /> },
-  { title: 'Pengajuan', url: '/hrd/pengajuan', icon: <FileText /> },
-  { title: 'Kelola Karyawan', url: '/hrd/karyawan', icon: <Users /> },
+  { title: 'Admin', url: '/admin/dashboard', icon: <LayoutDashboard /> },
+  { title: 'Riwayat', url: '/admin/riwayat', icon: <History /> },
+  { title: 'Pengajuan', url: '/admin/pengajuan', icon: <FileText /> },
+  { title: 'Kelola Pengguna', url: '/admin/karyawan', icon: <Users /> },
 ]
 
 const onboardingItems = [
@@ -33,14 +35,40 @@ const onboardingItems = [
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const location = useLocation()
   const isOnboarding = user?.status === 'pending' || user?.status === 'rejected'
-  const items = isOnboarding
+
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ['users', 'pending', 'count'],
+    queryFn: () => api.get('/api/users/pending').then((r) => (r.data as User[]).length),
+    enabled: isAdmin,
+  })
+
+  const { data: pendingPengajuanCount = 0 } = useQuery({
+    queryKey: ['pengajuan', 'pending', 'count'],
+    queryFn: () => api.get('/pengajuan?status=pending').then((r) => (r.data as Pengajuan[]).length),
+    enabled: isAdmin,
+  })
+
+  const baseItems = isOnboarding
     ? onboardingItems
-    : user?.role === 'admin'
+    : isAdmin
       ? adminItems
       : karyawanItems
+
+  const items = isAdmin
+    ? [
+        ...baseItems.slice(0, 1),
+        { title: 'Verifikasi Karyawan', url: '/admin/verifikasi', icon: <UserCheck />, badge: pendingCount > 0 ? pendingCount : undefined },
+        ...baseItems.slice(1).map((item) => {
+          if (item.title === 'Pengajuan' && pendingPengajuanCount > 0) {
+            return Object.assign(Object.create(null), item, { badge: pendingPengajuanCount })
+          }
+          return item
+        }),
+      ]
+    : baseItems
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -59,6 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: item.url,
           icon: item.icon,
           isActive: location.pathname === item.url,
+          badge: (item as { badge?: number }).badge,
         }))} />
       </SidebarContent>
       <SidebarFooter>
@@ -67,3 +96,4 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
+

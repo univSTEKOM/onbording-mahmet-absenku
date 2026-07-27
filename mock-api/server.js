@@ -1,9 +1,10 @@
+import 'dotenv/config'
 import cors from 'cors'
 import fs from 'fs'
 import express from 'express'
 import { createRequire } from 'module'
 import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { auth, db } from './auth.js'
 import { users as usersSchema, sessions, accounts } from './db-schema.js'
 
@@ -14,7 +15,7 @@ const multer = require('multer')
 const upload = multer()
 const server = jsonServer.create()
 const router = jsonServer.router('db.json')
-const middlewares = jsonServer.defaults()
+const middlewares = jsonServer.defaults({ noCors: true })
 
 async function syncSeedUsers() {
   try {
@@ -27,7 +28,7 @@ async function syncSeedUsers() {
         const result = await auth.api.signUpEmail({
           body: {
             email: seed.email,
-            password: seed.password,
+            password: process.env.DEMO_PASSWORD || 'password',
             name: seed.nama,
             role: seed.role || 'karyawan',
             status: seed.status || 'approved',
@@ -39,35 +40,31 @@ async function syncSeedUsers() {
         const newId = result.user.id
         const oldProfile = router.db.get('users').find({ email: seed.email }).value()
         if (oldProfile) {
-          router.db.get('users').chain.find({ email: seed.email }).assign({ id: newId }).write()
-          router.db.get('absensi').chain.filter({ userId: seed.id.toString() }).each((a) => { a.userId = newId }).value()
-          router.db.get('absensi').chain.filter({ userId: seed.id }).each((a) => { a.userId = newId }).value()
-          router.db.get('pengajuan').chain.filter({ userId: seed.id.toString() }).each((p) => { p.userId = newId }).value()
-          router.db.get('pengajuan').chain.filter({ userId: seed.id }).each((p) => { p.userId = newId }).value()
+          router.db.get('users').find({ email: seed.email }).assign({ id: newId }).write()
+          router.db.get('absensi').filter({ userId: seed.id.toString() }).each((a) => { a.userId = newId }).value()
+          router.db.get('absensi').filter({ userId: seed.id }).each((a) => { a.userId = newId }).value()
+          router.db.get('pengajuan').filter({ userId: seed.id.toString() }).each((p) => { p.userId = newId }).value()
+          router.db.get('pengajuan').filter({ userId: seed.id }).each((p) => { p.userId = newId }).value()
           router.db.write()
-        } else {
-          router.db.get('users').push({
-            id: newId, email: seed.email, password: seed.password,
-            nama: seed.nama, jabatan: seed.jabatan || '',
-            role: seed.role || 'karyawan', status: seed.status || 'approved',
-            rejectionNotes: [], foto: '', phone: seed.phone || '',
-            alamat: seed.alamat || '', createdAt: new Date().toISOString(),
-          }).write()
+          synced++
         }
-        synced++
-      } catch (e) { /* user already exists */ }
+      } catch (e) { /* user already exists — skip */ }
     }
-    console.log(`Sync: ${synced} seed users synced`)
+    console.log(`Sync: ${synced} users synced to auth`)
   } catch (e) { console.error('Sync error:', e.message) }
 }
 
 server.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+server.disable('etag')
 
 /* ── Rate limiting (manual body parsing — before Better Auth) ── */
 const loginAttempts = new Map()
 const MAX_ATTEMPTS = 3
 const BASE_BLOCK = 30000
 const MAX_BLOCK = 120000
+const registerAttempts = new Map()
+const REGISTER_MAX = 5
+const REGISTER_WINDOW = 60000
 
 server.post('/api/auth/sign-in/email', (req, res, next) => {
   let body = ''
@@ -75,26 +72,39 @@ server.post('/api/auth/sign-in/email', (req, res, next) => {
   req.on('end', () => {
     try {
       const parsed = JSON.parse(body)
-      const key = parsed.email?.toLowerCase()
-      if (!key) return next()
+      const emailKey = parsed.email?.toLowerCase()
+      const ipKey = req.ip + ':login'
+      if (!emailKey) return next()
       const now = Date.now()
-      const record = loginAttempts.get(key)
-      if (record && record.count >= MAX_ATTEMPTS) {
-        const elapsed = now - record.blockedAt
-        if (elapsed < record.duration) {
-          return res.status(429).json({ message: `Terlalu banyak percobaan. Coba lagi ${Math.ceil((record.duration - elapsed) / 1000)} detik lagi.` })
+
+      function isBlocked(k) {
+        const r = loginAttempts.get(k)
+        if (r && r.count >= MAX_ATTEMPTS) {
+          const elapsed = now - r.blockedAt
+          if (elapsed < r.duration) return r.duration - elapsed
+          loginAttempts.delete(k)
         }
-        loginAttempts.delete(key)
+        return 0
       }
+
+      var emailRemaining = isBlocked(emailKey)
+      var ipRemaining = isBlocked(ipKey)
+      var blockRemaining = Math.max(emailRemaining, ipRemaining)
+      if (blockRemaining > 0) {
+        return res.status(429).json({ message: `Terlalu banyak percobaan. Coba lagi ${Math.ceil(blockRemaining / 1000)} detik lagi.` })
+      }
+
+      function recordAttempt(k) {
+        let a = loginAttempts.get(k)
+        if (!a) { a = { count: 0 }; loginAttempts.set(k, a) }
+        a.count++
+        if (a.count >= MAX_ATTEMPTS) { a.blockedAt = now; a.duration = Math.min(BASE_BLOCK + (a.count - MAX_ATTEMPTS) * 15000, MAX_BLOCK) }
+      }
+
       const origJson = res.json.bind(res)
       res.json = function (data) {
-        if (data?.token || data?.user) { loginAttempts.delete(key) }
-        else {
-          let a = loginAttempts.get(key)
-          if (!a) { a = { count: 0 }; loginAttempts.set(key, a) }
-          a.count++
-          if (a.count >= MAX_ATTEMPTS) { a.blockedAt = now; a.duration = Math.min(BASE_BLOCK + (a.count - MAX_ATTEMPTS) * 15000, MAX_BLOCK) }
-        }
+        if (data?.token || data?.user) { loginAttempts.delete(emailKey); loginAttempts.delete(ipKey) }
+        else { recordAttempt(emailKey); recordAttempt(ipKey) }
         return origJson(data)
       }
       req.body = parsed; next()
@@ -105,61 +115,107 @@ server.post('/api/auth/sign-in/email', (req, res, next) => {
 /* ── Better Auth handler ── */
 server.all('/api/auth/*', toNodeHandler(auth))
 
-/* ── Body parser for custom routes (after Better Auth) ── */
-server.use(express.json())
+/* ── Body parser (json-server compatible) ── */
+server.use(express.json({ limit: '10mb' }))
+server.use((req, res, next) => { req._body = true; next() })
 
 /* ── Helper: admin check ── */
 async function requireAdmin(headers) {
   const session = await auth.api.getSession({ headers })
-  if (!session) return { error: { status: 401, message: 'Unauthorized' } }
-  if (session.user.role !== 'admin') return { error: { status: 403, message: 'Forbidden' } }
+  if (!session) {
+    console.log('[requireAdmin] no session')
+    return { error: { status: 401, message: 'Unauthorized' } }
+  }
+  let role = session.user.role
+  console.log('[requireAdmin] session user:', session.user.email, 'session.role:', role)
+  if (!role) {
+    const profile = router.db.get('users').find({ email: session.user.email }).value()
+    role = profile?.role
+    console.log('[requireAdmin] db.json fallback role:', role, 'profile:', profile?.nama)
+  }
+  if (role !== 'admin') {
+    console.log('[requireAdmin] forbidden - role is:', role)
+    return { error: { status: 403, message: 'Forbidden' } }
+  }
   return { session }
 }
 
 /* ── Custom routes ── */
 
 server.post('/api/register', async (req, res) => {
+  const ip = req.ip || 'unknown'
+  const now = Date.now()
+  const regRecord = registerAttempts.get(ip)
+  if (regRecord && regRecord.count >= REGISTER_MAX && (now - regRecord.start) < REGISTER_WINDOW) {
+    return res.status(429).json({ message: 'Terlalu banyak percobaan pendaftaran. Coba lagi dalam 1 menit.' })
+  }
+  if (regRecord && (now - regRecord.start) >= REGISTER_WINDOW) {
+    registerAttempts.delete(ip)
+  }
   try {
     const { email, password, phone } = req.body
     const nama = req.body.nama || req.body.name || ''
     const jabatan = req.body.jabatan || ''
+    const alamat = req.body.alamat || ''
     const role = req.body.role || 'karyawan'
 
     if (!email || !password || !nama) return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'Format email tidak valid' })
-    if (password.length < 8) return res.status(400).json({ message: 'Password minimal 8 karakter' })
+    const existingProfile = router.db.get('users').find({ email }).value()
+    if (existingProfile) return res.status(400).json({ message: 'Email sudah terdaftar. Gunakan email lain.' })
     if (nama.length > 100) return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
     if (jabatan && jabatan.length > 100) return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
 
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
     const isAdminAction = session?.user?.role === 'admin'
+
+    /* Admin dapat membuat user dengan password sederhana */
+    if (!isAdminAction) {
+      if (password.length < 8) return res.status(400).json({ message: 'Password minimal 8 karakter' })
+      if (!/[A-Z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kapital' })
+      if (!/[a-z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kecil' })
+      if (!/[0-9]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung angka' })
+    }
+
     const effectiveRole = isAdminAction ? role : 'karyawan'
     const effectiveStatus = isAdminAction ? 'approved' : 'pending'
 
     const response = await auth.api.signUpEmail({
-      body: { email, password, name: nama, role: effectiveRole, status: effectiveStatus, jabatan, phone: phone || '', alamat: '' },
+      body: { email, password, name: nama, role: effectiveRole, status: effectiveStatus, jabatan, phone: phone || '', alamat },
       asResponse: true,
     })
     if (response.status !== 200) {
-      const err = await response.json()
-      return res.status(400).json({ message: err.message || 'Gagal mendaftar' })
+      const text = await response.text().catch(() => '')
+      const body = text ? JSON.parse(text) : {}
+      return res.status(400).json({ message: body?.message || 'Gagal mendaftar' })
     }
     const data = await response.json()
     const profile = {
       id: data.user.id, email, nama, jabatan: jabatan || '', role: effectiveRole,
       status: effectiveStatus, rejectionNotes: [], foto: '', phone: phone || '',
-      alamat: '', createdAt: new Date().toISOString(),
+      alamat: alamat || '', createdAt: new Date().toISOString(),
     }
     router.db.get('users').push(profile).write()
     res.status(201).json({ user: { ...data.user, ...profile } })
-  } catch (e) { res.status(400).json({ message: e.message || 'Gagal mendaftar' }) }
+    registerAttempts.delete(ip)
+  } catch (e) {
+    const rec = registerAttempts.get(ip)
+    if (!rec) { registerAttempts.set(ip, { count: 1, start: Date.now() }) }
+    else { rec.count++ }
+    res.status(400).json({ message: e?.message || 'Gagal mendaftar' })
+  }
 })
 
 server.get('/api/me', async (req, res) => {
-  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
-  if (!session) return res.status(401).json({ message: 'Unauthorized' })
-  const profile = router.db.get('users').find({ email: session.user.email }).value()
-  res.json({ ...session, user: { ...session.user, ...profile } })
+  try {
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+    if (!session) return res.status(401).json({ message: 'Unauthorized' })
+    const profile = router.db.get('users').find({ email: session.user.email }).value() || {}
+    res.json({ ...session, user: { ...session.user, ...stripPassword(profile) } })
+  } catch (e) {
+    console.error('/api/me error:', e.message)
+    res.status(500).json({ message: 'Gagal memuat profil' })
+  }
 })
 
 server.patch('/api/users/:id/status', async (req, res) => {
@@ -174,14 +230,14 @@ server.patch('/api/users/:id/status', async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
 
     /* Update di db.json */
-    router.db.get('users').chain.find({ id: req.params.id }).assign({ status: newStatus }).write()
+    router.db.get('users').find({ id: req.params.id }).assign({ status: newStatus }).write()
     if (newStatus === 'rejected' && note) {
       const notes = user.rejectionNotes || []
       notes.push({ note, createdAt: new Date().toISOString() })
-      router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
+      router.db.get('users').find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
     }
     if (newStatus === 'approved') {
-      router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: [] }).write()
+      router.db.get('users').find({ id: req.params.id }).assign({ rejectionNotes: [] }).write()
     }
 
     /* Update di Better Auth via Drizzle */
@@ -192,8 +248,8 @@ server.patch('/api/users/:id/status', async (req, res) => {
     console.log(`Status updated: ${user.email} -> ${newStatus}`)
     res.json({ message: `Status berhasil diubah ke ${newStatus}` })
   } catch (e) {
-    console.error('Status change error:', e.message)
-    res.status(400).json({ message: 'Gagal: ' + e.message })
+    console.error('Status change error:', e.message, e.stack)
+    res.status(400).json({ message: 'Gagal memproses request' })
   }
 })
 
@@ -204,15 +260,16 @@ server.post('/api/users/:id/notes', async (req, res) => {
 
     const { note } = req.body
     if (!note) return res.status(400).json({ message: 'Catatan harus diisi' })
+    if (note.length > 500) return res.status(400).json({ message: 'Catatan maksimal 500 karakter' })
 
     const user = router.db.get('users').find({ id: req.params.id }).value()
     if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
 
     const notes = user.rejectionNotes || []
     notes.push({ note, createdAt: new Date().toISOString() })
-    router.db.get('users').chain.find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
+    router.db.get('users').find({ id: req.params.id }).assign({ rejectionNotes: notes }).write()
     res.json({ message: 'Catatan ditambahkan' })
-  } catch (e) { res.status(400).json({ message: 'Gagal: ' + e.message }) }
+  } catch (e) { res.status(400).json({ message: 'Gagal memproses request' }) }
 })
 
 server.delete('/api/users/:id', async (req, res) => {
@@ -225,11 +282,14 @@ server.delete('/api/users/:id', async (req, res) => {
 
     /* Hapus dari Better Auth via Drizzle */
     try {
-      await db.delete(accounts).where(eq(accounts.userId, req.params.id)).run()
-      await db.delete(sessions).where(eq(sessions.userId, req.params.id)).run()
-      await db.delete(usersSchema).where(eq(usersSchema.id, req.params.id)).run()
+      await db.delete(accounts).where(eq(accounts.userId, req.params.id))
+      await db.delete(sessions).where(eq(sessions.userId, req.params.id))
+      await db.delete(usersSchema).where(eq(usersSchema.id, req.params.id))
       console.log(`Deleted from Better Auth: ${user.email}`)
-    } catch (e) { console.error('Drizzle delete error:', e.message) }
+    } catch (e) {
+      console.error('Drizzle delete error:', e.message)
+      throw e
+    }
 
     /* Hapus dari db.json */
     router.db.get('users').remove({ id: req.params.id }).write()
@@ -238,26 +298,98 @@ server.delete('/api/users/:id', async (req, res) => {
 
     console.log(`User fully deleted: ${user.email}`)
     res.json({ message: 'User dan semua data terkait berhasil dihapus' })
-  } catch (e) { res.status(400).json({ message: 'Gagal: ' + e.message }) }
+  } catch (e) { res.status(400).json({ message: 'Gagal memproses request' }) }
 })
+
+/* ── Helper: strip password from user object ── */
+function stripPassword(u) {
+  if (!u) return u
+  var { password, ...rest } = u
+  return rest
+}
 
 server.get('/api/users/pending', async (req, res) => {
   const authResult = await requireAdmin(fromNodeHeaders(req.headers))
   if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
   const users = router.db.get('users').filter((u) => u.status === 'pending').value()
-  res.json(users)
+  res.json(users.map(stripPassword))
 })
 
 server.get('/api/users/all', async (req, res) => {
   const authResult = await requireAdmin(fromNodeHeaders(req.headers))
   if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
   const users = router.db.get('users').value()
-  res.json(users)
+  res.json(users.map(stripPassword))
+})
+
+server.patch('/api/users/:id', async (req, res) => {
+  try {
+    const authResult = await requireAdmin(fromNodeHeaders(req.headers))
+    if (authResult.error) return res.status(authResult.error.status).json({ message: authResult.error.message })
+
+    const body = req.body
+    if (body.email !== undefined && body.email) {
+      if (body.email.length > 100) return res.status(400).json({ message: 'Email maksimal 100 karakter' })
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return res.status(400).json({ message: 'Format email tidak valid' })
+    }
+    if (body.nama !== undefined && body.nama) {
+      if (!body.nama.trim()) return res.status(400).json({ message: 'Nama tidak boleh kosong' })
+      if (body.nama.length > 100) return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
+    }
+    if (body.jabatan !== undefined && body.jabatan && body.jabatan.length > 100) return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
+    if (body.phone !== undefined && body.phone) {
+      const d = body.phone.replace(/\D/g, '')
+      if (d.length < 10) return res.status(400).json({ message: 'No telepon minimal 10 digit' })
+      if (d.length > 15) return res.status(400).json({ message: 'No telepon maksimal 15 digit' })
+    }
+    if (body.alamat !== undefined && body.alamat && body.alamat.length > 500) return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
+    if (body.foto !== undefined && body.foto && body.foto.length > 512000) return res.status(400).json({ message: 'Ukuran foto maksimal 500KB' })
+    if (body.faceDescriptor !== undefined && body.faceDescriptor && body.faceDescriptor.length > 10240) return res.status(400).json({ message: 'Data wajah tidak valid' })
+    if (body.role !== undefined && !['admin', 'karyawan'].includes(body.role)) return res.status(400).json({ message: 'Role tidak valid' })
+
+    const existing = router.db.get('users').find({ id: req.params.id }).value()
+    if (!existing) return res.status(404).json({ message: 'User tidak ditemukan' })
+
+    /* Log role changes */
+    if (body.role !== undefined && body.role !== existing.role) {
+      console.log(`[admin] Role change: ${existing.email} ${existing.role} -> ${body.role}`)
+    }
+
+    const updateFields = {}
+    if (body.nama !== undefined) updateFields.nama = body.nama
+    if (body.jabatan !== undefined) updateFields.jabatan = body.jabatan
+    if (body.phone !== undefined) updateFields.phone = body.phone
+    if (body.alamat !== undefined) updateFields.alamat = body.alamat
+    if (body.role !== undefined) updateFields.role = body.role
+    if (body.foto !== undefined) updateFields.foto = body.foto
+    if (body.faceDescriptor !== undefined) updateFields.faceDescriptor = body.faceDescriptor
+
+    router.db.get('users').find({ id: req.params.id }).assign(updateFields).write()
+
+    /* Sync ke Better Auth */
+    const syncFields = {}
+    if (body.nama !== undefined) syncFields.name = body.nama
+    if (body.jabatan !== undefined) syncFields.jabatan = body.jabatan
+    if (body.phone !== undefined) syncFields.phone = body.phone
+    if (body.alamat !== undefined) syncFields.alamat = body.alamat
+    if (body.role !== undefined) syncFields.role = body.role
+    if (body.faceDescriptor !== undefined) syncFields.faceDescriptor = body.faceDescriptor
+    if (Object.keys(syncFields).length > 0) {
+      try {
+        await db.update(usersSchema).set(syncFields).where(eq(usersSchema.id, req.params.id)).run()
+      } catch (e) { console.error('Drizzle admin update error:', e.message) }
+    }
+
+    res.json({ message: 'User berhasil diupdate' })
+  } catch (e) {
+    console.error('Admin update error:', e.message, e.stack)
+    console.error('Request body:', JSON.stringify(req.body))
+    res.status(400).json({ message: 'Gagal update user' })
+  }
 })
 
 /* ── json-server middleware ── */
 server.use(upload.none())
-server.use(jsonServer.bodyParser)
 server.use(middlewares)
 
 /* ── json-server custom middleware ── */
@@ -268,19 +400,124 @@ const CHECK_IN_START = '06:45'
 const CHECK_IN_END = '07:45'
 const CHECK_OUT_MIN = '16:00'
 
-server.post('/absensi', (req, res, next) => {
-  const t = nowTime(); const m = toMinutes(t)
-  if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
-  if (router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()) return res.status(400).json({ message: 'Sudah absen hari ini' })
-  req.body.status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'; next()
+function normalizeDbFile() {
+  try {
+    const dbRaw = fs.readFileSync('./db.json', 'utf-8')
+    const d = JSON.parse(dbRaw)
+
+    if (d.absensi && d.absensi.length > 0) {
+      d.absensi = d.absensi.map(entry => ({
+        id: entry.id,
+        userId: entry.userId,
+        tanggal: entry.tanggal,
+        checkIn: entry.checkIn || null,
+        checkOut: entry.checkOut || null,
+        status: entry.status || '',
+        mainCategory: entry.mainCategory || '',
+        subCategory: entry.subCategory || '',
+        faceVerified: entry.faceVerified || false,
+        photos: entry.photos || [],
+        keterangan: entry.keterangan || '',
+        createdAt: entry.createdAt || '',
+      }))
+    }
+
+    if (d.pengajuan && d.pengajuan.length > 0) {
+      d.pengajuan = d.pengajuan.map(entry => ({
+        id: entry.id,
+        userId: entry.userId,
+        jenis: entry.jenis,
+        tanggalMulai: entry.tanggalMulai,
+        tanggalSelesai: entry.tanggalSelesai,
+        alasan: entry.alasan,
+        status: entry.status,
+        catatan: entry.catatan || '',
+        createdAt: entry.createdAt || '',
+      }))
+    }
+
+    fs.writeFileSync('./db.json', JSON.stringify(d, null, 2))
+  } catch (e) { console.error('Normalize error:', e.message) }
+}
+
+server.post('/absensi', async (req, res, next) => {
+  try {
+    if (!req.body || !req.body.userId) {
+      console.error('[absensi] Invalid body:', req.body)
+      return res.status(400).json({ message: 'Data absensi tidak valid' })
+    }
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+    if (!session) return res.status(401).json({ message: 'Unauthorized' })
+    if (session.user.role !== 'admin' && session.user.id !== req.body.userId) {
+      return res.status(403).json({ message: 'Anda hanya bisa absen untuk diri sendiri' })
+    }
+    const t = nowTime(); const m = toMinutes(t)
+    if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
+    if (router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()) return res.status(400).json({ message: 'Sudah absen hari ini' })
+    const status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'
+    const STATUS_CAT = { hadir: { main: 'physical_present', sub: 'physical_standard' }, terlambat: { main: 'physical_present', sub: 'physical_violation' } }
+    const cat = STATUS_CAT[status] || { main: 'physical_present', sub: 'physical_standard' }
+    if (!STATUS_CAT[status]) console.warn('[absensi] Unknown status for category map:', status)
+    req.body = {
+      userId: req.body.userId,
+      tanggal: req.body.tanggal,
+      checkIn: req.body.checkIn || null,
+      checkOut: null,
+      status,
+      mainCategory: cat.main,
+      subCategory: cat.sub,
+      faceVerified: req.body.faceVerified || false,
+      photos: req.body.photos || [],
+      keterangan: req.body.keterangan || '',
+      createdAt: req.body.createdAt || new Date().toISOString(),
+    }
+    next()
+  } catch (e) {
+    console.error('[absensi] POST error:', e.message, e.stack)
+    res.status(500).json({ message: 'Gagal absen' })
+  }
 })
 
-server.patch('/absensi/:id', (req, res, next) => {
-  if (!req.body.checkOut) return next()
-  req.body.status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : undefined; next()
+server.patch('/absensi/:id', async (req, res, next) => {
+  try {
+    if (!req.body || !req.params.id) {
+      return res.status(400).json({ message: 'Data tidak valid' })
+    }
+    if (!req.body.checkOut) return next()
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+    if (!session) return res.status(401).json({ message: 'Unauthorized' })
+    const existing = router.db.get('absensi').find({ id: Number(req.params.id) }).value()
+    if (!existing) return res.status(404).json({ message: 'Absensi tidak ditemukan' })
+    if (session.user.role !== 'admin' && session.user.id !== existing.userId) {
+      return res.status(403).json({ message: 'Anda hanya bisa check-out untuk diri sendiri' })
+    }
+    const status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : existing.status
+    const isPulangCepat = status === 'pulang_cepat'
+    req.body = {
+      userId: existing.userId,
+      tanggal: existing.tanggal,
+      checkIn: existing.checkIn,
+      checkOut: req.body.checkOut,
+      status: status || existing.status,
+      mainCategory: existing.mainCategory || 'physical_present',
+      subCategory: isPulangCepat ? 'physical_violation' : (existing.subCategory || 'physical_standard'),
+      faceVerified: existing.faceVerified || false,
+      photos: req.body.photos || existing.photos || [],
+      keterangan: existing.keterangan || '',
+      createdAt: existing.createdAt,
+    }
+    next()
+  } catch (e) {
+    console.error('[absensi] PATCH error:', e.message, e.stack)
+    res.status(500).json({ message: 'Gagal update absensi' })
+  }
 })
 
-server.patch('/users/:id', (req, res, next) => {
+server.patch('/users/:id', async (req, res, next) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+  if (session.user.id !== req.params.id) return res.status(403).json({ message: 'Forbidden' })
+
   const body = req.body
   delete body.status; delete body.rejectionNotes; delete body.role; delete body.id; delete body.createdAt
   if (body.email !== undefined) {
@@ -299,11 +536,41 @@ server.patch('/users/:id', (req, res, next) => {
     if (d.length > 15) return res.status(400).json({ message: 'No telepon maksimal 15 digit' })
   }
   if (body.alamat !== undefined && body.alamat.length > 500) return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
+  if (body.foto !== undefined && body.foto && body.foto.length > 512000) return res.status(400).json({ message: 'Ukuran foto maksimal 500KB' })
+  if (body.faceDescriptor !== undefined && body.faceDescriptor && body.faceDescriptor.length > 10240) return res.status(400).json({ message: 'Data wajah tidak valid' })
   const user = router.db.get('users').find({ id: req.params.id }).value()
   if (user && user.status === 'rejected') {
-    router.db.get('users').chain.find({ id: req.params.id }).assign({ status: 'pending', rejectionNotes: [] }).write()
+    router.db.get('users').find({ id: req.params.id }).assign({ status: 'pending', rejectionNotes: [] }).write()
   }
-  next()
+
+  /* Sync ke Better Auth database */
+  const syncFields = {}
+  if (body.nama !== undefined) syncFields.name = body.nama
+  if (body.jabatan !== undefined) syncFields.jabatan = body.jabatan
+  if (body.phone !== undefined) syncFields.phone = body.phone
+  if (body.alamat !== undefined) syncFields.alamat = body.alamat
+  if (body.foto !== undefined) syncFields.foto = body.foto
+  if (body.faceDescriptor !== undefined) syncFields.faceDescriptor = body.faceDescriptor
+  if (Object.keys(syncFields).length > 0) {
+    try {
+      await db.update(usersSchema).set(syncFields).where(eq(usersSchema.id, req.params.id)).run()
+    } catch (e) { console.error('Drizzle profile sync error:', e.message) }
+  }
+
+  /* Write changes to db.json */
+  const updateFields = {}
+  if (body.nama !== undefined) updateFields.nama = body.nama
+  if (body.jabatan !== undefined) updateFields.jabatan = body.jabatan
+  if (body.phone !== undefined) updateFields.phone = body.phone
+  if (body.alamat !== undefined) updateFields.alamat = body.alamat
+  if (body.foto !== undefined) updateFields.foto = body.foto
+  if (body.faceDescriptor !== undefined) updateFields.faceDescriptor = body.faceDescriptor
+  if (Object.keys(updateFields).length > 0) {
+    router.db.get('users').find({ id: req.params.id }).assign(updateFields).write()
+  }
+
+  const updated = router.db.get('users').find({ id: req.params.id }).value()
+  res.json(updated || { message: 'User berhasil diupdate' })
 })
 
 server.delete('/users/:id', (req, res) => { res.status(403).json({ message: 'Gunakan endpoint admin: DELETE /api/users/:id' }) })
@@ -316,80 +583,314 @@ server.patch('/pengajuan/:id', (req, res, next) => {
   next()
 })
 
-server.delete('/users/:id', (req, res) => {
-  const user = router.db.get('users').find({ id: req.params.id }).value()
-  if (!user) return res.status(404).json({ message: 'User tidak ditemukan' })
-  /* Hapus juga absensi & pengajuan milik user */
-  router.db.get('absensi').remove((a) => a.userId === req.params.id).write()
-  router.db.get('pengajuan').remove((p) => p.userId === req.params.id).write()
-  router.db.get('users').remove({ id: req.params.id }).write()
-  res.status(200).json({ message: 'User dan seluruh data terkait berhasil dihapus' })
-})
-
-server.delete('/pengajuan/:id', (req, res) => {
+server.delete('/pengajuan/:id', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
   const r = router.db.get('pengajuan').find({ id: Number(req.params.id) }).value()
   if (!r) return res.status(404).json({ message: 'Pengajuan tidak ditemukan' })
   if (r.status !== 'pending') return res.status(400).json({ message: 'Hanya pending yang bisa dihapus' })
+  if (session.user.role !== 'admin' && session.user.id !== r.userId) {
+    return res.status(403).json({ message: 'Anda hanya bisa menghapus pengajuan sendiri' })
+  }
   router.db.get('pengajuan').remove({ id: Number(req.params.id) }).write()
   res.status(200).json({ message: 'Dihapus' })
 })
 
-server.get('/api/dashboard/recent', (req, res) => {
-  const userId = req.query.userId || null
+server.get('/api/dashboard/recent', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+
+  const requestUserId = req.query.userId || null
+  const isAdmin = session.user.role === 'admin'
+  const effectiveUserId = requestUserId && isAdmin ? requestUserId : session.user.id
+
   let a = router.db.get('absensi').value()
-  if (userId) a = a.filter((x) => x.userId === userId)
-  const dates = [...new Set(a.map((x) => x.tanggal))].sort().slice(-7)
-  res.json({ data: dates.map((t) => { const r = a.filter((x) => x.tanggal === t); return { tanggal: t, checkIn: r[0]?.checkIn, checkOut: r[0]?.checkOut, status: r[0]?.status } }) })
+  if (effectiveUserId) a = a.filter((x) => x.userId === effectiveUserId)
+  const today = new Date()
+  const data = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i)
+    const tgl = d.toISOString().split('T')[0]
+    const r = a.filter((x) => x.tanggal === tgl)
+    data.push({ tanggal: tgl, checkIn: r[0]?.checkIn || null, checkOut: r[0]?.checkOut || null, status: r[0]?.status || null })
+  }
+  res.json({ data })
 })
 
-server.get('/api/dashboard/hrd/week', (req, res) => {
+server.get('/api/dashboard/admin/week', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+  if (session.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
+
   const a = router.db.get('absensi').value()
   const u = router.db.get('users').value()
   const k = u.filter((x) => x.role === 'karyawan')
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
   const ms = new Date(); ms.setDate(1); const msStr = ms.toISOString().split('T')[0]
-  const dates = [...new Set(a.map((x) => x.tanggal))].sort().slice(-7)
-  const chart = dates.map((d) => {
-    const da = a.filter((x) => x.tanggal === d)
-    return { name: new Date(d).toLocaleDateString('id-ID', { weekday: 'short' }), hadir: da.filter((x) => x.status === 'hadir').length, terlambat: da.filter((x) => x.status === 'terlambat').length, persen: Math.round(da.filter((x) => ['hadir', 'terlambat'].includes(x.status)).length / k.length * 100) }
+
+  const dayOfWeek = today.getDay()
+  const weekStart = new Date(today)
+  weekStart.setDate(today.getDate() - 7)
+
+  const pengajuan = router.db.get('pengajuan').value()
+  const chart = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart); d.setDate(weekStart.getDate() + i)
+    const tgl = d.toISOString().split('T')[0]
+    const da = a.filter((x) => x.tanggal === tgl)
+    const dp = pengajuan.filter((x) => x.status === 'approved' && x.tanggalMulai <= tgl && x.tanggalSelesai >= tgl)
+    const hadir = da.filter((x) => x.status === 'hadir').length
+    const pulangCepat = da.filter((x) => x.status === 'pulang_cepat').length
+    const terlambat = da.filter((x) => x.status === 'terlambat').length
+    const izin = da.filter((x) => x.status === 'izin').length + dp.filter((x) => x.jenis === 'izin').length
+    const sakit = da.filter((x) => x.status === 'sakit').length + dp.filter((x) => x.jenis === 'sakit').length
+    const cuti = da.filter((x) => x.status === 'cuti').length + dp.filter((x) => x.jenis === 'cuti').length
+    const totalAktif = hadir + pulangCepat + terlambat
+    /* Category-type counts */
+    var present = da.filter((x) => catType(x) === 'present').length
+    var absentPermit = da.filter((x) => catType(x) === 'absent_permit').length + dp.filter((x) => x.jenis === 'izin').length
+    var tidakHadir = Math.max(0, k.length - hadir - pulangCepat - terlambat - izin - sakit - cuti)
+    var absentUnpermit = tidakHadir
+    chart.push({
+      name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
+      hadir,
+      pulangCepat,
+      terlambat,
+      izin,
+      sakit,
+      cuti,
+      tidakHadir,
+      present,
+      absentPermit,
+      absentUnpermit,
+      persen: Math.round(totalAktif / (k.length || 1) * 100),
+    })
+  }
+
+  var ta = a.filter((x) => x.tanggal === todayStr)
+  var hadirHariIni = ta.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
+  var terlambatHariIni = ta.filter((x) => x.status === 'terlambat').length
+  var izinHariIni = ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
+  var sudahAbsen = ta.filter((x) => x.checkIn).length
+  var alfaHariIni = Math.max(0, k.length - hadirHariIni - terlambatHariIni - izinHariIni)
+  var weekAvg = chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0
+  var totalThisMonth = a.filter((x) => x.tanggal >= msStr).length
+  var presentMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'present').length
+  var permitMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'absent_permit').length
+  var unpermitMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'absent_unpermit').length
+
+  res.json({
+    chart,
+    summary: {
+      totalKaryawan: k.length,
+      hadirHariIni,
+      terlambatHariIni,
+      izinHariIni,
+      alfaHariIni,
+      belumAbsen: k.length - sudahAbsen,
+      totalAbsensiBulanIni: totalThisMonth,
+      weekAvg,
+      bestDay: chart.length ? chart.reduce(function(a, b) { return a.persen > b.persen ? a : b }) : null,
+      /* Category-based stats */
+      presentMonth,
+      permitMonth,
+      unpermitMonth,
+    },
   })
-  const ta = a.filter((x) => x.tanggal === today)
-  res.json({ chart, summary: { totalKaryawan: k.length, hadirHariIni: ta.filter((x) => x.status === 'hadir').length, terlambatHariIni: ta.filter((x) => x.status === 'terlambat').length, izinHariIni: ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length, belumAbsen: k.length - ta.filter((x) => x.checkIn).length, totalAbsensiBulanIni: a.filter((x) => x.tanggal >= msStr).length, weekAvg: chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0, bestDay: chart.length ? chart.reduce((a, b) => a.persen > b.persen ? a : b) : null } })
 })
 
-server.get('/api/dashboard/month', (req, res) => {
+const APP_RELEASE_DATE = process.env.APP_RELEASE_DATE || '2026-07-13'
+
+/* ── Category type helper ── */
+function catType(record) {
+  var m = record.mainCategory || ''
+  if (m === 'physical_present') return 'present'
+  if (m === 'absent_permit') return 'absent_permit'
+  if (m === 'absent_unpermit') return 'absent_unpermit'
+  var s = record.status || ''
+  if (['hadir', 'terlambat', 'pulang_cepat'].includes(s)) return 'present'
+  if (['izin', 'sakit', 'cuti'].includes(s)) return 'absent_permit'
+  return 'absent_unpermit'
+}
+
+server.get('/api/dashboard/month', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+
+  const requestUserId = req.query.userId || null
+  const isAdmin = session.user.role === 'admin'
+  const effectiveUserId = requestUserId || (!isAdmin ? session.user.id : null)
+
   const tahun = parseInt(req.query.tahun) || new Date().getFullYear()
   const bulan = parseInt(req.query.bulan) || (new Date().getMonth() + 1)
-  const a = router.db.get('absensi').value()
+  const todayStr = new Date().toISOString().split('T')[0]
+  let a = router.db.get('absensi').value()
+  let p = router.db.get('pengajuan').value()
+  if (effectiveUserId) {
+    a = a.filter((x) => x.userId === effectiveUserId)
+    p = p.filter((x) => x.userId === effectiveUserId)
+  }
   const u = router.db.get('users').value()
-  const total = u.filter((x) => x.role === 'karyawan').length
+  const total = effectiveUserId ? 1 : u.filter((x) => x.role === 'karyawan').length
 
   const daysInMonth = new Date(tahun, bulan, 0).getDate()
   const data = []
 
   for (let d = 1; d <= daysInMonth; d++) {
     const tgl = `${tahun}-${String(bulan).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+
+    if (tgl < APP_RELEASE_DATE || tgl > todayStr) {
+      data.push({ tanggal: tgl, hadir: 0, pulangCepat: 0, terlambat: 0, checkInOnly: 0, izin: 0, sakit: 0, cuti: 0, tidakHadir: 0 })
+      continue
+    }
+
     const dayAbsensi = a.filter((x) => x.tanggal === tgl)
+    const dayPengajuan = p.filter((x) => x.status === 'approved' && x.tanggalMulai <= tgl && x.tanggalSelesai >= tgl)
     const hadir = dayAbsensi.filter((x) => x.status === 'hadir').length
+    const pulangCepat = dayAbsensi.filter((x) => x.status === 'pulang_cepat').length
     const terlambat = dayAbsensi.filter((x) => x.status === 'terlambat').length
     const checkInOnly = dayAbsensi.filter((x) => x.checkIn && !x.checkOut).length
-    const izin = dayAbsensi.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
+    const izin = dayAbsensi.filter((x) => x.status === 'izin').length + dayPengajuan.filter((x) => x.jenis === 'izin').length
+    const sakit = dayAbsensi.filter((x) => x.status === 'sakit').length + dayPengajuan.filter((x) => x.jenis === 'sakit').length
+    const cuti = dayAbsensi.filter((x) => x.status === 'cuti').length + dayPengajuan.filter((x) => x.jenis === 'cuti').length
+    const totalLain = izin + sakit + cuti
+    var present = dayAbsensi.filter(function(x) { return catType(x) === 'present' }).length
+    var absentPermit = dayAbsensi.filter(function(x) { return catType(x) === 'absent_permit' }).length + dayPengajuan.filter(function(x) { return x.jenis === 'izin' }).length
+    var tidakHadir = Math.max(0, total - hadir - pulangCepat - terlambat - checkInOnly - totalLain)
+    var absentUnpermit = tidakHadir
     data.push({
       tanggal: tgl,
       hadir,
+      pulangCepat,
       terlambat,
       checkInOnly,
       izin,
-      tidakHadir: total - hadir - terlambat - checkInOnly - izin,
+      sakit,
+      cuti,
+      tidakHadir,
+      present,
+      absentPermit,
+      absentUnpermit,
     })
   }
 
   res.json({ data, totalKaryawan: total })
 })
 
+server.get('/api/absensi/search', async (req, res) => {
+  try {
+    const query = (req.query.q || '').toLowerCase()
+    var rawStatus = req.query.status
+    var statusFilter = Array.isArray(rawStatus) && rawStatus.length === 0 ? '' : (rawStatus || '')
+    var tanggalGte = req.query.tanggal_gte || ''
+    var tanggalLte = req.query.tanggal_lte || ''
+    const page = parseInt(req.query._page) || 1
+    const limit = parseInt(req.query._limit) || 15
+
+    var allAbsensi = router.db.get('absensi').value()
+    var allUsers = router.db.get('users').value()
+
+    /* Filter by name if query exists */
+    if (query) {
+      var matchedUserIds = allUsers
+        .filter(function(u) { return (u.nama || '').toLowerCase().includes(query) })
+        .map(function(u) { return u.id })
+      allAbsensi = allAbsensi.filter(function(a) { return matchedUserIds.includes(a.userId) })
+    }
+
+    /* Filter by userId if specified */
+    if (req.query.userId) {
+      allAbsensi = allAbsensi.filter(function(a) { return a.userId === req.query.userId })
+    }
+
+    /* Filter by date range */
+    if (tanggalGte) allAbsensi = allAbsensi.filter(function(a) { return a.tanggal >= tanggalGte })
+    if (tanggalLte) allAbsensi = allAbsensi.filter(function(a) { return a.tanggal <= tanggalLte })
+
+    /* Filter by status */
+    if (statusFilter) {
+      var statuses = Array.isArray(req.query.status) ? req.query.status : [statusFilter]
+      allAbsensi = allAbsensi.filter(function(a) { return statuses.includes(a.status) })
+    }
+
+    /* Filter by mainCategory */
+    if (req.query.mainCategory) {
+      var mainCats = Array.isArray(req.query.mainCategory) ? req.query.mainCategory : [req.query.mainCategory]
+      allAbsensi = allAbsensi.filter(function(a) { return mainCats.includes(a.mainCategory) })
+    }
+
+    /* Filter by subCategory */
+    if (req.query.subCategory) {
+      var subCats = Array.isArray(req.query.subCategory) ? req.query.subCategory : [req.query.subCategory]
+      allAbsensi = allAbsensi.filter(function(a) { return subCats.includes(a.subCategory) })
+    }
+
+    /* Sort by tanggal descending */
+    allAbsensi.sort(function(a, b) { return b.tanggal.localeCompare(a.tanggal) })
+
+    /* Pagination */
+    var total = allAbsensi.length
+    var start = (page - 1) * limit
+    var data = allAbsensi.slice(start, start + limit)
+
+    res.set('x-total-count', String(total))
+    res.json(data)
+  } catch (e) {
+    console.error('[absensi/search] error:', e.message)
+    res.status(500).json({ message: 'Gagal memproses request' })
+  }
+})
+
+server.use((err, req, res, next) => {
+  console.error('[server] Unhandled error:', err?.message || err, err?.stack || '')
+  res.status(500).json({ message: 'Internal server error' })
+})
+
+server.use(async (req, res, next) => {
+  if (req.path.startsWith('/api/')) return next()
+  if (req.method === 'GET' && (req.path === '/' || req.path.startsWith('/uploads/'))) return next()
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
+
+  /* Non-admin users can only access their own data */
+  if (session.user.role !== 'admin') {
+    if (req.path === '/users' || req.path.match(/^\/users\//)) {
+      return res.status(403).json({ message: 'Forbidden' })
+    }
+    if (req.path === '/absensi' || req.path.match(/^\/absensi\//)) {
+      req.query.userId = session.user.id
+    }
+    if (req.path === '/pengajuan' || req.path.match(/^\/pengajuan\//)) {
+      req.query.userId = session.user.id
+    }
+  }
+  next()
+})
+
+/* ── Strip password from all /users GET responses ── */
+server.use(function(req, res, next) {
+  if (req.method === 'GET' && req.path === '/users') {
+    var origJson = res.json.bind(res)
+    res.json = function(body) {
+      if (Array.isArray(body)) return origJson(body.map(stripPassword))
+      return origJson(body)
+    }
+  }
+  next()
+})
+
 server.use(router)
 
 const PORT = process.env.PORT || 3001
+normalizeDbFile()
+
+/* Migrate auth.db — add face_descriptor column if not exists */
+try {
+  db.run(sql`ALTER TABLE user ADD COLUMN face_descriptor TEXT`)
+  console.log('Migration: added face_descriptor column')
+} catch (_e) { /* kolom sudah ada */ }
+
 syncSeedUsers().then(() => {
   server.listen(PORT, () => { console.log(`Mock API running at http://localhost:${PORT}`) })
 })

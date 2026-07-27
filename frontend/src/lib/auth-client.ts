@@ -26,13 +26,13 @@ function getStubClient() {
 
 try {
   _authClient = createAuthClient({
-    baseURL: "http://localhost:3001",
+    baseURL: import.meta.env.VITE_API_URL || "http://localhost:3001",
     fetchOptions: {
       credentials: "include",
     },
   })
-} catch (e) {
-  console.error('[AuthClient] Failed to initialize:', e)
+} catch {
+  // silent fallback to stub client
 }
 
 export function getAuthClient() {

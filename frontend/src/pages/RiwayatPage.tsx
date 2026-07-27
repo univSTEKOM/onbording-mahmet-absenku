@@ -1,270 +1,143 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useAbsensiListPaginated, useAbsensiList } from '@/hooks/useAbsensi'
+import { useAbsensiList } from '@/hooks/useAbsensi'
+import { useMonthAttendance } from '@/hooks/useDashboard'
+import { useAllPengajuan } from '@/hooks/usePengajuan'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { Pagination } from '@/components/shared/Pagination'
-import { FilterDialog, type FilterValues } from '@/components/shared/FilterDialog'
-import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
-import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
-import { Download, RefreshCw, Filter, LogIn, LogOut, CheckCircle2, History, Clock } from 'lucide-react'
-import type { Absensi } from '@/types'
-import type { DayAttendanceData } from '@/api/dashboard'
-
-const PAGE_SIZE = 10
-const curMonth = new Date().getMonth()
-const curYear = new Date().getFullYear()
-const datePresets = [
-  { label: 'Hari Ini', get: () => new Date().toISOString().split('T')[0] },
-  { label: '7 Hari', get: () => { const d = new Date(); d.setDate(d.getDate() - 7); return d.toISOString().split('T')[0] } },
-  { label: 'Bulan Ini', get: () => { const d = new Date(); d.setDate(1); return d.toISOString().split('T')[0] } },
-]
-
-function hitungJam(checkIn: string | null, checkOut: string | null): string {
-  if (!checkIn || !checkOut) return '-'
-  const selisih = Math.max(0, new Date(checkOut).getTime() - new Date(checkIn).getTime())
-  const jam = Math.floor(selisih / (1000 * 60 * 60))
-  const menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
-  return `${jam}j ${menit}m`
-}
-
-function namaHari(tanggal: string): string {
-  return new Date(tanggal).toLocaleDateString('id-ID', { weekday: 'long' })
-}
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { ExportDialog } from '@/components/shared/ExportDialog'
+import { exportWorkbook } from '@/lib/export-xlsx'
+import { buildExportWorkbook } from '@/lib/export-templates'
+import { getAbsensi } from '@/api/absensi'
+import { Download, RefreshCw } from 'lucide-react'
 
 export default function RiwayatPage() {
   const { user } = useAuth()
-  const [page, setPage] = useState(1)
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [filter, setFilter] = useState<FilterValues>({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' })
-  const [detail, setDetail] = useState<Absensi | null>(null)
+  const now = new Date()
+  const curMonth = now.getMonth()
+  const curYear = now.getFullYear()
   const [detailDate, setDetailDate] = useState<string | null>(null)
+  const [exportOpen, setExportOpen] = useState(false)
 
-  const { data: monthAbsensi } = useAbsensiList({
-    userId: user?.id,
-    _sort: 'tanggal',
-    _order: 'desc',
-    tanggal_gte: `${curYear}-${String(curMonth + 1).padStart(2, '0')}-01`,
-    tanggal_lte: `${curYear}-${String(curMonth + 1).padStart(2, '0')}-31`,
-  })
-
+  const { data: monthData, refetch, isFetching } = useMonthAttendance(curYear, curMonth + 1, user?.id)
+  const { data: allPengajuan } = useAllPengajuan()
   const { data: dayDetail } = useAbsensiList(
     detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
   )
 
-  const { data, isLoading, refetch, isFetching } = useAbsensiListPaginated({
-    userId: user?.id,
-    _sort: 'tanggal', _order: 'desc',
-    _page: page, _limit: PAGE_SIZE,
-    ...(filter.status ? { status: filter.status } : {}),
-    ...(filter.dateFrom ? { tanggal_gte: filter.dateFrom } : {}),
-    ...(filter.dateTo ? { tanggal_lte: filter.dateTo } : {}),
-  })
+  const dayPengajuan = detailDate && allPengajuan
+    ? allPengajuan.find(function(p) { return p.status === 'approved' && p.userId === user?.id && p.tanggalMulai <= detailDate && p.tanggalSelesai >= detailDate })
+    : null
 
-  const absensi = data?.data
-  const totalPages = data?.totalPages || 1
-  const hasActiveFilter = filter.status || filter.dateFrom || filter.dateTo
+  const approvedLeave = useMemo(function() {
+    if (!allPengajuan || !user?.id) return undefined
+    const map = new Map<string, string>()
+    allPengajuan.forEach(function(p) {
+      if (p.status !== 'approved' || p.userId !== user?.id) return
+      const start = new Date(p.tanggalMulai + 'T00:00:00')
+      const end = new Date(p.tanggalSelesai + 'T00:00:00')
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, '0')
+        const dd = String(d.getDate()).padStart(2, '0')
+        map.set(y + '-' + m + '-' + dd, p.jenis)
+      }
+    })
+    return map
+  }, [allPengajuan, user?.id])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 md:space-y-6">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Riwayat Kehadiran</h1>
-          <p className="text-muted-foreground">Daftar absensi Anda</p>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Riwayat Kehadiran</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Kalender absensi Anda</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => {
-            if (!absensi?.length) return
-            exportToCsv(`riwayat-absensi-${new Date().toISOString().split('T')[0]}`,
-              ['Tanggal', 'Hari', 'Masuk', 'Pulang', 'Durasi', 'Status'],
-              absensi.map((a) => [formatCsvDate(a.tanggal), namaHari(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), hitungJam(a.checkIn, a.checkOut), a.status]))
-          }}>
-            <Download className="h-4 w-4" /> CSV
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+          {/*
+            EXPORT — dinonaktifkan sementara.
+            Aktifkan: hapus <div className="hidden"> pembungkus
+          */}
+          <div className="hidden">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2" onClick={function() { setExportOpen(true) }}>
+                <Download className="h-4 w-4" /> Export
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Export ke XLSX</p></TooltipContent>
+          </Tooltip>
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Refresh" onClick={() => refetch()} disabled={isFetching}>
+                <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
       <Card>
-        <CardContent className="pt-6">
-          <AttendanceCalendar
-            year={curYear}
-            month={curMonth}
-            data={Object.entries(
-              (monthAbsensi || []).reduce<Record<string, DayAttendanceData>>((acc, a) => {
-                if (!acc[a.tanggal]) acc[a.tanggal] = { tanggal: a.tanggal, hadir: 0, terlambat: 0, checkInOnly: 0, izin: 0, tidakHadir: 0 }
-                if (a.status === 'hadir') acc[a.tanggal].hadir++
-                else if (a.status === 'terlambat') acc[a.tanggal].terlambat++
-                else if (['izin', 'sakit', 'cuti'].includes(a.status)) acc[a.tanggal].izin++
-                if (a.checkIn && !a.checkOut) acc[a.tanggal].checkInOnly++
-                return acc
-              }, {})
-            ).map(([_, v]) => v)}
-            totalKaryawan={1}
-            onDayClick={(tgl) => setDetailDate(tgl)}
-          />
+        <CardContent className="p-4 md:p-5">
+          {monthData ? (
+            <AttendanceCalendar
+              year={curYear}
+              month={curMonth}
+              data={monthData.data}
+              approvedLeave={approvedLeave}
+              onDayClick={(tgl) => setDetailDate(tgl === detailDate ? null : tgl)}
+            />
+          ) : (
+            <Skeleton className="h-[260px] md:h-[300px] w-full rounded-lg" />
+          )}
         </CardContent>
       </Card>
 
-      {detailDate && dayDetail?.[0] && (
+      {detailDate && (
         <DayDetailDialog
           tanggal={detailDate}
-          userStatus={{
+          userStatus={dayDetail?.[0] ? {
             status: dayDetail[0].status,
             checkIn: dayDetail[0].checkIn,
             checkOut: dayDetail[0].checkOut,
-          }}
+            photos: dayDetail[0].photos,
+          } : undefined}
+          pengajuan={dayPengajuan || undefined}
           onClose={() => setDetailDate(null)}
         />
       )}
 
-      <div className="flex items-center gap-3">
-        <Button variant={hasActiveFilter ? 'default' : 'outline'} size="sm" className="gap-2" onClick={() => { setFilterOpen(true); setPage(1) }}>
-          <Filter className="h-4 w-4" /> Filter
-          {hasActiveFilter && <span className="ml-1 w-2 h-2 rounded-full bg-primary-foreground" />}
-        </Button>
-        {hasActiveFilter && (
-          <Button variant="ghost" size="sm" onClick={() => { setFilter({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' }); setPage(1) }}>
-            Hapus filter
-          </Button>
-        )}
-        <div className="flex-1" />
-        <span className="text-sm text-muted-foreground">{absensi?.length || 0} hasil</span>
-      </div>
-
-      {isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }, (_, i) => ({ id: `rw-sk-${i}` })).map((item) => <Skeleton key={item.id} className="h-32 w-full rounded-xl" />)}
-        </div>
-      ) : absensi?.length ? (
-        <>
-          <div className="space-y-3">
-            {absensi.map((a) => (
-              <Card key={a.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => setDetail(a)}>
-                <CardContent className="py-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary shrink-0">
-                      <span className="text-xs font-bold leading-none">{new Date(a.tanggal).getDate()}</span>
-                      <span className="text-[10px] leading-none mt-0.5">{new Date(a.tanggal).toLocaleDateString('id-ID', { month: 'short' })}</span>
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-medium">{new Date(a.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                          <p className="text-xs text-muted-foreground">{namaHari(a.tanggal)}</p>
-                        </div>
-                        <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/50">
-                          <LogIn className="h-3 w-3 text-green-600 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-muted-foreground leading-none">Masuk</p>
-                            <p className="text-xs font-medium leading-tight truncate">{a.checkIn ? new Date(a.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/50">
-                          <LogOut className="h-3 w-3 text-red-600 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-muted-foreground leading-none">Pulang</p>
-                            <p className="text-xs font-medium leading-tight truncate">{a.checkOut ? new Date(a.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/50">
-                          <Clock className="h-3 w-3 text-blue-600 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-muted-foreground leading-none">Durasi</p>
-                            <p className="text-xs font-medium leading-tight truncate">{hitungJam(a.checkIn, a.checkOut)}</p>
-                          </div>
-                        </div>
-                      </div>
-                      {a.faceVerified && <p className="text-xs text-green-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Wajah terverifikasi</p>}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </>
-      ) : (
-        <EmptyState message={hasActiveFilter ? 'Tidak ditemukan' : 'Belum ada riwayat absensi'} icon={History} />
-      )}
-
-      <Dialog open={!!detail} onOpenChange={(o) => { if (!o) setDetail(null) }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Detail Absensi</DialogTitle>
-            <DialogDescription>
-              {detail && new Date(detail.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-            </DialogDescription>
-          </DialogHeader>
-          {detail && (
-            <div className="space-y-4">
-              {detail.photos && detail.photos.length > 0 && (
-                <div className="grid grid-cols-2 gap-3">
-                  {detail.photos.map((p) => (
-                    <div key={p.type + p.capturedAt}>
-                      <p className="text-xs text-muted-foreground mb-1 capitalize">{p.type === 'check_in' ? 'Check In' : 'Check Out'}</p>
-                      <div className="rounded-lg overflow-hidden border">
-                        <img src={p.url} alt={p.type} className="w-full aspect-[4/3] object-cover" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="p-3 rounded-lg bg-muted">
-                  <p className="text-xs text-muted-foreground">Check In</p>
-                  <p className="font-medium">{detail.checkIn ? new Date(detail.checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-muted">
-                  <p className="text-xs text-muted-foreground">Check Out</p>
-                  <p className="font-medium">{detail.checkOut ? new Date(detail.checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-muted">
-                  <p className="text-xs text-muted-foreground">Durasi</p>
-                  <p className="font-medium">{hitungJam(detail.checkIn, detail.checkOut)}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-muted">
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge variant="secondary" className={absensiStatusBadge[detail.status]}>{absensiStatusLabel[detail.status]}</Badge>
-                </div>
-              </div>
-              {detail.faceVerified && (
-                <p className="text-xs text-green-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Wajah terverifikasi</p>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <FilterDialog
-        open={filterOpen}
-        onOpenChange={setFilterOpen}
-        values={filter}
-        onApply={(v) => { setFilter(v); setPage(1) }}
-        onReset={() => { setFilter({ search: '', jenis: '', status: '', dateFrom: '', dateTo: '' }); setPage(1) }}
-        showJenis={false}
-        showStatus
-        showDate
-        datePresets={datePresets}
-        statusOptions={[
-          { value: 'hadir', label: 'Hadir' },
-          { value: 'terlambat', label: 'Terlambat' },
-          { value: 'pulang_cepat', label: 'Pulang Cepat' },
-          { value: 'izin', label: 'Izin' },
-          { value: 'sakit', label: 'Sakit' },
-          { value: 'cuti', label: 'Cuti' },
-        ]}
+      {/* DISABLED — Export XLSX. Aktifkan: hapus <div className="hidden"> */}
+      <div className="hidden">
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        onExport={async function(from, to, filters) {
+          if (!user) return
+          try {
+            var allData = await getAbsensi({ userId: user.id })
+            var filtered = allData
+            if (from) filtered = filtered.filter(function(a) { return a.tanggal >= from && (!to || a.tanggal <= to) })
+            if (filters.mainCategory) filtered = filtered.filter(function(a) { return a.mainCategory === filters.mainCategory })
+            if (filters.statuses.length > 0) filtered = filtered.filter(function(a) { return filters.statuses.includes(a.status as import('@/types').AbsensiStatus) })
+            if (!filtered.length) return
+            var data = filtered.map(function(a) {
+              return { tanggal: a.tanggal, checkIn: a.checkIn, checkOut: a.checkOut, status: a.status, subCategory: a.subCategory, mainCategory: a.mainCategory }
+            })
+            var wb = await buildExportWorkbook(data, from, to, false)
+            await exportWorkbook(wb, 'riwayat-absensi-' + new Date().toISOString().split('T')[0])
+            setExportOpen(false)
+          } catch (e) {
+            console.error('Export gagal:', e)
+          }
+        }}
       />
+      </div>
     </div>
   )
 }

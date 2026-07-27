@@ -18,6 +18,18 @@ export async function getAbsensiPaginated(filters?: AbsensiFilters): Promise<Pag
   }
 }
 
+export async function searchAbsensi(params: Record<string, string | number | string[] | undefined>): Promise<PaginatedResult<Absensi>> {
+  const res = await api.get('/api/absensi/search', { params })
+  const total = parseInt(res.headers['x-total-count'] || '0', 10)
+  const limit = Number(params._limit) || 15
+  return {
+    data: res.data,
+    total,
+    page: Number(params._page) || 1,
+    totalPages: Math.ceil(total / limit),
+  }
+}
+
 export async function getAbsensiToday(userId: string): Promise<Absensi | null> {
   const today = new Date().toISOString().split('T')[0]
   const res = await api.get('/absensi', { params: { userId, tanggal: today } })
@@ -30,6 +42,9 @@ export async function checkIn(data: CheckInData): Promise<Absensi> {
     tanggal: data.tanggal,
     checkIn: data.checkIn,
     status: 'hadir',
+    /* Note: mainCategory/subCategory di-override oleh server */
+    mainCategory: 'physical_present',
+    subCategory: 'physical_standard',
     faceVerified: false,
     photos: data.photos || [],
     keterangan: '',
@@ -44,7 +59,7 @@ export async function checkOut(id: number, data?: CheckOutData): Promise<Absensi
   const currentPhotos = existing.data?.photos || []
   const photos = data?.photos?.length ? [...currentPhotos, ...data.photos] : currentPhotos
   const res = await api.patch(`/absensi/${id}`, {
-    checkOut: new Date().toISOString(),
+    checkOut: data?.checkOut || new Date().toISOString(),
     photos,
   })
   return res.data

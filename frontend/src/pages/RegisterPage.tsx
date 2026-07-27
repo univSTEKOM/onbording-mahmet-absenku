@@ -3,10 +3,12 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Label } from '@/components/ui/label'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { Logo } from '@/components/Logo'
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { Loader2, UserPlus } from 'lucide-react'
+import { PasswordInput } from '@/components/shared/PasswordInput'
+import { getApiErrorMessage } from '@/lib/utils'
 import { validateEmail, validatePassword, validateNama, validateJabatan, validatePhone } from '@/lib/validation'
 
 export default function RegisterPage() {
@@ -18,6 +20,7 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [videoError, setVideoError] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -50,7 +53,7 @@ export default function RegisterPage() {
       await register({ nama: form.nama, email: form.email, password: form.password, jabatan: form.jabatan, phone: form.phone })
       navigate({ to: '/login' })
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mendaftar'
+      const msg = getApiErrorMessage(err, 'Gagal mendaftar')
       setApiError(msg)
     } finally {
       setLoading(false)
@@ -59,116 +62,124 @@ export default function RegisterPage() {
 
   return (
     <div className="relative min-h-svh w-full overflow-hidden">
-      <img
-        src="/login&register background.png"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover object-bottom dark:brightness-[0.2] dark:grayscale"
-      />
-      <div className="relative z-10 flex min-h-svh flex-col gap-4 p-6 md:p-10 lg:w-[420px] lg:bg-background/80 lg:backdrop-blur-sm overflow-y-auto">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <Logo className="h-8" />
-        </div>
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-              {apiError && (
-                <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">{apiError}</div>
-              )}
-              <FieldGroup>
-                <div className="flex flex-col items-center gap-1 text-center">
-                  <h1 className="text-2xl font-bold">Buat akun baru</h1>
-                  <p className="text-sm text-balance text-muted-foreground">
-                    Isi formulir di bawah untuk mendaftar
-                  </p>
-                </div>
+      {videoError ? (
+        <img
+          src="/login&register background.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-bottom"
+        />
+      ) : (
+        <video
+          src="/videos/login-register-video-background.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          onError={() => setVideoError(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
 
-                <Field>
-                  <FieldLabel htmlFor="nama">Nama Lengkap</FieldLabel>
+      <div className="relative z-10 flex min-h-svh flex-col items-center justify-center p-4 md:p-10 overflow-y-auto">
+        <div className="w-full max-w-sm rounded-2xl bg-background/90 backdrop-blur-md p-6 md:p-8 shadow-lg lg:bg-background/80 lg:backdrop-blur-xl lg:shadow-2xl lg:border lg:border-border/50">
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <Logo className="h-9" />
+          </div>
+
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
+            <div className="flex flex-col items-center gap-1.5 text-center mb-8">
+              <h1 className="text-xl font-semibold tracking-tight">Buat akun baru</h1>
+              <p className="text-sm text-muted-foreground">
+                Isi data diri Anda untuk mendaftar
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {apiError && (
+                <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center animate-in fade-in slide-in-from-top-2 duration-300">
+                  {apiError}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nama">Nama Lengkap</Label>
                   <Input
                     id="nama" name="nama" type="text" placeholder="John Doe"
                     value={form.nama} onChange={handleChange}
-                    className={errors.nama ? 'border-destructive bg-background' : 'bg-background'} required
+                    className={errors.nama ? 'border-destructive bg-background' : 'bg-background'}
+                    required autoFocus
                   />
-                  {errors.nama && <p className="text-xs text-destructive mt-1">{errors.nama}</p>}
-                </Field>
+                  {errors.nama && <p className="text-xs text-destructive animate-in fade-in duration-200">{errors.nama}</p>}
+                </div>
 
-                <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email" name="email" type="email" placeholder="m@example.com"
                     value={form.email} onChange={handleChange}
-                    className={errors.email ? 'border-destructive bg-background' : 'bg-background'} required
+                    className={errors.email ? 'border-destructive bg-background' : 'bg-background'}
+                    required autoComplete="email"
                   />
-                  {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
-                </Field>
+                  {errors.email && <p className="text-xs text-destructive animate-in fade-in duration-200">{errors.email}</p>}
+                </div>
 
-                <Field>
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Input
-                    id="password" name="password" type="password"
-                    value={form.password} onChange={handleChange}
-                    className={errors.password ? 'border-destructive bg-background' : 'bg-background'} required
-                  />
-                  {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="konfirmasiPassword">Konfirmasi Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id="konfirmasiPassword" name="konfirmasiPassword" type="password"
-                      value={form.konfirmasiPassword} onChange={handleChange}
-                      className={errors.konfirmasiPassword ? 'border-destructive bg-background' : 'bg-background'} required
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <PasswordInput
+                      id="password" name="password"
+                      value={form.password} onChange={handleChange}
+                      error={errors.password}
                     />
-                    {form.konfirmasiPassword && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        {form.konfirmasiPassword === form.password ? (
-                          <CheckCircle2 className="size-4 text-green-500" />
-                        ) : (
-                          <XCircle className="size-4 text-destructive" />
-                        )}
-                      </div>
-                    )}
                   </div>
-                  {errors.konfirmasiPassword && <p className="text-xs text-destructive mt-1">{errors.konfirmasiPassword}</p>}
-                </Field>
+                  <div className="space-y-2">
+                    <Label htmlFor="konfirmasiPassword">Konfirmasi</Label>
+                    <PasswordInput
+                      id="konfirmasiPassword" name="konfirmasiPassword"
+                      value={form.konfirmasiPassword} onChange={handleChange}
+                      error={errors.konfirmasiPassword}
+                      matchValue={form.password}
+                    />
+                  </div>
+                </div>
 
-                <Field>
-                  <FieldLabel htmlFor="jabatan">Jabatan</FieldLabel>
-                  <Input
-                    id="jabatan" name="jabatan" type="text" placeholder="Staff IT"
-                    value={form.jabatan} onChange={handleChange}
-                    className={errors.jabatan ? 'border-destructive bg-background' : 'bg-background'} required
-                  />
-                  {errors.jabatan && <p className="text-xs text-destructive mt-1">{errors.jabatan}</p>}
-                </Field>
+                <div className="space-y-2">
+                    <Label htmlFor="jabatan">Jabatan</Label>
+                    <Input
+                      id="jabatan" name="jabatan" type="text" placeholder="Staff IT"
+                      value={form.jabatan} onChange={handleChange}
+                      className={errors.jabatan ? 'border-destructive bg-background' : 'bg-background'}
+                      required
+                    />
+                    {errors.jabatan && <p className="text-xs text-destructive animate-in fade-in duration-200">{errors.jabatan}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telepon <span className="text-muted-foreground font-normal">(opsional)</span></Label>
+                    <PhoneInput
+                      id="phone" name="phone"
+                      value={form.phone}
+                      onChange={(v) => { setForm({ ...form, phone: v }); setErrors((p) => ({ ...p, phone: '' })) }}
+                      error={errors.phone}
+                    />
+                    {errors.phone && <p className="text-xs text-destructive animate-in fade-in duration-200">{errors.phone}</p>}
+                  </div>
+              </div>
 
-                <Field>
-                  <FieldLabel htmlFor="phone">No. Telepon <span className="text-muted-foreground font-normal">(opsional)</span></FieldLabel>
-                  <PhoneInput
-                    id="phone" name="phone"
-                    value={form.phone}
-                    onChange={(v) => { setForm({ ...form, phone: v }); setErrors((p) => ({ ...p, phone: '' })) }}
-                    error={errors.phone}
-                  />
-                  {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone}</p>}
-                </Field>
+              <Button type="submit" className="w-full gap-2" size="lg" disabled={loading}>
+                {loading ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</>
+                ) : (
+                  <><UserPlus className="h-4 w-4" /> Daftar</>
+                )}
+              </Button>
 
-                <Field>
-                  <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                    {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</> : 'Daftar'}
-                  </Button>
-                </Field>
-
-                <Field>
-                  <FieldDescription className="text-center">
-                    Sudah punya akun?{' '}
-                    <Link to="/login" className="underline underline-offset-4 hover:text-foreground">
-                      Masuk
-                    </Link>
-                  </FieldDescription>
-                </Field>
-              </FieldGroup>
+              <p className="text-sm text-center text-muted-foreground">
+                Sudah punya akun?{' '}
+                <Link to="/login" className="font-medium text-primary hover:text-primary/80 transition-colors">
+                  Masuk
+                </Link>
+              </p>
             </form>
           </div>
         </div>

@@ -1,9 +1,9 @@
 import { useAuth } from '@/hooks/useAuth'
 import DashboardPage from '@/pages/DashboardPage'
-import HrdDashboardPage from '@/pages/HrdDashboardPage'
+import AdminDashboardPage from '@/pages/AdminDashboardPage'
 
 export default function RoleDashboard() {
   const { user } = useAuth()
-  if (user?.role === 'admin') return <HrdDashboardPage />
+  if (user?.role === 'admin') return <AdminDashboardPage />
   return <DashboardPage />
 }

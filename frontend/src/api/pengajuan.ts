@@ -16,6 +16,11 @@ export async function createPengajuan(data: PengajuanFormData): Promise<Pengajua
   return res.data
 }
 
+export async function updatePengajuan(id: number, data: Partial<Pengajuan>): Promise<Pengajuan> {
+  const res = await api.patch(`/pengajuan/${id}`, data)
+  return res.data
+}
+
 export async function updatePengajuanStatus(id: number, status: PengajuanStatus, catatan?: string): Promise<Pengajuan> {
   const res = await api.patch(`/pengajuan/${id}`, { status, catatan })
   return res.data
