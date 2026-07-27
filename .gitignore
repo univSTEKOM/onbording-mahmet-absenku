@@ -10,3 +10,4 @@ package-lock.json
 bun.lock
 **/bun.lock
 skills-lock.json
+mock-api/bun.lock
