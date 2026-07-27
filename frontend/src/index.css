@@ -138,6 +138,26 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   display: none !important;
 }
 
+/* react-international-phone — theme sync */
+.phone-input .react-international-phone-country-selector-button,
+.phone-input .react-international-phone-input {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+  height: 40px;
+}
+.phone-input .react-international-phone-country-selector-button:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+.phone-input .react-international-phone-dropdown {
+  background-color: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+.phone-input .react-international-phone-country-selector-button__dropdown-arrow {
+  border-top-color: hsl(var(--muted-foreground)) !important;
+}
+
 @keyframes tour-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
