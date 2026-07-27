@@ -106,40 +106,40 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-16">
+      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-14">
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Setujui"
-              className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[56px]"
+              className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
               onClick={function(e) { e.stopPropagation(); p.onApprove(u.id) }}
               disabled={p.isApproving}
             >
-              <CheckCircle2 className="h-5 w-5" />
+              <CheckCircle2 className="h-4 w-4" />
             </button>
           </TooltipTrigger>
           <TooltipContent side="bottom"><p>Setujui pengguna ini</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Tolak"
-              className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[56px]"
+              className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
               onClick={function(e) { e.stopPropagation(); p.onReject(u) }}
             >
-              <XCircle className="h-5 w-5" />
+              <XCircle className="h-4 w-4" />
             </button>
           </TooltipTrigger>
           <TooltipContent side="bottom"><p>Tolak pengguna ini</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger className="flex items-stretch">
             <button
               type="button"
               aria-label="Hapus"
-              className="flex-1 flex items-center justify-center bg-red-600/60 hover:bg-red-600/80 text-white transition-colors border-t border-white/20 min-h-[40px]"
+              className="flex items-center justify-center bg-red-600/60 hover:bg-red-600/80 text-white transition-colors border-t border-white/20 min-h-[36px] px-2"
               onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
             >
               <Trash2 className="h-4 w-4" />
