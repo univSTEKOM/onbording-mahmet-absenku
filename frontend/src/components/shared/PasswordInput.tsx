@@ -31,26 +31,25 @@ export function PasswordInput({ id, name, value, onChange, error, placeholder, m
           className={cn(error ? 'border-destructive bg-background' : 'bg-background', 'pr-12')}
           required
         />
-        {showMatch && (
-          value === matchValue ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <CheckCircle2 className="size-4 text-green-500" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top"><p>Kata sandi cocok</p></TooltipContent>
-            </Tooltip>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <XCircle className="size-4 text-destructive" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top"><p>Kata sandi tidak cocok</p></TooltipContent>
-            </Tooltip>
-          )
+        {showMatch && value === matchValue && (
+          <Tooltip>
+            <TooltipTrigger>
+              <span className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
+                <CheckCircle2 className="size-4 text-green-500" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Kata sandi cocok</p></TooltipContent>
+          </Tooltip>
+        )}
+        {showMatch && value !== matchValue && (
+          <Tooltip>
+            <TooltipTrigger>
+              <span className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
+                <XCircle className="size-4 text-destructive" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Kata sandi tidak cocok</p></TooltipContent>
+          </Tooltip>
         )}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -64,7 +63,7 @@ export function PasswordInput({ id, name, value, onChange, error, placeholder, m
               {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </TooltipTrigger>
-          <TooltipContent side="top"><p>{show ? 'Sembunyikan password' : 'Tampilkan password'}</p></TooltipContent>
+          <TooltipContent side="bottom"><p>{show ? 'Sembunyikan password' : 'Tampilkan password'}</p></TooltipContent>
         </Tooltip>
       </div>
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
