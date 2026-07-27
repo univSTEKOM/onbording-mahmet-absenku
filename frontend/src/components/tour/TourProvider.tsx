@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { TourContext } from './hooks/useTour'
 import { karyawanSteps, adminSteps, verificationSteps } from './TourStepRegistry'
-import { type TourRole } from './utils/tour-helpers'
+import { waitForElement, type TourRole } from './utils/tour-helpers'
 import { isTourCompleted, markTourCompleted, markTourSkipped, isVerificationTourCompleted, markVerificationTourCompleted, markVerificationTourSkipped } from './utils/tour-storage'
 import { TourSpotlight } from './TourSpotlight'
 import { TourTooltip } from './TourTooltip'
@@ -92,15 +92,7 @@ export function TourProvider({ children, role, status, userId, autoStart = true 
     }
 
     if (step.targetSelector) {
-      for (let i = 0; i < 10; i++) {
-        const el = document.querySelector(step.targetSelector)
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          await new Promise(r => setTimeout(r, 300))
-          break
-        }
-        await new Promise(r => setTimeout(r, 500))
-      }
+      await waitForElement(step.targetSelector)
     }
 
     setCurrentStep(nextIndex)

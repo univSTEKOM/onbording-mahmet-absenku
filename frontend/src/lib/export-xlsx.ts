@@ -304,12 +304,25 @@ export interface XlsxSheet {
   categoryRows?: { label: string; count: number; color: string }[]
 }
 
+async function tryAddChartToSheet(
+  wb: ExcelJS.Workbook,
+  ws: ExcelJS.Worksheet,
+  barData: { label: string; value: number; color: string }[]
+): Promise<void> {
+  if (barData.length === 0) return
+  addSpacerRow(ws, 4)
+  const barBlob = await generateBarChartBlob(barData)
+  await embedChartImage(wb, ws, barBlob, 1, ws.rowCount + 1, 5, ws.rowCount + 12)
+}
+
 export async function buildWorkbook(sheets: XlsxSheet[]): Promise<ExcelJS.Workbook> {
   const wb = new ExcelJS.Workbook()
   wb.creator = APP_NAME
   wb.created = new Date()
 
-  for (const sheet of sheets) {
+  await sheets.reduce(async (prevPromise, sheet) => {
+    await prevPromise
+
     const ws = wb.addWorksheet(sheet.name, { properties: { tabColor: { argb: HEADER_BG } } })
     const colCount = sheet.columns.length
 
@@ -391,15 +404,13 @@ export async function buildWorkbook(sheets: XlsxSheet[]): Promise<ExcelJS.Workbo
           return { label: c.label, value: c.count, color: hex }
         })
         if (barData.length > 0) {
-          addSpacerRow(ws, 4)
-          const barBlob = await generateBarChartBlob(barData)
-          await embedChartImage(wb, ws, barBlob, 1, ws.rowCount + 1, 5, ws.rowCount + 12)
+          await tryAddChartToSheet(wb, ws, barData)
         }
       } catch {
         /* chart rendering non-critical */
       }
     }
-  }
+  }, Promise.resolve())
 
   return wb
 }
