@@ -13,7 +13,9 @@ import { Pagination } from '@/components/shared/Pagination'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { absensiStatusBadge, absensiStatusLabel, CATEGORY_LABEL } from '@/lib/constants'
-import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
+import { exportToCsv, formatCsvDate, formatCsvTime, exportToXlsx } from '@/lib/export'
+import { buildAdminRiwayatSheets } from '@/lib/export-templates'
+import { ExportDialog } from '@/components/shared/ExportDialog'
 import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
@@ -67,6 +69,7 @@ export default function AdminRiwayatPage() {
   const isSearching = search !== debouncedSearch
   const [detail, setDetail] = useState<Absensi | null>(null)
   const [previewImage, setPreviewImage] = useState('')
+  const [exportOpen, setExportOpen] = useState(false)
 
   const { data: users } = useUsers()
   const { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
@@ -118,15 +121,8 @@ export default function AdminRiwayatPage() {
           <p className="text-xs md:text-sm text-muted-foreground">Seluruh karyawan</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="sm" className="gap-2" onClick={function() {
-            if (!absensi?.length) return
-exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0],
-              ['Karyawan', 'Tanggal', 'Masuk', 'Pulang', 'Status', 'Kategori'],
-              absensi.map(function(a) {
-                return [users?.find(function(u) { return u.id === a.userId })?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status, CATEGORY_LABEL[a.subCategory || ''] || a.subCategory || '-']
-              }))
-          }}>
-            <Download className="h-4 w-4" /> CSV
+          <Button variant="outline" size="sm" className="gap-2" onClick={function() { setExportOpen(true) }}>
+            <Download className="h-4 w-4" /> Export
           </Button>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -385,6 +381,31 @@ exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0]
       </Dialog>
 
       <ImageViewer open={!!previewImage} imageUrl={previewImage} onClose={function() { setPreviewImage('') }} />
+
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        onExport={async function(format, from, to) {
+          if (!absensi?.length) return
+          if (format === 'csv') {
+            var filtered = from ? (absensi.filter(function(a) { return a.tanggal >= from && (!to || a.tanggal <= to) }) || absensi) : absensi
+            exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0],
+              ['Karyawan', 'Tanggal', 'Masuk', 'Pulang', 'Status', 'Kategori'],
+              filtered.map(function(a) {
+                return [users?.find(function(u) { return u.id === a.userId })?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status, CATEGORY_LABEL[a.subCategory || ''] || a.subCategory || '-']
+              }))
+          } else {
+            var filtered = from ? (absensi.filter(function(a) { return a.tanggal >= from && (!to || a.tanggal <= to) }) || absensi) : absensi
+            var data = filtered.map(function(a) {
+              var u = users?.find(function(u) { return u.id === a.userId })
+              return { nama: u?.nama || '-', tanggal: a.tanggal, checkIn: a.checkIn, checkOut: a.checkOut, status: a.status, subCategory: a.subCategory }
+            })
+            var sheets = buildAdminRiwayatSheets(data)
+            await exportToXlsx('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0], sheets)
+          }
+          setExportOpen(false)
+        }}
+      />
     </div>
   )
 }
