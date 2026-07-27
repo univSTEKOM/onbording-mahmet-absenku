@@ -25,6 +25,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { Search, PlusCircle, RefreshCw, Users, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
+import api from '@/api/axios'
 
 export default function AdminKaryawanPageV3() {
   const navigate = useNavigate()
