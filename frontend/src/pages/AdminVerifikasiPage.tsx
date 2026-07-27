@@ -135,11 +135,11 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
           <TooltipContent side="bottom"><p>Tolak pengguna ini</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger className="flex items-stretch">
+          <TooltipTrigger className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Hapus"
-              className="flex items-center justify-center bg-red-600/60 hover:bg-red-600/80 text-white transition-colors border-t border-white/20 min-h-[36px] px-2"
+              className="flex-1 flex items-center justify-center bg-red-600/60 hover:bg-red-600/80 text-white transition-colors border-t border-white/20 min-h-[48px]"
               onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
             >
               <Trash2 className="h-4 w-4" />
