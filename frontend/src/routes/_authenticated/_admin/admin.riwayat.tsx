@@ -7,7 +7,8 @@ export const Route = createFileRoute('/_authenticated/_admin/admin/riwayat')({
     try {
       const res = await api.get('/api/auth/get-session')
       if (res.data?.user?.role !== 'admin') throw redirect({ to: '/dashboard' })
-    } catch {
+    } catch (e) {
+      if (e instanceof redirect) throw e
       throw redirect({ to: '/login' })
     }
   },

@@ -1,3 +1,7 @@
+import type { UseNavigateResult } from '@tanstack/react-router'
+
+type TourRoute = Parameters<UseNavigateResult>[0]['to']
+
 export interface TourStepDef {
   id: string
   type: 'spotlight' | 'welcome' | 'completion'
@@ -6,7 +10,8 @@ export interface TourStepDef {
   description: string
   icon?: string
   position?: 'top' | 'bottom' | 'left' | 'right' | 'auto'
-  route?: string
+  route?: TourRoute
+  requiresSidebar?: boolean
 }
 
 export type TourRole = 'admin' | 'karyawan'
@@ -27,4 +32,23 @@ export function scrollToElement(selector: string): Promise<void> {
 export function getElementRect(selector: string): DOMRect | null {
   const el = document.querySelector(selector)
   return el?.getBoundingClientRect() || null
+}
+
+export function waitForElement(selector: string, retries = 10, delay = 500): Promise<void> {
+  return new Promise((resolve) => {
+    function attempt(n: number) {
+      const el = document.querySelector(selector)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setTimeout(resolve, 300)
+        return
+      }
+      if (n <= 0) {
+        resolve()
+        return
+      }
+      setTimeout(() => attempt(n - 1), delay)
+    }
+    attempt(retries)
+  })
 }

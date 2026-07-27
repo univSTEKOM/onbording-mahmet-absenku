@@ -21,9 +21,11 @@ function ChartContainer({ id, config, children, className }: { id?: string; conf
     return vars
   }, [config])
 
+  const contextValue = React.useMemo(() => ({ config }), [config])
+
   return (
     <div id={id} className={cn('w-full', className)} style={colorVars as React.CSSProperties}>
-      <ChartContext.Provider value={{ config }}>
+      <ChartContext.Provider value={contextValue}>
         <ResponsiveContainer width="100%" height="100%">
           {children as React.ReactElement}
         </ResponsiveContainer>
@@ -74,11 +76,11 @@ function ChartLegendContent({ payload }: { payload?: { value: string; color?: st
   const { config } = useChart()
   if (!payload?.length) return null
   return (
-    <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground">
+    <div className="flex flex-wrap items-center justify-center text-[11px] text-muted-foreground">
       {payload.map((entry) => {
         const cfg = config[entry.value]
         return (
-          <span key={entry.value} className="flex items-center gap-1.5">
+          <span key={entry.value} className="flex items-center gap-1.5 mr-4 last:mr-0">
             <span className="size-3 rounded-sm" style={{ backgroundColor: cfg?.color || entry.color }} />
             {cfg?.label || entry.value}
           </span>

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { WebcamCapture } from './WebcamCapture'
 import {
   loadModels,
+  areModelsLoaded,
   detectFace,
   descriptorToArray,
   isMatch,
@@ -24,7 +25,6 @@ interface FaceVerificationProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onVerified: (photo?: string) => void
-  onSkip: () => void
   mode?: 'in' | 'out'
 }
 
@@ -34,7 +34,6 @@ export function FaceVerification({
   open,
   onOpenChange,
   onVerified,
-  onSkip,
   mode = 'in',
 }: FaceVerificationProps) {
   const { user, updateUser } = useAuth()
@@ -88,6 +87,10 @@ export function FaceVerification({
   /* Load models hanya sekali */
   useEffect(() => {
     if (!open || loadingRef.current || modelsLoaded) return
+    if (areModelsLoaded()) {
+      setModelsLoaded(true)
+      return
+    }
     loadingRef.current = true
     loadModels()
       .then(() => { setModelsLoaded(true); setModelsError('') })
@@ -119,7 +122,8 @@ export function FaceVerification({
         if (match) {
           setStatus('success')
           setMessage('Wajah cocok!')
-          setTimeout(() => onVerified(photoUrl), 800)
+          if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+          saveTimeoutRef.current = setTimeout(() => onVerified(photoUrl), 800)
         } else {
           setStatus('fail')
           setMessage('Wajah tidak cocok dengan data terdaftar.')
@@ -128,7 +132,8 @@ export function FaceVerification({
         await saveDescriptor(descriptor)
         setStatus('success')
         setMessage('Wajah berhasil didaftarkan!')
-        setTimeout(() => onVerified(photoUrl), 800)
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+        saveTimeoutRef.current = setTimeout(() => onVerified(photoUrl), 800)
       }
     } catch {
       finishedRef.current = false
@@ -205,7 +210,6 @@ export function FaceVerification({
           <div className="p-4 rounded-md bg-destructive/10 text-destructive text-sm text-center space-y-3">
             <AlertTriangle className="h-8 w-8 mx-auto" />
             <p>{modelsError}</p>
-            <Button variant="outline" size="sm" onClick={onSkip}>Lewati verifikasi</Button>
           </div>
         ) : !modelsLoaded ? (
           <div className="flex items-center justify-center py-8 text-muted-foreground">
@@ -249,14 +253,7 @@ export function FaceVerification({
             <div className="flex items-center gap-2 justify-center text-destructive"><XCircle className="h-5 w-5" /><span className="text-sm">{message}</span></div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleRetry}>Coba Lagi</Button>
-              <Button variant="ghost" size="sm" onClick={onSkip}>Lewati</Button>
             </div>
-          </div>
-        )}
-
-        {status === 'idle' && !processing && !cameraActive && !showCaptured && (
-          <div className="flex justify-center">
-            <Button variant="ghost" onClick={onSkip}>Lewati verifikasi</Button>
           </div>
         )}
       </DialogContent>

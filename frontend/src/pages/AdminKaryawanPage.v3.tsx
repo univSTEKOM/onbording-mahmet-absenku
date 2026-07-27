@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { useUsers } from '@/hooks/useUsers'
 import { useDebounce } from '@/hooks/useDebounce'
-import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_PHONE_DIGITS, MIN_PHONE_DIGITS, MAX_ALAMAT_LENGTH } from '@/lib/constants'
+import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_ALAMAT_LENGTH } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,160 +15,55 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Separator } from '@/components/ui/separator'
-import { RoleBadge } from '@/components/shared/RoleBadge'
-import { Search, PlusCircle, Pencil, Trash2, RefreshCw, Users, Briefcase, CalendarDays } from 'lucide-react'
+import { KaryawanUserCard } from '@/components/shared/KaryawanUserCard'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { PasswordInput } from '@/components/shared/PasswordInput'
+import { Search, PlusCircle, RefreshCw, Users, Trash2, Key } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import api from '@/api/axios'
 import { toast } from 'sonner'
-import { useQueryClient } from '@tanstack/react-query'
-import type { User } from '@/types'
-
-interface KaryawanUserCardProps {
-  user: User
-  currentUserId: string
-  onEdit: (user: User) => void
-  onDelete: (user: User) => void
-  onClick: (user: User) => void
-}
-
-function KaryawanUserCard(p: KaryawanUserCardProps) {
-  var u = p.user
-  var nameRef = useRef<HTMLParagraphElement>(null)
-  var [isOverflow, setIsOverflow] = useState(false)
-
-  useEffect(function() {
-    var el = nameRef.current
-    if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
-  }, [u.nama])
-
-  var initials = (u.nama || '?').charAt(0).toUpperCase()
-  var joinedDate = u.createdAt
-    ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-    : '-'
-
-  return (
-    <div
-      className="group flex flex-col lg:flex-row rounded-xl border border-border hover:border-primary/30 transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
-      onClick={function() { p.onClick(u) }}
-    >
-      <div className="flex flex-1 min-w-0 rounded-t-xl lg:rounded-l-xl lg:rounded-tr-none bg-card">
-        <div className="flex items-start gap-2.5 p-3.5 flex-1 min-w-0">
-          <Avatar className="h-9 w-9 ring-2 ring-border/50 shrink-0">
-            <AvatarImage src={u.foto || undefined} />
-            <AvatarFallback className={u.role === 'admin' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 text-xs' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400 text-xs'}>
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className="flex-1 min-w-0 self-center">
-            <div className="flex items-center gap-2">
-              <div className="min-w-0 flex-1 overflow-hidden">
-                <p
-                  ref={nameRef}
-                  className={'text-sm font-semibold whitespace-nowrap ' + (isOverflow ? 'marquee' : 'truncate')}
-                  title={u.nama}
-                >
-                  {u.nama || '-'}
-                </p>
-              </div>
-              <RoleBadge role={u.role} />
-            </div>
-            <p className="text-xs text-muted-foreground truncate">{u.email}</p>
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
-              {u.jabatan && (
-                <span className="flex items-center gap-1">
-                  <Briefcase className="h-3 w-3 shrink-0" />
-                  {u.jabatan}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <CalendarDays className="h-3 w-3 shrink-0" />
-                {joinedDate}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-12">
-        <button
-          type="button"
-          className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
-          onClick={function(e) { e.stopPropagation(); p.onEdit(u) }}
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
-        {u.id !== p.currentUserId && (
-          <button
-            type="button"
-            className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
-            onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-
-      <div className="flex lg:hidden rounded-b-xl overflow-hidden border-t border-border/40">
-        <button
-          type="button"
-          className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-sm font-medium transition-colors min-h-[44px]"
-          onClick={function(e) { e.stopPropagation(); p.onEdit(u) }}
-        >
-          <Pencil className="h-4 w-4" /> Edit
-        </button>
-        {u.id !== p.currentUserId && (
-          <button
-            type="button"
-            className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-3 text-sm font-medium transition-colors border-l border-white/20 min-h-[44px]"
-            onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
-          >
-            <Trash2 className="h-4 w-4" /> Hapus
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
+import api from '@/api/axios'
 
 export default function AdminKaryawanPageV3() {
-  var navigate = useNavigate()
-  var { user: currentUser } = useAuth()
-  var [search, setSearch] = useState('')
-  var [roleFilter, setRoleFilter] = useState('')
-  var debouncedSearch = useDebounce(search, 300)
+  const navigate = useNavigate()
+  const { user: currentUser } = useAuth()
+  const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState('')
+  const debouncedSearch = useDebounce(search, 300)
 
-  var isSearching = search !== debouncedSearch
+  const isSearching = search !== debouncedSearch
 
-  var filterParams = useMemo(function() {
-    var p: Record<string, string> = {}
+  const filterParams = useMemo(function() {
+    const p: Record<string, string> = {}
     if (debouncedSearch) p.q = debouncedSearch
     if (roleFilter) p.role = roleFilter
     return p
   }, [debouncedSearch, roleFilter])
 
-  var { data: users, isLoading, refetch, isFetching } = useUsers(filterParams)
-  var queryClient = useQueryClient()
-  var [saving, setSaving] = useState(false)
+  const { data: users, isLoading, refetch, isFetching } = useUsers(filterParams)
+  const queryClient = useQueryClient()
+  const [saving, setSaving] = useState(false)
 
-  var [modalOpen, setModalOpen] = useState(false)
-  var [editTarget, setEditTarget] = useState<User | null>(null)
-  var [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const, phone: '', alamat: '' })
-  var [formError, setFormError] = useState('')
-  var [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<User | null>(null)
+  const [form, setForm] = useState<Partial<User>>({ nama: '', email: '', jabatan: '', role: 'karyawan' as const, phone: '', alamat: '' })
+  const [formError, setFormError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  var [deleteTarget, setDeleteTarget] = useState<User | null>(null)
-  var [resetFace, setResetFace] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+  const [resetFace, setResetFace] = useState(false)
+  const [passwordMode, setPasswordMode] = useState<'default' | 'custom'>('default')
+  const [customPassword, setCustomPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
-  var filtered = users
+  const filtered = users
 
-  var adminCount = filtered?.filter(function(u) { return u.role === 'admin' }).length || 0
-  var karyawanCount = filtered?.filter(function(u) { return u.role === 'karyawan' }).length || 0
+  const adminCount = filtered?.filter(function(u) { return u.role === 'admin' }).length || 0
+  const karyawanCount = filtered?.filter(function(u) { return u.role === 'karyawan' }).length || 0
 
   function openCreate() {
     setEditTarget(null)
@@ -175,6 +71,9 @@ export default function AdminKaryawanPageV3() {
     setFormError('')
     setFieldErrors({})
     setResetFace(false)
+    setPasswordMode('default')
+    setCustomPassword('')
+    setConfirmPassword('')
     setModalOpen(true)
   }
 
@@ -189,7 +88,7 @@ export default function AdminKaryawanPageV3() {
 
   async function handleSave() {
     setFormError('')
-    var errs: Record<string, string> = {}
+    const errs: Record<string, string> = {}
     if (!form.nama?.trim()) errs.nama = 'Nama harus diisi'
     else if (form.nama.length > MAX_NAMA_LENGTH) errs.nama = 'Maksimal ' + MAX_NAMA_LENGTH + ' karakter'
     if (!form.email?.trim()) errs.email = 'Email harus diisi'
@@ -197,11 +96,16 @@ export default function AdminKaryawanPageV3() {
     if (!form.jabatan?.trim()) errs.jabatan = 'Jabatan harus diisi'
     else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = 'Maksimal ' + MAX_JABATAN_LENGTH + ' karakter'
     if (form.phone) {
-      var digits = form.phone.replace(/\D/g, '')
+      const digits = form.phone.replace(/\D/g, '')
       if (digits.length < MIN_PHONE_DIGITS) errs.phone = 'Minimal ' + MIN_PHONE_DIGITS + ' angka'
       else if (digits.length > MAX_PHONE_DIGITS) errs.phone = 'Maksimal ' + MAX_PHONE_DIGITS + ' angka'
     }
     if (form.alamat && form.alamat.length > MAX_ALAMAT_LENGTH) errs.alamat = 'Maksimal ' + MAX_ALAMAT_LENGTH + ' karakter'
+    if (!editTarget && passwordMode === 'custom') {
+      if (!customPassword) errs.customPassword = 'Password harus diisi'
+      else if (customPassword.length < 8) errs.customPassword = 'Minimal 8 karakter'
+      else if (customPassword !== confirmPassword) errs.confirmPassword = 'Password tidak cocok'
+    }
     if (Object.keys(errs).length > 0) { setFieldErrors(errs); return }
 
     setSaving(true)
@@ -210,14 +114,16 @@ export default function AdminKaryawanPageV3() {
         await api.patch('/api/users/' + editTarget.id, { ...form, ...(resetFace ? { faceDescriptor: '' } : {}) } as Partial<User>)
         toast.success('Karyawan berhasil diupdate')
       } else {
-        var generatedPassword = Math.random().toString(36).slice(2, 14)
-        await api.post('/api/register', { ...form, password: generatedPassword, name: form.nama, role: form.role })
+        const password = passwordMode === 'custom' ? customPassword : 'password'
+        await api.post('/api/register', { ...form, password, name: form.nama, role: form.role })
         toast.success('Karyawan berhasil ditambahkan')
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setModalOpen(false)
     } catch (err: unknown) {
-      var msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal menyimpan'
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal menyimpan'
+      console.error('Save user error:', err)
+      toast.error(msg)
       setFormError(msg)
     } finally {
       setSaving(false)
@@ -240,7 +146,7 @@ export default function AdminKaryawanPageV3() {
     return fd?.startsWith('[') ?? false
   }
 
-  var roleOptions = [
+  const roleOptions = [
     { value: '', label: 'Semua' },
     { value: 'karyawan', label: 'Karyawan' },
     { value: 'admin', label: 'Admin' },
@@ -258,9 +164,14 @@ export default function AdminKaryawanPageV3() {
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
-            <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+                <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+          </Tooltip>
           <Button className="gap-2" onClick={openCreate}>
             <PlusCircle className="h-4 w-4" /> Tambah
           </Button>
@@ -393,23 +304,62 @@ export default function AdminKaryawanPageV3() {
               <PhoneInput value={form.phone || ''} onChange={function(v) { setForm({ ...form, phone: v }); setFieldErrors(function(p) { return { ...p, phone: '' } }) }} error={fieldErrors.phone} />
               {fieldErrors.phone && <p className="text-xs text-destructive">{fieldErrors.phone}</p>}
             </div>
-            {!editTarget && <p className="text-xs text-muted-foreground">Password akan digenerate otomatis</p>}
+            {!editTarget && (
+              <div className="space-y-3">
+                <Separator />
+                <Label>Password</Label>
+                <div className="flex gap-2">
+                  <Button type="button" variant={passwordMode === 'default' ? 'default' : 'outline'} size="sm" onClick={function() { setPasswordMode('default') }} className="flex-1 gap-2">
+                    <Key className="h-3.5 w-3.5" /> Default
+                  </Button>
+                  <Button type="button" variant={passwordMode === 'custom' ? 'default' : 'outline'} size="sm" onClick={function() { setPasswordMode('custom') }} className="flex-1 gap-2">
+                    Custom
+                  </Button>
+                </div>
+                {passwordMode === 'default' ? (
+                  <p className="text-xs text-muted-foreground">Password default: <code className="text-xs">password</code></p>
+                ) : (
+                  <div className="space-y-3">
+                    <PasswordInput
+                      id="customPassword"
+                      value={customPassword}
+                      onChange={function(e) { setCustomPassword(e.target.value); setFieldErrors(function(p) { return { ...p, customPassword: '' } }) }}
+                      error={fieldErrors.customPassword}
+                      placeholder="Minimal 8 karakter"
+                    />
+                    <PasswordInput
+                      id="confirmPassword"
+                      value={confirmPassword}
+                      onChange={function(e) { setConfirmPassword(e.target.value); setFieldErrors(function(p) { return { ...p, confirmPassword: '' } }) }}
+                      error={fieldErrors.confirmPassword}
+                      placeholder="Ulangi password"
+                      matchValue={customPassword}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             {editTarget && hasFaceData(editTarget.faceDescriptor) && (
               <>
                 <Separator />
-                <div className="flex items-center justify-between gap-4">
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium">Data Wajah</p>
-                    <p className="text-xs text-muted-foreground">Wajah terdaftar untuk verifikasi absensi</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="size-2 rounded-full bg-green-500" />
+                    <span className="text-green-600 dark:text-green-400 font-medium">Wajah terdaftar</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={function() { setResetFace(!resetFace) }}
-                    className={'relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ' + (resetFace ? 'bg-destructive' : 'bg-muted')}
-                    aria-label={resetFace ? 'Aktifkan hapus data wajah' : 'Nonaktifkan hapus data wajah'}
-                  >
-                    <span className={'inline-block size-5 rounded-full bg-white shadow-sm transition-transform ' + (resetFace ? 'translate-x-[22px]' : 'translate-x-[2px]')} />
-                  </button>
+                  <p className="text-xs text-muted-foreground">Data verifikasi wajah tersedia untuk absensi</p>
+                  {resetFace ? (
+                    <div className="flex items-center gap-2 p-2 rounded-md bg-destructive/10 border border-destructive/20">
+                      <p className="text-xs text-destructive flex-1">Data wajah akan dihapus saat menyimpan</p>
+                      <Button type="button" variant="outline" size="xs" onClick={function() { setResetFace(false) }}>
+                        Batal
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button type="button" variant="destructive" size="sm" className="gap-2" onClick={function() { setResetFace(true) }}>
+                      <Trash2 className="h-4 w-4" /> Hapus Data Wajah
+                    </Button>
+                  )}
                 </div>
               </>
             )}

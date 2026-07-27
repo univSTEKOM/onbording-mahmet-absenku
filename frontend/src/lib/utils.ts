@@ -30,6 +30,11 @@ export function durasiHari(mulai: string, selesai: string) {
   return Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1
 }
 
+export function formatJam(iso: string | null): string {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+}
+
 export function hitungJam(checkIn: string | null, checkOut: string | null): string {
   if (!checkIn) return '-'
   const masuk = new Date(checkIn).getTime()

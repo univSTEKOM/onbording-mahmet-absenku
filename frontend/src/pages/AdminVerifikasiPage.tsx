@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -15,7 +15,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import api from '@/api/axios'
 import type { User } from '@/types'
-import { CheckCircle2, XCircle, RefreshCw, Trash2, UserPlus, Clock, Briefcase, CalendarDays, Mail, Phone, MapPin } from 'lucide-react'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { CheckCircle2, XCircle, RefreshCw, Trash2, UserPlus, Clock, Briefcase, CalendarDays, Mail, MapPin } from 'lucide-react'
+import { PhoneDisplay } from '@/components/shared/PhoneDisplay'
 
 interface VerifikasiUserCardProps {
   user: User
@@ -26,18 +28,18 @@ interface VerifikasiUserCardProps {
   isApproving: boolean
 }
 
-function VerifikasiUserCard(p: VerifikasiUserCardProps) {
-  var u = p.user
-  var nameRef = useRef<HTMLParagraphElement>(null)
-  var [isOverflow, setIsOverflow] = useState(false)
+const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCardProps) {
+  const u = p.user
+  const nameRef = useRef<HTMLParagraphElement>(null)
+  const [isOverflow, setIsOverflow] = useState(false)
 
   useEffect(function() {
-    var el = nameRef.current
+    const el = nameRef.current
     if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
   }, [u.nama])
 
-  var initials = (u.nama || '?').charAt(0).toUpperCase()
-  var joinedDate = u.createdAt
+  const initials = (u.nama || '?').charAt(0).toUpperCase()
+  const joinedDate = u.createdAt
     ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     : '-'
 
@@ -89,9 +91,8 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
             </div>
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
               {u.phone && (
-                <span className="flex items-center gap-1 truncate max-w-[160px]">
-                  <Phone className="h-3 w-3 shrink-0" />
-                  {u.phone}
+                <span className="flex items-center gap-1 truncate max-w-[200px]">
+                  <PhoneDisplay value={u.phone} />
                 </span>
               )}
               {u.alamat && (
@@ -105,29 +106,47 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-12">
-        <button
-          type="button"
-          className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
-          onClick={function(e) { e.stopPropagation(); p.onApprove(u.id) }}
-          disabled={p.isApproving}
-        >
-          <CheckCircle2 className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
-          onClick={function(e) { e.stopPropagation(); p.onReject(u) }}
-        >
-          <XCircle className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          className="flex items-center justify-center bg-red-600/60 hover:bg-red-600/80 text-white transition-colors border-t border-white/20 min-h-[36px]"
-          onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+      <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-14">
+        <Tooltip>
+          <TooltipTrigger className="flex-1 flex items-stretch">
+            <button
+              type="button"
+              aria-label="Setujui"
+              className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
+              onClick={function(e) { e.stopPropagation(); p.onApprove(u.id) }}
+              disabled={p.isApproving}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom"><p>Setujui pengguna ini</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger className="flex-1 flex items-stretch">
+            <button
+              type="button"
+              aria-label="Tolak"
+              className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
+              onClick={function(e) { e.stopPropagation(); p.onReject(u) }}
+            >
+              <XCircle className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom"><p>Tolak pengguna ini</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger className="flex-1 flex items-stretch">
+            <button
+              type="button"
+              aria-label="Hapus"
+              className="flex-1 flex items-center justify-center bg-red-600/60 hover:bg-red-600/80 text-white transition-colors border-t border-white/20 min-h-[48px]"
+              onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom"><p>Hapus pengguna ini</p></TooltipContent>
+        </Tooltip>
       </div>
 
       <div className="flex lg:hidden rounded-b-xl overflow-hidden border-t border-border/40">
@@ -156,31 +175,31 @@ function VerifikasiUserCard(p: VerifikasiUserCardProps) {
       </div>
     </div>
   )
-}
+})
 
 export default function AdminVerifikasiPage() {
-  var queryClient = useQueryClient()
-  var [rejectTarget, setRejectTarget] = useState<User | null>(null)
-  var [rejectNote, setRejectNote] = useState('')
-  var [deleteTarget, setDeleteTarget] = useState<User | null>(null)
-  var [detailTarget, setDetailTarget] = useState<User | null>(null)
+  const queryClient = useQueryClient()
+  const [rejectTarget, setRejectTarget] = useState<User | null>(null)
+  const [rejectNote, setRejectNote] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+  const [detailTarget, setDetailTarget] = useState<User | null>(null)
 
-  var { data: pendingUsers, isLoading, refetch, isFetching } = useQuery({
+  const { data: pendingUsers, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['users', 'pending'],
     queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data as User[] }) },
   })
 
-  var approveMutation = useMutation({
+  const approveMutation = useMutation({
     mutationFn: function(id: string) { return api.patch('/api/users/' + id + '/status', { status: 'approved' }) },
     onSuccess: function() { queryClient.invalidateQueries({ queryKey: ['users'] }); toast.success('User berhasil disetujui') },
   })
 
-  var rejectMutation = useMutation({
+  const rejectMutation = useMutation({
     mutationFn: function(p: { id: string; note: string }) { return api.patch('/api/users/' + p.id + '/status', { status: 'rejected', note: p.note }) },
     onSuccess: function() { queryClient.invalidateQueries({ queryKey: ['users'] }); setRejectTarget(null); setRejectNote(''); toast.success('User ditolak') },
   })
 
-  var deleteMutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: function(id: string) { return api.delete('/api/users/' + id) },
     onSuccess: function() { queryClient.invalidateQueries({ queryKey: ['users'] }); setDeleteTarget(null); toast.success('User berhasil dihapus') },
   })
@@ -192,9 +211,14 @@ export default function AdminVerifikasiPage() {
           <h1 className="text-xl md:text-2xl font-bold tracking-tight">Verifikasi Karyawan</h1>
           <p className="text-xs md:text-sm text-muted-foreground">Tinjau dan setujui pendaftaran karyawan baru</p>
         </div>
-        <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
-          <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+              <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+        </Tooltip>
       </div>
 
       {isLoading ? (
@@ -270,15 +294,14 @@ export default function AdminVerifikasiPage() {
             <DialogTitle>Detail</DialogTitle>
           </DialogHeader>
           {detailTarget && function(u) {
-            var initials = (u.nama || '?').charAt(0).toUpperCase()
-            var joinedDate = u.createdAt
+            const initials = (u.nama || '?').charAt(0).toUpperCase()
+            const joinedDate = u.createdAt
               ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
               : '-'
 
-            var fields = [
+            const fields = [
               { icon: Mail, label: 'Email', value: u.email },
               { icon: Briefcase, label: 'Jabatan', value: u.jabatan || '-' },
-              { icon: Phone, label: 'Telepon', value: u.phone || '-' },
               { icon: MapPin, label: 'Alamat', value: u.alamat || '-' },
               { icon: CalendarDays, label: 'Terdaftar', value: joinedDate },
             ]
@@ -304,7 +327,7 @@ export default function AdminVerifikasiPage() {
 
                   <div className="space-y-3">
                     {fields.map(function(f) {
-                      var Icon = f.icon
+                      const Icon = f.icon
                       return (
                         <div key={f.label} className="flex items-center gap-3 text-sm">
                           <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center shrink-0">
@@ -317,6 +340,15 @@ export default function AdminVerifikasiPage() {
                         </div>
                       )
                     })}
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center shrink-0">
+                        <span className="inline-flex items-center justify-center size-3.5 text-muted-foreground text-xs font-bold">📞</span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] text-muted-foreground leading-none mb-0.5">Telepon</p>
+                        <div className="font-medium">{u.phone ? <PhoneDisplay value={u.phone} /> : '-'}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

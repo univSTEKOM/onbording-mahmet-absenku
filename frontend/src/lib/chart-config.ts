@@ -1,4 +1,5 @@
 import type { ChartConfig } from '@/components/ui/chart'
+import { CATEGORY_COLORS_MAP, CATEGORY_LABEL } from './constants'
 
 const OPACITY = '50%'
 
@@ -13,7 +14,7 @@ export function pieDataItem(name: string, value: number): { name: string; value:
 export const absensiChartConfig: ChartConfig = {
   hadir:        { label: 'Hadir',        color: statusColor('hadir') },
   terlambat:    { label: 'Terlambat',    color: statusColor('terlambat') },
-  pulang_cepat: { label: 'Pulang Cepat', color: statusColor('pulang_cepat') },
+  pulangCepat: { label: 'Pulang Cepat', color: statusColor('pulang_cepat') },
   izin:         { label: 'Izin',         color: statusColor('izin') },
   sakit:        { label: 'Sakit',        color: statusColor('sakit') },
   cuti:         { label: 'Cuti',         color: statusColor('cuti') },
@@ -21,3 +22,35 @@ export const absensiChartConfig: ChartConfig = {
 }
 
 export type StatusKey = keyof typeof absensiChartConfig
+
+/* ── Category-based Chart Config ── */
+
+export function categoryColor(colorVar: string): string {
+  return `color-mix(in srgb, ${colorVar} ${OPACITY}, transparent)`
+}
+
+export const categoryChartConfig: ChartConfig = Object.fromEntries(
+  Object.entries(CATEGORY_LABEL).map(function(e) {
+    const catId = e[0]; const label = e[1]
+    const colorVar = CATEGORY_COLORS_MAP[catId] || 'var(--color-status-hadir)'
+    return [catId, { label: label, color: categoryColor(colorVar) }]
+  })
+) as ChartConfig
+
+export type CategoryKey = keyof typeof categoryChartConfig
+
+export const attendanceCategoryConfig: ChartConfig = {
+  present:        { label: 'Hadir',          color: categoryColor('var(--color-status-hadir)') },
+  absentPermit:   { label: 'Izin / Sakit',    color: categoryColor('var(--color-status-izin)') },
+  absentUnpermit: { label: 'Alfa',             color: categoryColor('var(--color-status-tidakHadir)') },
+}
+
+/* ── 3-Category Bulan Ini Chart Config ── */
+
+export const bulanIniChartConfig: ChartConfig = {
+  hadirGroup:   { label: 'Hadir',        color: statusColor('hadir') },
+  izinGroup:    { label: 'Izin / Sakit',  color: statusColor('izin') },
+  tidakHadir:   { label: 'Alfa',          color: statusColor('tidakHadir') },
+}
+
+export type BulanIniKey = keyof typeof bulanIniChartConfig

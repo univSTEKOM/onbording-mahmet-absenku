@@ -43,10 +43,13 @@ export function AttendancePieChart({ id, data, config, centerLabel, centerSub, l
             nameKey="name"
             innerRadius={60}
             strokeWidth={2}
-            shape={({ index, outerRadius = 0, ...props }: PieSectorDataItem & { index: number }) => (
-              <Sector {...props} className={`fill-status-${data[index]?.name || 'hadir'}`}
+            shape={({ index, outerRadius = 0, ...props }: PieSectorDataItem & { index: number }) => {
+            const item = data[index]
+            return (
+              <Sector {...props} fill={item?.fill || config[item?.name]?.color || 'var(--color-status-hadir)'}
                 outerRadius={index === activeIndex ? outerRadius + 6 : outerRadius} />
-            )}
+            )
+          }}
             onMouseEnter={(_, index) => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(-1)}
           >
@@ -55,8 +58,8 @@ export function AttendancePieChart({ id, data, config, centerLabel, centerSub, l
                 if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
                   return (
                     <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                      <tspan x={viewBox.cx} y={(viewBox.cy || 0) - 8} className="fill-foreground text-2xl font-bold">{centerLabel}</tspan>
-                      {centerSub && <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 16} className="fill-muted-foreground text-xs">{centerSub}</tspan>}
+                      <tspan x={viewBox.cx} y={(viewBox.cy || 0) - 10} className="fill-foreground text-2xl font-bold">{centerLabel}</tspan>
+                      {centerSub && <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 20} className="fill-muted-foreground text-xs">{centerSub}</tspan>}
                     </text>
                   )
                 }
@@ -65,13 +68,13 @@ export function AttendancePieChart({ id, data, config, centerLabel, centerSub, l
           </Pie>
         </PieChart>
       </ChartContainer>
-      <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground mt-2">
+      <div className="flex flex-wrap items-center justify-center text-[11px] text-muted-foreground mt-2">
         {data.filter((d) => d.value > 0).map((d) => {
           const cfg = config[d.name]
           return (
-            <span key={d.name} className="flex items-center gap-1.5">
-              <span className="size-3 rounded-sm" style={{ backgroundColor: cfg?.color || d.fill || 'var(--color-status-hadir)' }} />
-              {d.name === 'tidakHadir' ? 'Alfa' : d.name.charAt(0).toUpperCase() + d.name.slice(1)}
+            <span key={d.name} className="flex items-center gap-1.5 mr-4 last:mr-0">
+              <span className="size-3 rounded-sm shrink-0" style={{ backgroundColor: cfg?.color || d.fill || 'var(--color-status-hadir)' }} />
+              <span>{cfg?.label || d.name}</span>
             </span>
           )
         })}

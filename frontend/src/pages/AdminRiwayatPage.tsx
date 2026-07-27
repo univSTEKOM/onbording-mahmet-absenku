@@ -12,17 +12,22 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Pagination } from '@/components/shared/Pagination'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
-import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
+import { absensiStatusBadge, absensiStatusLabel, CATEGORY_LABEL } from '@/lib/constants'
+import { buildExportWorkbook } from '@/lib/export-templates'
+import { exportWorkbook } from '@/lib/export-xlsx'
+import { ExportDialog } from '@/components/shared/ExportDialog'
 import { ImageViewer } from '@/components/shared/ImageViewer'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
 import type { Absensi } from '@/types'
+import { formatJam, hitungJam } from '@/lib/utils'
+import api from '@/api/axios'
 
-var PAGE_SIZE = 15
-var curMonth = new Date().getMonth()
-var curYear = new Date().getFullYear()
+const PAGE_SIZE = 15 /* Admin sees more rows than employee (10) */
+const curMonth = new Date().getMonth()
+const curYear = new Date().getFullYear()
 
-var STATUS_OPTIONS = [
+const STATUS_OPTIONS = [
   { value: 'hadir', label: 'Hadir' },
   { value: 'terlambat', label: 'Terlambat' },
   { value: 'pulang_cepat', label: 'Pulang Cepat' },
@@ -33,58 +38,47 @@ var STATUS_OPTIONS = [
 
 type QuickDate = 'hari_ini' | 'kemarin' | '7_hari' | 'bulan_ini' | null
 
-function formatJam(iso: string | null): string {
-  if (!iso) return '-'
-  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
-function hitungJam(checkIn: string | null, checkOut: string | null): string {
-  if (!checkIn) return '-'
-  var selisih = Math.max(0, (checkOut ? new Date(checkOut).getTime() : Date.now()) - new Date(checkIn).getTime())
-  var jam = Math.floor(selisih / (1000 * 60 * 60))
-  var menit = Math.floor((selisih % (1000 * 60 * 60)) / (1000 * 60))
-  return jam + 'j ' + menit + 'm'
-}
-
 function getDateRange(preset: QuickDate): { dateFrom: string; dateTo: string } | null {
   if (!preset) return null
-  var today = new Date().toISOString().split('T')[0]
+  const today = new Date().toISOString().split('T')[0]
   switch (preset) {
     case 'hari_ini':
       return { dateFrom: today, dateTo: today }
     case 'kemarin': {
-      var d = new Date(); d.setDate(d.getDate() - 1)
+      const d = new Date(); d.setDate(d.getDate() - 1)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: d.toISOString().split('T')[0] }
     }
     case '7_hari': {
-      var d = new Date(); d.setDate(d.getDate() - 7)
+      const d = new Date(); d.setDate(d.getDate() - 7)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: today }
     }
     case 'bulan_ini': {
-      var d = new Date(); d.setDate(1)
+      const d = new Date(); d.setDate(1)
       return { dateFrom: d.toISOString().split('T')[0], dateTo: today }
     }
   }
 }
 
 export default function AdminRiwayatPage() {
-  var [page, setPage] = useState(1)
-  var [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
-  var [calendarDate, setCalendarDate] = useState<string | null>(null)
-  var [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
-  var [search, setSearch] = useState('')
-  var debouncedSearch = useDebounce(search, 400)
-  var isSearching = search !== debouncedSearch
-  var [detail, setDetail] = useState<Absensi | null>(null)
-  var [previewImage, setPreviewImage] = useState('')
+  const [page, setPage] = useState(1)
+  const [quickDate, setQuickDate] = useState<QuickDate>('hari_ini')
+  const [calendarDate, setCalendarDate] = useState<string | null>(null)
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [selectedMainCategory, setSelectedMainCategory] = useState('')
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 400)
+  const isSearching = search !== debouncedSearch
+  const [detail, setDetail] = useState<Absensi | null>(null)
+  const [previewImage, setPreviewImage] = useState('')
+  const [exportOpen, setExportOpen] = useState(false)
 
-  var { data: users } = useUsers()
-  var { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
+  const { data: users } = useUsers()
+  const { data: monthData } = useMonthAttendance(curYear, curMonth + 1)
 
-  var dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
-  var dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
+  const dateFrom = calendarDate || (getDateRange(quickDate)?.dateFrom)
+  const dateTo = calendarDate || (getDateRange(quickDate)?.dateTo)
 
-  var queryParams: Record<string, string | number | undefined> = {
+  const queryParams: Record<string, string | number | string[] | undefined> = {
     _sort: 'tanggal',
     _order: 'desc',
     _page: page,
@@ -93,14 +87,15 @@ export default function AdminRiwayatPage() {
   if (dateFrom) queryParams.tanggal_gte = dateFrom
   if (dateTo) queryParams.tanggal_lte = dateTo
   if (selectedStatuses.length > 0) queryParams.status = selectedStatuses
+  if (selectedMainCategory) queryParams.mainCategory = selectedMainCategory
   if (debouncedSearch) queryParams.q = debouncedSearch
 
-  var { data, isLoading, refetch, isFetching } = useSearchAbsensi(queryParams)
+  const { data, isLoading, refetch, isFetching } = useSearchAbsensi(queryParams)
 
-  var absensi = data?.data
-  var totalPages = data?.totalPages || 1
+  const absensi = data?.data
+  const totalPages = data?.totalPages || 1
 
-  var hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0 || search.trim() !== ''
+  const hasActiveFilter = calendarDate !== null || selectedStatuses.length > 0 || search.trim() !== '' || !!selectedMainCategory
 
   function toggleStatus(status: string) {
     setSelectedStatuses(function(prev) {
@@ -114,6 +109,7 @@ export default function AdminRiwayatPage() {
     setQuickDate('hari_ini')
     setCalendarDate(null)
     setSelectedStatuses([])
+    setSelectedMainCategory('')
     setSearch('')
     setPage(1)
   }
@@ -126,17 +122,16 @@ export default function AdminRiwayatPage() {
           <p className="text-xs md:text-sm text-muted-foreground">Seluruh karyawan</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="sm" className="gap-2" onClick={function() {
-            if (!absensi?.length) return
-            exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0],
-              ['Karyawan', 'Tanggal', 'Masuk', 'Pulang', 'Status'],
-              absensi.map(function(a) {
-                return [users?.find(function(u) { return u.id === a.userId })?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status]
-              }))
-          }}>
-            <Download className="h-4 w-4" /> CSV
+          {/*
+            EXPORT — dinonaktifkan sementara.
+            Aktifkan: hapus baris `false &&` dan `</div>` di bawah, lalu hapus <div className="hidden"> pembungkus
+          */}
+          <div className="hidden">
+          <Button variant="outline" size="sm" className="gap-2" onClick={function() { setExportOpen(true) }}>
+            <Download className="h-4 w-4" /> Export
           </Button>
-          <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
+          </div>
+          <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={function() { refetch() }} disabled={isFetching}>
             <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
           </Button>
         </div>
@@ -195,6 +190,25 @@ export default function AdminRiwayatPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
+          {['', 'physical_present', 'absent_permit', 'absent_unpermit'].map(function(cat) {
+            return (
+              <button
+                key={cat || 'all'}
+                type="button"
+                onClick={function() { setSelectedMainCategory(selectedMainCategory === cat ? '' : cat); setPage(1) }}
+                className={'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ' + (
+                  selectedMainCategory === cat
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
+              >
+                {cat ? CATEGORY_LABEL[cat] || cat : 'Semua'}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
           {STATUS_OPTIONS.map(function(opt) {
             return (
               <button
@@ -245,9 +259,9 @@ export default function AdminRiwayatPage() {
       ) : absensi && absensi.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
           {absensi.map(function(a) {
-            var u = users?.find(function(u) { return u.id === a.userId })
-            var tgl = new Date(a.tanggal + 'T00:00:00')
-            var initials = (u?.nama || '?').charAt(0).toUpperCase()
+            const u = users?.find(function(u) { return u.id === a.userId })
+            const tgl = new Date(a.tanggal + 'T00:00:00')
+            const initials = (u?.nama || '?').charAt(0).toUpperCase()
 
             return (
               <div
@@ -297,7 +311,14 @@ export default function AdminRiwayatPage() {
                       </>
                     )}
                     {a.faceVerified && (
-                      <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="pointer-events-none">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom"><p>Wajah terverifikasi</p></TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                 </div>
@@ -362,6 +383,36 @@ export default function AdminRiwayatPage() {
       </Dialog>
 
       <ImageViewer open={!!previewImage} imageUrl={previewImage} onClose={function() { setPreviewImage('') }} />
+
+      {/* DISABLED — Export XLSX. Aktifkan: hapus <div className="hidden"> */}
+      <div className="hidden">
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        initialFilters={{ mainCategory: selectedMainCategory, statuses: selectedStatuses as import('@/types').AbsensiStatus[] }}
+        onExport={async function(from, to, filters) {
+          try {
+            var params: Record<string, string | string[]> = { _sort: 'tanggal', _order: 'desc' }
+            if (from) params.tanggal_gte = from
+            if (to) params.tanggal_lte = to
+            if (filters.mainCategory) params.mainCategory = filters.mainCategory
+            if (filters.statuses.length > 0) params.status = filters.statuses
+            var res = await api.get('/absensi', { params: params })
+            var allData = (res.data || []) as Absensi[]
+            if (!allData.length) return
+            var data = allData.map(function(a) {
+              var u = users?.find(function(u) { return u.id === a.userId })
+              return { nama: u?.nama || '-', tanggal: a.tanggal, checkIn: a.checkIn, checkOut: a.checkOut, status: a.status, subCategory: a.subCategory, mainCategory: a.mainCategory }
+            })
+            var wb = await buildExportWorkbook(data, from, to, true)
+            await exportWorkbook(wb, 'laporan-absensi-' + new Date().toISOString().split('T')[0])
+            setExportOpen(false)
+          } catch (e) {
+            console.error('Export gagal:', e)
+          }
+        }}
+      />
+      </div>
     </div>
   )
 }

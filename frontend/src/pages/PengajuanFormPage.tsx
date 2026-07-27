@@ -9,6 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { MAX_ALASAN_LENGTH, MIN_ALASAN_LENGTH, MAX_PENGAJUAN_DURATION_DAYS } from '@/lib/constants'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Loader2, Send, ArrowLeft } from 'lucide-react'
 import type { Pengajuan } from '@/types'
 
@@ -67,7 +68,7 @@ export default function PengajuanFormPage() {
         {
           onSuccess: function() { navigate({ to: '/pengajuan' }) },
           onError: function(err) {
-            var msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal memperbarui'
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal memperbarui'
             setApiError(msg)
           },
         }
@@ -78,7 +79,7 @@ export default function PengajuanFormPage() {
         {
           onSuccess: function() { navigate({ to: '/pengajuan' }) },
           onError: function(err) {
-            var msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengajukan'
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal mengajukan'
             setApiError(msg)
           },
         }
@@ -89,9 +90,14 @@ export default function PengajuanFormPage() {
   return (
     <div className="space-y-5 md:space-y-6 max-w-xl animate-in fade-in duration-500">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon-sm" onClick={function() { navigate({ to: '/pengajuan' }) }}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon-sm" aria-label="Kembali" onClick={function() { navigate({ to: '/pengajuan' }) }}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom"><p>Kembali ke daftar pengajuan</p></TooltipContent>
+        </Tooltip>
         <div>
           <h1 className="text-xl md:text-2xl font-bold tracking-tight">{isEdit ? 'Edit Pengajuan' : 'Ajukan Izin / Cuti'}</h1>
           <p className="text-xs md:text-sm text-muted-foreground">{isEdit ? 'Ubah data pengajuan Anda' : 'Isi form di bawah untuk mengajukan'}</p>

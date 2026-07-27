@@ -14,9 +14,12 @@ interface Props {
   data: DayAttendanceData[]
   totalKaryawan?: number
   onDayClick?: (tanggal: string) => void
+  approvedLeave?: Map<string, string>  // tanggal → jenis (cuti/izin/sakit)
 }
 
-const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+function monthName(m: number): string {
+  return new Date(2024, m, 1).toLocaleDateString('id-ID', { month: 'long' })
+}
 
 const STATUS_COLORS: Record<string, string> = {
   hadir: 'bg-[var(--color-status-hadir)]/15 dark:bg-[var(--color-status-hadir)]/25',
@@ -27,6 +30,9 @@ const STATUS_COLORS: Record<string, string> = {
   cuti: 'bg-[var(--color-status-cuti)]/15 dark:bg-[var(--color-status-cuti)]/25',
   checkInOnly: 'bg-[var(--color-status-izin)]/15 dark:bg-[var(--color-status-izin)]/25',
   tidakHadir: 'bg-[var(--color-status-tidakHadir)]/15 dark:bg-[var(--color-status-tidakHadir)]/25',
+  leave_cuti: 'bg-[var(--color-status-sakit)]/15 dark:bg-[var(--color-status-sakit)]/25 ring-2 ring-[var(--color-status-sakit)]/40',
+  leave_izin: 'bg-[var(--color-status-izin)]/15 dark:bg-[var(--color-status-izin)]/25 ring-2 ring-[var(--color-status-izin)]/40',
+  leave_sakit: 'bg-[var(--color-status-terlambat)]/15 dark:bg-[var(--color-status-terlambat)]/25 ring-2 ring-[var(--color-status-terlambat)]/40',
   sebelumRilis: 'bg-muted/20 dark:bg-muted/5',
   hariIni: 'bg-blue-100 dark:bg-blue-900/20',
   masaDepan: 'bg-muted/20 dark:bg-muted/5',
@@ -37,7 +43,7 @@ const todayStr = new Date().toISOString().split('T')[0]
 function getAdminDominant(dayData: DayAttendanceData): string {
   const counts = [
     { key: 'hadir', val: dayData.hadir },
-    { key: 'pulangCepat', val: dayData.pulangCepat },
+    { key: 'pulang_cepat', val: dayData.pulangCepat },
     { key: 'terlambat', val: dayData.terlambat },
     { key: 'izin', val: dayData.izin },
     { key: 'sakit', val: dayData.sakit },
@@ -58,10 +64,11 @@ function hasAttended(dayData: DayAttendanceData): boolean {
   return ATTENDED_STATUSES.some((s) => dayData[s as keyof DayAttendanceData] > 0)
 }
 
-function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean): string {
+function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean, approvedLeave?: Map<string, string>): string {
   if (tanggal < APP_RELEASE_DATE) return STATUS_COLORS.sebelumRilis
   if (tanggal > todayStr) return STATUS_COLORS.masaDepan
   if (tanggal === todayStr && !hasAttendanceData(dayData)) return STATUS_COLORS.hariIni
+  if (approvedLeave?.has(tanggal)) return STATUS_COLORS['leave_' + approvedLeave.get(tanggal)] || STATUS_COLORS.izin
   if (!dayData) return STATUS_COLORS.tidakHadir
   if (isAdmin) {
     if (hasAttended(dayData)) return STATUS_COLORS.hadir
@@ -75,11 +82,12 @@ function getDayCellColor(tanggal: string, dayData: DayAttendanceData | undefined
   return STATUS_COLORS.tidakHadir
 }
 
-function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean, total?: number): string {
+function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, isAdmin?: boolean, total?: number, approvedLeave?: Map<string, string>): string {
   if (tanggal < APP_RELEASE_DATE) return ''
   if (tanggal > todayStr) return ''
   if (tanggal === todayStr && !hasAttendanceData(dayData)) return 'Hari Ini'
-  if (!dayData) return 'Alfa'
+  if (approvedLeave?.has(tanggal)) return pengajuanJenisLabel[approvedLeave.get(tanggal) as keyof typeof pengajuanJenisLabel] || 'Cuti'
+  if (!dayData) return absensiStatusLabel.tidakHadir
   if (isAdmin && total) {
     const parts: string[] = []
     if (dayData.hadir > 0) parts.push(`${dayData.hadir}H`)
@@ -89,19 +97,19 @@ function getDayLabel(tanggal: string, dayData: DayAttendanceData | undefined, is
     if (dayData.sakit > 0) parts.push(`${dayData.sakit}S`)
     if (dayData.cuti > 0) parts.push(`${dayData.cuti}C`)
     if (dayData.checkInOnly > 0) parts.push(`${dayData.checkInOnly}In`)
-    return parts.length > 0 ? parts.join(' ') : 'Alfa'
+    return parts.length > 0 ? parts.join(' ') : absensiStatusLabel.tidakHadir
   }
-  if (dayData.hadir > 0) return 'Hadir'
-  if (dayData.pulangCepat > 0) return 'Hadir'
-  if (dayData.terlambat > 0) return 'Hadir'
-  if (dayData.checkInOnly > 0) return 'Hadir'
-  if (dayData.izin > 0) return 'Izin'
-  if (dayData.sakit > 0) return 'Sakit'
-  if (dayData.cuti > 0) return 'Cuti'
-  return 'Alfa'
+  if (dayData.hadir > 0) return absensiStatusLabel.hadir
+  if (dayData.pulangCepat > 0) return absensiStatusLabel.hadir
+  if (dayData.terlambat > 0) return absensiStatusLabel.hadir
+  if (dayData.checkInOnly > 0) return absensiStatusLabel.hadir
+  if (dayData.izin > 0) return absensiStatusLabel.izin
+  if (dayData.sakit > 0) return absensiStatusLabel.sakit
+  if (dayData.cuti > 0) return absensiStatusLabel.cuti
+  return absensiStatusLabel.tidakHadir
 }
 
-export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClick }: Props) {
+export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClick, approvedLeave }: Props) {
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const firstDayOfWeek = new Date(year, month, 1).getDay()
 
@@ -118,45 +126,51 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
     return map
   }, [data])
 
+  const calendarCells = useMemo(() => {
+    let cellIdx = 0
+    return calendarDays.map(function(day) {
+      cellIdx++
+      if (!day) return <div key={`gap-${year}-${month}-${cellIdx}`} />
+      const tgl = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      const dayData = dataMap.get(tgl)
+      const today = new Date().toISOString().split('T')[0] === tgl
+      const isBeforeRelease = tgl < APP_RELEASE_DATE
+      const isFuture = tgl > todayStr
+      const isDisabled = isBeforeRelease || isFuture
+      const isAdmin = totalKaryawan !== undefined && totalKaryawan > 1
+
+      return (
+        <button
+          key={tgl}
+          type="button"
+          onClick={() => isDisabled ? null : onDayClick?.(tgl)}
+          className={cn(
+            'rounded-lg p-1.5 text-center transition-colors border border-transparent text-left',
+            isDisabled ? 'cursor-default' : 'cursor-pointer hover:border-primary/40',
+            today && 'ring-2 ring-primary/40',
+            getDayCellColor(tgl, dayData, isAdmin, approvedLeave),
+          )}
+        >
+          <p className={cn('text-sm font-medium', today && 'text-primary')}>{day}</p>
+          <p className="text-[10px] leading-tight mt-0.5 text-foreground/60">
+            {getDayLabel(tgl, dayData, isAdmin, totalKaryawan, approvedLeave)}
+          </p>
+        </button>
+      )
+    })
+  }, [calendarDays, year, month, dataMap, onDayClick, totalKaryawan, approvedLeave])
+
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-semibold text-base">{monthNames[month]} {year}</h3>
+        <h3 className="font-semibold text-base">{monthName(month)} {year}</h3>
       </div>
 
       <div className="grid grid-cols-7 gap-1">
         {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day) => (
           <div key={day} className="text-center text-[11px] font-semibold text-muted-foreground py-1">{day}</div>
         ))}
-        {calendarDays.map((day, i) => {
-          if (!day) return <div key={`ec-${year}-${month}-${i}`} />
-          const tgl = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-          const dayData = dataMap.get(tgl)
-          const today = new Date().toISOString().split('T')[0] === tgl
-          const isBeforeRelease = tgl < APP_RELEASE_DATE
-          const isFuture = tgl > todayStr
-          const isDisabled = isBeforeRelease || isFuture
-          const isAdmin = totalKaryawan !== undefined && totalKaryawan > 1
-
-          return (
-            <button
-              key={tgl}
-              type="button"
-              onClick={() => isDisabled ? null : onDayClick?.(tgl)}
-              className={cn(
-                'rounded-lg p-1.5 text-center transition-colors border border-transparent text-left',
-                isDisabled ? 'cursor-default' : 'cursor-pointer hover:border-primary/40',
-                today && 'ring-2 ring-primary/40',
-                getDayCellColor(tgl, dayData, isAdmin),
-              )}
-            >
-              <p className={cn('text-sm font-medium', today && 'text-primary')}>{day}</p>
-              <p className="text-[10px] leading-tight mt-0.5 text-foreground/60">
-                {getDayLabel(tgl, dayData, isAdmin, totalKaryawan)}
-              </p>
-            </button>
-          )
-        })}
+        {calendarCells}
       </div>
 
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">

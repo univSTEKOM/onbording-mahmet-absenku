@@ -28,7 +28,7 @@ async function syncSeedUsers() {
         const result = await auth.api.signUpEmail({
           body: {
             email: seed.email,
-            password: seed.password,
+            password: process.env.DEMO_PASSWORD || 'password',
             name: seed.nama,
             role: seed.role || 'karyawan',
             status: seed.status || 'approved',
@@ -46,23 +46,16 @@ async function syncSeedUsers() {
           router.db.get('pengajuan').filter({ userId: seed.id.toString() }).each((p) => { p.userId = newId }).value()
           router.db.get('pengajuan').filter({ userId: seed.id }).each((p) => { p.userId = newId }).value()
           router.db.write()
-        } else {
-          router.db.get('users').push({
-            id: newId, email: seed.email, password: seed.password,
-            nama: seed.nama, jabatan: seed.jabatan || '',
-            role: seed.role || 'karyawan', status: seed.status || 'approved',
-            rejectionNotes: [], foto: '', phone: seed.phone || '',
-            alamat: seed.alamat || '', createdAt: new Date().toISOString(),
-          }).write()
+          synced++
         }
-        synced++
-      } catch (e) { /* user already exists */ }
+      } catch (e) { /* user already exists — skip */ }
     }
-    console.log(`Sync: ${synced} seed users synced`)
+    console.log(`Sync: ${synced} users synced to auth`)
   } catch (e) { console.error('Sync error:', e.message) }
 }
 
 server.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+server.disable('etag')
 
 /* ── Rate limiting (manual body parsing — before Better Auth) ── */
 const loginAttempts = new Map()
@@ -79,26 +72,39 @@ server.post('/api/auth/sign-in/email', (req, res, next) => {
   req.on('end', () => {
     try {
       const parsed = JSON.parse(body)
-      const key = parsed.email?.toLowerCase()
-      if (!key) return next()
+      const emailKey = parsed.email?.toLowerCase()
+      const ipKey = req.ip + ':login'
+      if (!emailKey) return next()
       const now = Date.now()
-      const record = loginAttempts.get(key)
-      if (record && record.count >= MAX_ATTEMPTS) {
-        const elapsed = now - record.blockedAt
-        if (elapsed < record.duration) {
-          return res.status(429).json({ message: `Terlalu banyak percobaan. Coba lagi ${Math.ceil((record.duration - elapsed) / 1000)} detik lagi.` })
+
+      function isBlocked(k) {
+        const r = loginAttempts.get(k)
+        if (r && r.count >= MAX_ATTEMPTS) {
+          const elapsed = now - r.blockedAt
+          if (elapsed < r.duration) return r.duration - elapsed
+          loginAttempts.delete(k)
         }
-        loginAttempts.delete(key)
+        return 0
       }
+
+      var emailRemaining = isBlocked(emailKey)
+      var ipRemaining = isBlocked(ipKey)
+      var blockRemaining = Math.max(emailRemaining, ipRemaining)
+      if (blockRemaining > 0) {
+        return res.status(429).json({ message: `Terlalu banyak percobaan. Coba lagi ${Math.ceil(blockRemaining / 1000)} detik lagi.` })
+      }
+
+      function recordAttempt(k) {
+        let a = loginAttempts.get(k)
+        if (!a) { a = { count: 0 }; loginAttempts.set(k, a) }
+        a.count++
+        if (a.count >= MAX_ATTEMPTS) { a.blockedAt = now; a.duration = Math.min(BASE_BLOCK + (a.count - MAX_ATTEMPTS) * 15000, MAX_BLOCK) }
+      }
+
       const origJson = res.json.bind(res)
       res.json = function (data) {
-        if (data?.token || data?.user) { loginAttempts.delete(key) }
-        else {
-          let a = loginAttempts.get(key)
-          if (!a) { a = { count: 0 }; loginAttempts.set(key, a) }
-          a.count++
-          if (a.count >= MAX_ATTEMPTS) { a.blockedAt = now; a.duration = Math.min(BASE_BLOCK + (a.count - MAX_ATTEMPTS) * 15000, MAX_BLOCK) }
-        }
+        if (data?.token || data?.user) { loginAttempts.delete(emailKey); loginAttempts.delete(ipKey) }
+        else { recordAttempt(emailKey); recordAttempt(ipKey) }
         return origJson(data)
       }
       req.body = parsed; next()
@@ -137,7 +143,7 @@ async function requireAdmin(headers) {
 /* ── Custom routes ── */
 
 server.post('/api/register', async (req, res) => {
-  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown'
+  const ip = req.ip || 'unknown'
   const now = Date.now()
   const regRecord = registerAttempts.get(ip)
   if (regRecord && regRecord.count >= REGISTER_MAX && (now - regRecord.start) < REGISTER_WINDOW) {
@@ -155,12 +161,22 @@ server.post('/api/register', async (req, res) => {
 
     if (!email || !password || !nama) return res.status(400).json({ message: 'Email, password, dan nama harus diisi' })
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'Format email tidak valid' })
-    if (password.length < 8) return res.status(400).json({ message: 'Password minimal 8 karakter' })
+    const existingProfile = router.db.get('users').find({ email }).value()
+    if (existingProfile) return res.status(400).json({ message: 'Email sudah terdaftar. Gunakan email lain.' })
     if (nama.length > 100) return res.status(400).json({ message: 'Nama maksimal 100 karakter' })
     if (jabatan && jabatan.length > 100) return res.status(400).json({ message: 'Jabatan maksimal 100 karakter' })
 
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
     const isAdminAction = session?.user?.role === 'admin'
+
+    /* Admin dapat membuat user dengan password sederhana */
+    if (!isAdminAction) {
+      if (password.length < 8) return res.status(400).json({ message: 'Password minimal 8 karakter' })
+      if (!/[A-Z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kapital' })
+      if (!/[a-z]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung huruf kecil' })
+      if (!/[0-9]/.test(password)) return res.status(400).json({ message: 'Password harus mengandung angka' })
+    }
+
     const effectiveRole = isAdminAction ? role : 'karyawan'
     const effectiveStatus = isAdminAction ? 'approved' : 'pending'
 
@@ -169,8 +185,9 @@ server.post('/api/register', async (req, res) => {
       asResponse: true,
     })
     if (response.status !== 200) {
-      const err = await response.json()
-      return res.status(400).json({ message: err.message || 'Gagal mendaftar' })
+      const text = await response.text().catch(() => '')
+      const body = text ? JSON.parse(text) : {}
+      return res.status(400).json({ message: body?.message || 'Gagal mendaftar' })
     }
     const data = await response.json()
     const profile = {
@@ -185,7 +202,7 @@ server.post('/api/register', async (req, res) => {
     const rec = registerAttempts.get(ip)
     if (!rec) { registerAttempts.set(ip, { count: 1, start: Date.now() }) }
     else { rec.count++ }
-    res.status(400).json({ message: 'Gagal mendaftar' })
+    res.status(400).json({ message: e?.message || 'Gagal mendaftar' })
   }
 })
 
@@ -194,7 +211,7 @@ server.get('/api/me', async (req, res) => {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
     if (!session) return res.status(401).json({ message: 'Unauthorized' })
     const profile = router.db.get('users').find({ email: session.user.email }).value() || {}
-    res.json({ ...session, user: { ...session.user, ...profile } })
+    res.json({ ...session, user: { ...session.user, ...stripPassword(profile) } })
   } catch (e) {
     console.error('/api/me error:', e.message)
     res.status(500).json({ message: 'Gagal memuat profil' })
@@ -328,9 +345,15 @@ server.patch('/api/users/:id', async (req, res) => {
     if (body.alamat !== undefined && body.alamat && body.alamat.length > 500) return res.status(400).json({ message: 'Alamat maksimal 500 karakter' })
     if (body.foto !== undefined && body.foto && body.foto.length > 512000) return res.status(400).json({ message: 'Ukuran foto maksimal 500KB' })
     if (body.faceDescriptor !== undefined && body.faceDescriptor && body.faceDescriptor.length > 10240) return res.status(400).json({ message: 'Data wajah tidak valid' })
+    if (body.role !== undefined && !['admin', 'karyawan'].includes(body.role)) return res.status(400).json({ message: 'Role tidak valid' })
 
     const existing = router.db.get('users').find({ id: req.params.id }).value()
     if (!existing) return res.status(404).json({ message: 'User tidak ditemukan' })
+
+    /* Log role changes */
+    if (body.role !== undefined && body.role !== existing.role) {
+      console.log(`[admin] Role change: ${existing.email} ${existing.role} -> ${body.role}`)
+    }
 
     const updateFields = {}
     if (body.nama !== undefined) updateFields.nama = body.nama
@@ -338,7 +361,6 @@ server.patch('/api/users/:id', async (req, res) => {
     if (body.phone !== undefined) updateFields.phone = body.phone
     if (body.alamat !== undefined) updateFields.alamat = body.alamat
     if (body.role !== undefined) updateFields.role = body.role
-    if (body.email !== undefined) updateFields.email = body.email
     if (body.foto !== undefined) updateFields.foto = body.foto
     if (body.faceDescriptor !== undefined) updateFields.faceDescriptor = body.faceDescriptor
 
@@ -361,6 +383,7 @@ server.patch('/api/users/:id', async (req, res) => {
     res.json({ message: 'User berhasil diupdate' })
   } catch (e) {
     console.error('Admin update error:', e.message, e.stack)
+    console.error('Request body:', JSON.stringify(req.body))
     res.status(400).json({ message: 'Gagal update user' })
   }
 })
@@ -390,6 +413,8 @@ function normalizeDbFile() {
         checkIn: entry.checkIn || null,
         checkOut: entry.checkOut || null,
         status: entry.status || '',
+        mainCategory: entry.mainCategory || '',
+        subCategory: entry.subCategory || '',
         faceVerified: entry.faceVerified || false,
         photos: entry.photos || [],
         keterangan: entry.keterangan || '',
@@ -415,22 +440,32 @@ function normalizeDbFile() {
   } catch (e) { console.error('Normalize error:', e.message) }
 }
 
-server.post('/absensi', (req, res, next) => {
+server.post('/absensi', async (req, res, next) => {
   try {
     if (!req.body || !req.body.userId) {
       console.error('[absensi] Invalid body:', req.body)
       return res.status(400).json({ message: 'Data absensi tidak valid' })
     }
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+    if (!session) return res.status(401).json({ message: 'Unauthorized' })
+    if (session.user.role !== 'admin' && session.user.id !== req.body.userId) {
+      return res.status(403).json({ message: 'Anda hanya bisa absen untuk diri sendiri' })
+    }
     const t = nowTime(); const m = toMinutes(t)
     if (m < toMinutes(CHECK_IN_START)) return res.status(400).json({ message: `Absensi dibuka pukul ${CHECK_IN_START}.` })
     if (router.db.get('absensi').find({ userId: req.body.userId, tanggal: req.body.tanggal }).value()) return res.status(400).json({ message: 'Sudah absen hari ini' })
     const status = m <= toMinutes(CHECK_IN_END) ? 'hadir' : 'terlambat'
+    const STATUS_CAT = { hadir: { main: 'physical_present', sub: 'physical_standard' }, terlambat: { main: 'physical_present', sub: 'physical_violation' } }
+    const cat = STATUS_CAT[status] || { main: 'physical_present', sub: 'physical_standard' }
+    if (!STATUS_CAT[status]) console.warn('[absensi] Unknown status for category map:', status)
     req.body = {
       userId: req.body.userId,
       tanggal: req.body.tanggal,
       checkIn: req.body.checkIn || null,
       checkOut: null,
       status,
+      mainCategory: cat.main,
+      subCategory: cat.sub,
       faceVerified: req.body.faceVerified || false,
       photos: req.body.photos || [],
       keterangan: req.body.keterangan || '',
@@ -443,21 +478,29 @@ server.post('/absensi', (req, res, next) => {
   }
 })
 
-server.patch('/absensi/:id', (req, res, next) => {
+server.patch('/absensi/:id', async (req, res, next) => {
   try {
     if (!req.body || !req.params.id) {
       return res.status(400).json({ message: 'Data tidak valid' })
     }
     if (!req.body.checkOut) return next()
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+    if (!session) return res.status(401).json({ message: 'Unauthorized' })
     const existing = router.db.get('absensi').find({ id: Number(req.params.id) }).value()
     if (!existing) return res.status(404).json({ message: 'Absensi tidak ditemukan' })
+    if (session.user.role !== 'admin' && session.user.id !== existing.userId) {
+      return res.status(403).json({ message: 'Anda hanya bisa check-out untuk diri sendiri' })
+    }
     const status = toMinutes(nowTime()) < toMinutes(CHECK_OUT_MIN) ? 'pulang_cepat' : existing.status
+    const isPulangCepat = status === 'pulang_cepat'
     req.body = {
       userId: existing.userId,
       tanggal: existing.tanggal,
       checkIn: existing.checkIn,
       checkOut: req.body.checkOut,
       status: status || existing.status,
+      mainCategory: existing.mainCategory || 'physical_present',
+      subCategory: isPulangCepat ? 'physical_violation' : (existing.subCategory || 'physical_standard'),
       faceVerified: existing.faceVerified || false,
       photos: req.body.photos || existing.photos || [],
       keterangan: existing.keterangan || '',
@@ -540,10 +583,15 @@ server.patch('/pengajuan/:id', (req, res, next) => {
   next()
 })
 
-server.delete('/pengajuan/:id', (req, res) => {
+server.delete('/pengajuan/:id', async (req, res) => {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
+  if (!session) return res.status(401).json({ message: 'Unauthorized' })
   const r = router.db.get('pengajuan').find({ id: Number(req.params.id) }).value()
   if (!r) return res.status(404).json({ message: 'Pengajuan tidak ditemukan' })
   if (r.status !== 'pending') return res.status(400).json({ message: 'Hanya pending yang bisa dihapus' })
+  if (session.user.role !== 'admin' && session.user.id !== r.userId) {
+    return res.status(403).json({ message: 'Anda hanya bisa menghapus pengajuan sendiri' })
+  }
   router.db.get('pengajuan').remove({ id: Number(req.params.id) }).write()
   res.status(200).json({ message: 'Dihapus' })
 })
@@ -582,40 +630,55 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
   const ms = new Date(); ms.setDate(1); const msStr = ms.toISOString().split('T')[0]
 
   const dayOfWeek = today.getDay()
-  const monday = new Date(today)
-  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+  const weekStart = new Date(today)
+  weekStart.setDate(today.getDate() - 7)
 
   const pengajuan = router.db.get('pengajuan').value()
   const chart = []
   for (let i = 0; i < 7; i++) {
-    const d = new Date(monday); d.setDate(monday.getDate() + i)
+    const d = new Date(weekStart); d.setDate(weekStart.getDate() + i)
     const tgl = d.toISOString().split('T')[0]
     const da = a.filter((x) => x.tanggal === tgl)
     const dp = pengajuan.filter((x) => x.status === 'approved' && x.tanggalMulai <= tgl && x.tanggalSelesai >= tgl)
-    const hadir = da.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
+    const hadir = da.filter((x) => x.status === 'hadir').length
+    const pulangCepat = da.filter((x) => x.status === 'pulang_cepat').length
     const terlambat = da.filter((x) => x.status === 'terlambat').length
     const izin = da.filter((x) => x.status === 'izin').length + dp.filter((x) => x.jenis === 'izin').length
     const sakit = da.filter((x) => x.status === 'sakit').length + dp.filter((x) => x.jenis === 'sakit').length
     const cuti = da.filter((x) => x.status === 'cuti').length + dp.filter((x) => x.jenis === 'cuti').length
-    const totalAktif = hadir + terlambat
+    const totalAktif = hadir + pulangCepat + terlambat
+    /* Category-type counts */
+    var present = da.filter((x) => catType(x) === 'present').length
+    var absentPermit = da.filter((x) => catType(x) === 'absent_permit').length + dp.filter((x) => x.jenis === 'izin').length
+    var tidakHadir = Math.max(0, k.length - hadir - pulangCepat - terlambat - izin - sakit - cuti)
+    var absentUnpermit = tidakHadir
     chart.push({
       name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
       hadir,
+      pulangCepat,
       terlambat,
       izin,
       sakit,
       cuti,
-      tidakHadir: Math.max(0, k.length - hadir - terlambat - izin - sakit - cuti),
+      tidakHadir,
+      present,
+      absentPermit,
+      absentUnpermit,
       persen: Math.round(totalAktif / (k.length || 1) * 100),
     })
   }
 
-  const ta = a.filter((x) => x.tanggal === todayStr)
-  const hadirHariIni = ta.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
-  const terlambatHariIni = ta.filter((x) => x.status === 'terlambat').length
-  const izinHariIni = ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
-  const sudahAbsen = ta.filter((x) => x.checkIn).length
-  const weekAvg = chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0
+  var ta = a.filter((x) => x.tanggal === todayStr)
+  var hadirHariIni = ta.filter((x) => ['hadir', 'pulang_cepat'].includes(x.status)).length
+  var terlambatHariIni = ta.filter((x) => x.status === 'terlambat').length
+  var izinHariIni = ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
+  var sudahAbsen = ta.filter((x) => x.checkIn).length
+  var alfaHariIni = Math.max(0, k.length - hadirHariIni - terlambatHariIni - izinHariIni)
+  var weekAvg = chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0
+  var totalThisMonth = a.filter((x) => x.tanggal >= msStr).length
+  var presentMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'present').length
+  var permitMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'absent_permit').length
+  var unpermitMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'absent_unpermit').length
 
   res.json({
     chart,
@@ -624,15 +687,32 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
       hadirHariIni,
       terlambatHariIni,
       izinHariIni,
+      alfaHariIni,
       belumAbsen: k.length - sudahAbsen,
-      totalAbsensiBulanIni: a.filter((x) => x.tanggal >= msStr).length,
+      totalAbsensiBulanIni: totalThisMonth,
       weekAvg,
-      bestDay: chart.length ? chart.reduce((a, b) => a.persen > b.persen ? a : b) : null,
+      bestDay: chart.length ? chart.reduce(function(a, b) { return a.persen > b.persen ? a : b }) : null,
+      /* Category-based stats */
+      presentMonth,
+      permitMonth,
+      unpermitMonth,
     },
   })
 })
 
 const APP_RELEASE_DATE = process.env.APP_RELEASE_DATE || '2026-07-13'
+
+/* ── Category type helper ── */
+function catType(record) {
+  var m = record.mainCategory || ''
+  if (m === 'physical_present') return 'present'
+  if (m === 'absent_permit') return 'absent_permit'
+  if (m === 'absent_unpermit') return 'absent_unpermit'
+  var s = record.status || ''
+  if (['hadir', 'terlambat', 'pulang_cepat'].includes(s)) return 'present'
+  if (['izin', 'sakit', 'cuti'].includes(s)) return 'absent_permit'
+  return 'absent_unpermit'
+}
 
 server.get('/api/dashboard/month', async (req, res) => {
   const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) })
@@ -640,7 +720,7 @@ server.get('/api/dashboard/month', async (req, res) => {
 
   const requestUserId = req.query.userId || null
   const isAdmin = session.user.role === 'admin'
-  const effectiveUserId = requestUserId && isAdmin ? requestUserId : session.user.id
+  const effectiveUserId = requestUserId || (!isAdmin ? session.user.id : null)
 
   const tahun = parseInt(req.query.tahun) || new Date().getFullYear()
   const bulan = parseInt(req.query.bulan) || (new Date().getMonth() + 1)
@@ -675,6 +755,10 @@ server.get('/api/dashboard/month', async (req, res) => {
     const sakit = dayAbsensi.filter((x) => x.status === 'sakit').length + dayPengajuan.filter((x) => x.jenis === 'sakit').length
     const cuti = dayAbsensi.filter((x) => x.status === 'cuti').length + dayPengajuan.filter((x) => x.jenis === 'cuti').length
     const totalLain = izin + sakit + cuti
+    var present = dayAbsensi.filter(function(x) { return catType(x) === 'present' }).length
+    var absentPermit = dayAbsensi.filter(function(x) { return catType(x) === 'absent_permit' }).length + dayPengajuan.filter(function(x) { return x.jenis === 'izin' }).length
+    var tidakHadir = Math.max(0, total - hadir - pulangCepat - terlambat - checkInOnly - totalLain)
+    var absentUnpermit = tidakHadir
     data.push({
       tanggal: tgl,
       hadir,
@@ -684,7 +768,10 @@ server.get('/api/dashboard/month', async (req, res) => {
       izin,
       sakit,
       cuti,
-      tidakHadir: Math.max(0, total - hadir - pulangCepat - terlambat - checkInOnly - totalLain),
+      tidakHadir,
+      present,
+      absentPermit,
+      absentUnpermit,
     })
   }
 
@@ -694,9 +781,10 @@ server.get('/api/dashboard/month', async (req, res) => {
 server.get('/api/absensi/search', async (req, res) => {
   try {
     const query = (req.query.q || '').toLowerCase()
-    const statusFilter = req.query.status || ''
-    const tanggalGte = req.query.tanggal_gte || ''
-    const tanggalLte = req.query.tanggal_lte || ''
+    var rawStatus = req.query.status
+    var statusFilter = Array.isArray(rawStatus) && rawStatus.length === 0 ? '' : (rawStatus || '')
+    var tanggalGte = req.query.tanggal_gte || ''
+    var tanggalLte = req.query.tanggal_lte || ''
     const page = parseInt(req.query._page) || 1
     const limit = parseInt(req.query._limit) || 15
 
@@ -724,6 +812,18 @@ server.get('/api/absensi/search', async (req, res) => {
     if (statusFilter) {
       var statuses = Array.isArray(req.query.status) ? req.query.status : [statusFilter]
       allAbsensi = allAbsensi.filter(function(a) { return statuses.includes(a.status) })
+    }
+
+    /* Filter by mainCategory */
+    if (req.query.mainCategory) {
+      var mainCats = Array.isArray(req.query.mainCategory) ? req.query.mainCategory : [req.query.mainCategory]
+      allAbsensi = allAbsensi.filter(function(a) { return mainCats.includes(a.mainCategory) })
+    }
+
+    /* Filter by subCategory */
+    if (req.query.subCategory) {
+      var subCats = Array.isArray(req.query.subCategory) ? req.query.subCategory : [req.query.subCategory]
+      allAbsensi = allAbsensi.filter(function(a) { return subCats.includes(a.subCategory) })
     }
 
     /* Sort by tanggal descending */

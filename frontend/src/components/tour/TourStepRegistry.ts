@@ -5,7 +5,7 @@ export const karyawanSteps: TourStepDef[] = [
     id: 'welcome',
     type: 'welcome',
     title: 'Selamat datang di AbsenKu',
-    description: 'Kami akan memandu kamu — kurang dari satu menit.',
+    description: 'Kami akan memandu kamu mengenal fitur-fitur AbsenKu — kurang dari satu menit.',
     icon: 'Sparkles',
   },
   {
@@ -13,7 +13,7 @@ export const karyawanSteps: TourStepDef[] = [
     type: 'spotlight',
     targetSelector: '[data-slot="sidebar-container"]',
     title: 'Navigasi Utama',
-    description: 'Ini navigasi utama kamu. Akses absensi, riwayat, pengajuan, dan profil kapan pun.',
+    description: 'Navigasi utama kamu. Akses dashboard, absensi, riwayat, pengajuan, dan profil dari sini.',
     icon: 'Menu',
     position: 'right',
   },
@@ -22,7 +22,7 @@ export const karyawanSteps: TourStepDef[] = [
     type: 'spotlight',
     targetSelector: '[data-slot="summary-cards"]',
     title: 'Ringkasan Dashboard',
-    description: 'Lihat status absensi hari ini, jam kerja, dan jatah cuti — semua di satu tempat.',
+    description: 'Lihat status absensi hari ini, progress check-in/out, dan statistik bulanan — semua di satu tempat.',
     icon: 'LayoutDashboard',
     position: 'bottom',
     route: '/dashboard',
@@ -36,6 +36,16 @@ export const karyawanSteps: TourStepDef[] = [
     icon: 'Fingerprint',
     position: 'right',
     route: '/dashboard',
+  },
+  {
+    id: 'absensi-page',
+    type: 'spotlight',
+    targetSelector: '[data-slot="absensi-progress"]',
+    title: 'Halaman Absensi',
+    description: 'Lakukan check-in/check-out, lihat progress, dan verifikasi wajah untuk merekam kehadiran.',
+    icon: 'LogIn',
+    position: 'bottom',
+    route: '/absensi',
   },
   {
     id: 'history-nav',
@@ -79,7 +89,7 @@ const adminExtraSteps: TourStepDef[] = [
     type: 'spotlight',
     targetSelector: '[data-slot="admin-chart"]',
     title: 'Dashboard Admin',
-    description: 'Pantau kehadiran seluruh tim, lihat tren, dan kelola data karyawan.',
+    description: 'Pantau kehadiran seluruh tim, lihat tren mingguan, pie chart bulanan, dan ringkasan statistik.',
     icon: 'BarChart3',
     position: 'bottom',
     route: '/admin/dashboard',
@@ -92,6 +102,17 @@ const adminExtraSteps: TourStepDef[] = [
     description: 'Setujui atau tolak pendaftaran karyawan baru dengan cepat.',
     icon: 'UserCheck',
     position: 'right',
+    requiresSidebar: true,
+  },
+  {
+    id: 'admin-history',
+    type: 'spotlight',
+    targetSelector: '[data-slot="nav-riwayat"]',
+    title: 'Riwayat Seluruh Karyawan',
+    description: 'Lihat dan filter riwayat absensi semua karyawan. Dilengkapi search, filter status, dan ekspor CSV.',
+    icon: 'History',
+    position: 'right',
+    requiresSidebar: true,
   },
 ]
 
@@ -99,11 +120,10 @@ export const adminSteps: TourStepDef[] = [
   karyawanSteps[0], // welcome
   karyawanSteps[1], // sidebar
   adminExtraSteps[0], // admin-dashboard
-  karyawanSteps[4], // history-nav
+  adminExtraSteps[2], // admin-history (khusus admin)
   adminExtraSteps[1], // admin-verification
-  karyawanSteps[5], // leave-nav
-  karyawanSteps[6], // profile-nav
-  karyawanSteps[7], // completion
+  karyawanSteps[7], // profile-nav
+  karyawanSteps[8], // completion
 ]
 
 export const verificationSteps: TourStepDef[] = [

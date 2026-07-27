@@ -10,11 +10,15 @@ export interface RecentAbsensiItem {
 export interface AdminWeekChartItem {
   name: string
   hadir: number
+  pulangCepat: number
   terlambat: number
   izin: number
   sakit: number
   cuti: number
   tidakHadir: number
+  present: number
+  absentPermit: number
+  absentUnpermit: number
   persen: number
 }
 
@@ -27,6 +31,9 @@ export interface AdminWeekSummary {
   totalAbsensiBulanIni: number
   weekAvg: number
   bestDay: { name: string; persen: number } | null
+  presentMonth: number
+  permitMonth: number
+  unpermitMonth: number
 }
 
 export interface AdminWeekData {
@@ -54,6 +61,9 @@ export interface DayAttendanceData {
   sakit: number
   cuti: number
   tidakHadir: number
+  present?: number
+  absentPermit?: number
+  absentUnpermit?: number
 }
 
 export interface MonthAttendanceData {

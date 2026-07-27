@@ -9,6 +9,7 @@ import { Pagination } from '@/components/shared/Pagination'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { PengajuanCard } from '@/components/pengajuan/PengajuanCard'
 import { PengajuanDetailDialog } from '@/components/pengajuan/PengajuanDetailDialog'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { PlusCircle, RefreshCw, FileText, X } from 'lucide-react'
 import type { Pengajuan } from '@/types'
 
@@ -29,13 +30,13 @@ export default function PengajuanListPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
   const [detailTarget, setDetailTarget] = useState<Pengajuan | null>(null)
 
-  var total = pengajuan?.length || 0
-  var pending = pengajuan?.filter(function(p) { return p.status === 'pending' }).length || 0
-  var approved = pengajuan?.filter(function(p) { return p.status === 'approved' }).length || 0
-  var totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
-  var paginated = pengajuan?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE) || []
+  const total = pengajuan?.length || 0
+  const pending = pengajuan?.filter(function(p) { return p.status === 'pending' }).length || 0
+  const approved = pengajuan?.filter(function(p) { return p.status === 'approved' }).length || 0
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE))
+  const paginated = pengajuan?.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE) || []
 
-  var hasActiveFilter = filterJenis || filterStatus
+  const hasActiveFilter = filterJenis || filterStatus
 
   function clearFilters() {
     setFilterJenis('')
@@ -43,13 +44,13 @@ export default function PengajuanListPage() {
     setPage(1)
   }
 
-  var jenisOptions = [
+  const jenisOptions = [
     { value: 'cuti', label: 'Cuti' },
     { value: 'izin', label: 'Izin' },
     { value: 'sakit', label: 'Sakit' },
   ]
 
-  var statusOptions = [
+  const statusOptions = [
     { value: 'pending', label: 'Pending' },
     { value: 'approved', label: 'Disetujui' },
     { value: 'rejected', label: 'Ditolak' },
@@ -63,9 +64,14 @@ export default function PengajuanListPage() {
           <p className="text-xs md:text-sm text-muted-foreground">Izin & cuti karyawan</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
-            <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+                <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+          </Tooltip>
           <Button className="gap-2" onClick={function() { navigate({ to: '/pengajuan/baru' }) }}>
             <PlusCircle className="h-4 w-4" /> Ajukan
           </Button>
@@ -78,7 +84,7 @@ export default function PengajuanListPage() {
           { label: 'Pending', value: pending, icon: FileText, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
           { label: 'Disetujui', value: approved, icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
         ].map(function(stat) {
-          var Icon = stat.icon
+          const Icon = stat.icon
           return (
             <Card key={stat.label}>
               <CardContent className="py-3 px-3 md:py-4 md:px-4 flex items-center gap-3">
@@ -141,7 +147,7 @@ export default function PengajuanListPage() {
             onClick={clearFilters}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
           >
-            Hapus filter ({filtered.length})
+            Hapus filter ({total})
           </button>
         )}
       </div>
@@ -161,7 +167,7 @@ export default function PengajuanListPage() {
                 pengajuan={p}
                 variant="karyawan"
                 onEdit={function(id) {
-                  var target = pengajuan?.find(function(x) { return x.id === id })
+                  const target = pengajuan?.find(function(x) { return x.id === id })
                   if (target) navigate({ to: '/pengajuan/baru', state: { edit: target } })
                 }}
                 onDelete={function(id) { setDeleteConfirmId(id) }}

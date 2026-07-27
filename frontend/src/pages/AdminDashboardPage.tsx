@@ -3,62 +3,59 @@ import { useNavigate } from '@tanstack/react-router'
 import { useAdminWeek, useMonthAttendance } from '@/hooks/useDashboard'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CalendarCard } from '@/components/CalendarCard'
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
-import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
+import { Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
 import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
-import { absensiChartConfig, pieDataItem } from '@/lib/chart-config'
+import { attendanceCategoryConfig, pieDataItem } from '@/lib/chart-config'
 import api from '@/api/axios'
 import type { User } from '@/types'
 
-var today = new Date()
-var currentMonth = today.getMonth()
-var currentYear = today.getFullYear()
+const today = new Date()
+const weekStart = new Date(today)
+weekStart.setDate(today.getDate() - 7)
+const currentMonth = today.getMonth()
+const currentYear = today.getFullYear()
 
-var pieId = 'pie-kehadiran'
-
-var monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+const pieId = 'pie-kehadiran'
 
 export default function AdminDashboardPage() {
-  var navigate = useNavigate()
-  var { data: adminData, isLoading, refetch, isFetching } = useAdminWeek()
-  var { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
-  var { data: pendingUsers } = useQuery({
+  const navigate = useNavigate()
+  const { data: adminData, isLoading } = useAdminWeek()
+  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
+  const { data: pendingUsers } = useQuery({
     queryKey: ['users', 'pending'],
     queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data as User[] }) },
   })
 
-  var s = adminData?.summary
-  var chart = adminData?.chart || []
-  var pendingCount = pendingUsers?.length || 0
-  var totalKaryawan = s?.totalKaryawan || 0
-  var [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const s = adminData?.summary
+  const chart = adminData?.chart || []
+  const pendingCount = pendingUsers?.length || 0
+  const totalKaryawan = s?.totalKaryawan || 0
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  var donutData = useMemo(function() {
+  const donutData = useMemo(function() {
     if (!monthData?.data) return []
-    var hadirTotal = monthData.data.reduce(function(sum, d) { return sum + (d.hadir || 0) }, 0)
-    var terlambatTotal = monthData.data.reduce(function(sum, d) { return sum + (d.terlambat || 0) }, 0)
-    var izinTotal = monthData.data.reduce(function(sum, d) { return sum + (d.izin || 0) }, 0)
-    var sakitTotal = monthData.data.reduce(function(sum, d) { return sum + (d.sakit || 0) }, 0)
-    var cutiTotal = monthData.data.reduce(function(sum, d) { return sum + (d.cuti || 0) }, 0)
-    var alfaTotal = monthData.data.reduce(function(sum, d) { return sum + (d.tidakHadir || 0) }, 0)
+    const hadirTotal = monthData.data.reduce(function(sum, d) { return sum + (d.hadir || 0) }, 0)
+    const pulangCepatTotal = monthData.data.reduce(function(sum, d) { return sum + (d.pulangCepat || 0) }, 0)
+    const terlambatTotal = monthData.data.reduce(function(sum, d) { return sum + (d.terlambat || 0) }, 0)
+    const izinTotal = monthData.data.reduce(function(sum, d) { return sum + (d.izin || 0) }, 0)
+    const sakitTotal = monthData.data.reduce(function(sum, d) { return sum + (d.sakit || 0) }, 0)
+    const cutiTotal = monthData.data.reduce(function(sum, d) { return sum + (d.cuti || 0) }, 0)
+    const tidakHadirTotal = monthData.data.reduce(function(sum, d) { return sum + (d.tidakHadir || 0) }, 0)
     return [
-      pieDataItem('hadir', hadirTotal),
-      pieDataItem('terlambat', terlambatTotal),
-      pieDataItem('izin', izinTotal),
-      pieDataItem('sakit', sakitTotal),
-      pieDataItem('cuti', cutiTotal),
-      pieDataItem('tidakHadir', alfaTotal),
+      pieDataItem('present', hadirTotal + pulangCepatTotal + terlambatTotal),
+      pieDataItem('absentPermit', izinTotal + sakitTotal + cutiTotal),
+      pieDataItem('absentUnpermit', tidakHadirTotal),
     ]
   }, [monthData])
 
-  var totalAbsen = donutData.reduce(function(s, d) { return s + d.value }, 0)
-  var hadirVal = donutData[0]?.value ?? 0
-  var hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
+  const totalAbsen = donutData.reduce(function(s, d) { return s + d.value }, 0)
+  const hadirVal = donutData[0]?.value || 0
+  const hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
 
-  var statsData = [
+  const statsData = [
     {
       label: 'Total Karyawan',
       value: isLoading ? '-' : String(totalKaryawan),
@@ -76,12 +73,13 @@ export default function AdminDashboardPage() {
       iconBg: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
     },
     {
-      label: 'Terlambat',
-      value: isLoading ? '-' : String(s?.terlambatHariIni || 0),
+      label: 'Alfa Hari Ini',
+      value: isLoading ? '-' : String(s?.alfaHariIni || 0),
+      subtitle: s?.alfaHariIni !== undefined ? 'dari ' + totalKaryawan + ' (' + (totalKaryawan > 0 ? Math.round((s.alfaHariIni / totalKaryawan) * 100) : 0) + '%)' : null,
       icon: AlertTriangle,
-      accent: 'border-t-amber-500',
-      iconBg: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
-      link: s?.terlambatHariIni && s.terlambatHariIni > 0 ? { text: 'Lihat detail', to: '/admin/riwayat' } : null,
+      accent: 'border-t-red-500',
+      iconBg: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+      link: s?.alfaHariIni && s.alfaHariIni > 0 ? { text: 'Lihat detail', to: '/admin/riwayat' } : null,
     },
     {
       label: 'Verifikasi',
@@ -103,14 +101,11 @@ export default function AdminDashboardPage() {
             {today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <Button variant="outline" size="icon" onClick={function() { refetch() }} disabled={isFetching}>
-          <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
-        </Button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
         {statsData.map(function(stat) {
-          var Icon = stat.icon
+          const Icon = stat.icon
           return (
             <Card key={stat.label} className={'border-t-2 ' + stat.accent}>
               <CardContent className="p-3 md:p-4">
@@ -140,32 +135,33 @@ export default function AdminDashboardPage() {
         })}
       </div>
 
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
         <Card className="lg:col-span-2">
           <CardHeader className="px-4 md:px-5 pt-4 md:pt-5 pb-2">
             <CardTitle className="text-sm md:text-base">Tren Kehadiran 7 Hari</CardTitle>
             <CardDescription className="text-[11px] md:text-xs">
-              {new Date(today.getTime() - 6 * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+              {weekStart.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
               {' — '}
-              {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+              {new Date(today.getTime() - 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
             </CardDescription>
           </CardHeader>
           <CardContent className="px-4 md:px-5 pb-4 md:pb-5">
             <WeekAttendanceChart
               data={chart}
-              config={absensiChartConfig}
-              legendOrder={['cuti', 'sakit', 'terlambat', 'izin', 'hadir', 'tidakHadir']}
+              config={attendanceCategoryConfig}
+              legendOrder={['present', 'absentPermit', 'absentUnpermit']}
               loading={isLoading}
             />
           </CardContent>
         </Card>
 
-        <Card className="flex flex-col">
+        <Card className="flex flex-col" data-slot="admin-chart">
           <CardHeader className="flex-row items-start space-y-0 pb-0 px-4 md:px-5 pt-4 md:pt-5">
             <div className="grid gap-0.5">
               <CardTitle className="text-sm md:text-base">Kehadiran Bulan Ini</CardTitle>
               <CardDescription className="text-[11px] md:text-xs">
-                {monthNames[currentMonth]} {currentYear}
+                {new Date(currentYear, currentMonth, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
               </CardDescription>
             </div>
           </CardHeader>
@@ -173,18 +169,20 @@ export default function AdminDashboardPage() {
             <AttendancePieChart
               id={pieId}
               data={donutData}
-              config={absensiChartConfig}
+              config={attendanceCategoryConfig}
               centerLabel={hadirPct + '%'}
-              centerSub="hadir"
+              centerSub="kehadiran"
               loading={monthLoading}
             />
-            <p className="text-[11px] text-muted-foreground text-center -mt-1">
-              {totalAbsen > 0 ? 'Total ' + totalAbsen + ' absensi tercatat' : 'Belum ada data'}
-            </p>
+            {!totalAbsen && (
+              <p className="text-[11px] text-muted-foreground text-center mt-1">Belum ada data</p>
+            )}
           </CardContent>
         </Card>
       </div>
 
+      {/* DISABLED — kalender. Aktifkan: ganti className="hidden" → className="" */}
+      <div className="hidden">
       <Card>
         <CardContent className="p-4 md:p-5">
           {monthData ? (
@@ -201,6 +199,7 @@ export default function AdminDashboardPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

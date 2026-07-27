@@ -19,71 +19,53 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, FileText, CalendarDays, Clock, CheckCircle2, ChevronsUpDown } from 'lucide-react'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
+import { formatJam, hitungJam, formatTanggal } from '@/lib/utils'
 import type { User, Pengajuan } from '@/types'
 
-var ITEMS_PER_PAGE = 8
-
-function durasiJam(checkIn: string | null, checkOut: string | null) {
-  if (!checkIn) return '-'
-  var masuk = new Date(checkIn).getTime()
-  var keluar = checkOut ? new Date(checkOut).getTime() : Date.now()
-  var ms = keluar - masuk
-  var jam = Math.floor(ms / (1000 * 60 * 60))
-  var menit = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
-  return jam + 'j ' + menit + 'm'
-}
-
-function formatWaktu(date: string | null) {
-  if (!date) return '-'
-  return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-}
-
-function formatTanggal(date: string) {
-  return new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-}
+const ITEMS_PER_PAGE = 8
 
 export default function AdminDetailKaryawanPage() {
-  var navigate = useNavigate()
-  var location = useLocation()
-  var stateUser = (location.state as { user?: User })?.user
-  var user = stateUser || null
+  const navigate = useNavigate()
+  const location = useLocation()
+  const stateUser = (location.state as { user?: User })?.user
+  const user = stateUser || null
 
-  var now = new Date()
-  var curYear = now.getFullYear()
-  var curMonth = now.getMonth() + 1
-  var [page, setPage] = useState(1)
-  var [pengajuanDetail, setPengajuanDetail] = useState<Pengajuan | null>(null)
-  var [detailDate, setDetailDate] = useState<string | null>(null)
+  const now = new Date()
+  const curYear = now.getFullYear()
+  const curMonth = now.getMonth()
+  const [page, setPage] = useState(1)
+  const [pengajuanDetail, setPengajuanDetail] = useState<Pengajuan | null>(null)
+  const [detailDate, setDetailDate] = useState<string | null>(null)
 
-  var { data: monthData, isLoading: monthLoading } = useMonthAttendance(curYear, curMonth, user?.id)
-  var { data: absensiData, isLoading: absensiLoading } = useAbsensiListPaginated({
+  const { data: monthData, isLoading: monthLoading } = useMonthAttendance(curYear, curMonth + 1, user?.id)
+  const { data: absensiData, isLoading: absensiLoading } = useAbsensiListPaginated({
     userId: user?.id,
     _sort: 'tanggal',
     _order: 'desc',
     _page: page,
     _limit: ITEMS_PER_PAGE,
   })
-  var { data: allPengajuan } = useAllPengajuan()
-  var { data: dayDetail } = useAbsensiList(
+  const { data: allPengajuan } = useAllPengajuan()
+  const { data: dayDetail } = useAbsensiList(
     detailDate ? { userId: user?.id, tanggal: detailDate } : undefined,
   )
 
-  var dayPengajuan = detailDate && allPengajuan
+  const dayPengajuan = detailDate && allPengajuan
     ? allPengajuan.find(function(p) {
         return p.status === 'approved' && p.userId === user?.id && p.tanggalMulai <= detailDate && p.tanggalSelesai >= detailDate
       })
     : null
 
-  var userPengajuan = useMemo(function() {
+  const userPengajuan = useMemo(function() {
     return allPengajuan?.filter(function(p) { return p.userId === user?.id }) || []
   }, [allPengajuan, user?.id])
 
-  var hadirMonth = monthData?.data?.filter(function(d) { return d.hadir > 0 }).length || 0
-  var pulangCepatMonth = monthData?.data?.filter(function(d) { return d.pulangCepat > 0 }).length || 0
-  var terlambatMonth = monthData?.data?.filter(function(d) { return d.terlambat > 0 }).length || 0
-  var izinMonth = monthData?.data?.filter(function(d) { return d.izin > 0 || d.sakit > 0 || d.cuti > 0 }).length || 0
+  const hadirMonth = monthData?.data?.filter(function(d) { return d.hadir > 0 }).length || 0
+  const pulangCepatMonth = monthData?.data?.filter(function(d) { return d.pulangCepat > 0 }).length || 0
+  const terlambatMonth = monthData?.data?.filter(function(d) { return d.terlambat > 0 }).length || 0
+  const izinMonth = monthData?.data?.filter(function(d) { return d.izin > 0 || d.sakit > 0 || d.cuti > 0 }).length || 0
 
-  var isKaryawan = user?.role === 'karyawan'
+  const isKaryawan = user?.role === 'karyawan'
 
   if (!user) {
     return (
@@ -113,7 +95,7 @@ export default function AdminDetailKaryawanPage() {
               { label: 'Terlambat', value: terlambatMonth, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
               { label: 'Izin / Sakit', value: izinMonth, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
             ].map(function(stat) {
-              var Icon = stat.icon
+              const Icon = stat.icon
               return (
                 <Card key={stat.label} className="shrink-0 w-[130px] md:w-[150px]">
                   <CardContent className="p-3 md:p-4">
@@ -172,9 +154,9 @@ export default function AdminDetailKaryawanPage() {
                           return (
                             <TableRow key={a.id} className="hover:bg-muted/30 transition-colors">
                               <TableCell className="font-medium whitespace-nowrap">{formatTanggal(a.tanggal)}</TableCell>
-                              <TableCell className="whitespace-nowrap">{formatWaktu(a.checkIn)}</TableCell>
-                              <TableCell className="whitespace-nowrap">{formatWaktu(a.checkOut)}</TableCell>
-                              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{durasiJam(a.checkIn, a.checkOut)}</TableCell>
+                              <TableCell className="whitespace-nowrap">{formatJam(a.checkIn)}</TableCell>
+                              <TableCell className="whitespace-nowrap">{formatJam(a.checkOut)}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{hitungJam(a.checkIn, a.checkOut)}</TableCell>
                               <TableCell>
                                 <Badge variant="secondary" className={absensiStatusBadge[a.status]}>{absensiStatusLabel[a.status]}</Badge>
                               </TableCell>

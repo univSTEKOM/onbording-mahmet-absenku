@@ -12,7 +12,9 @@ interface CalendarCardProps {
   onSelectedDateChange?: (tgl: string | null) => void
 }
 
-const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+function monthName(m: number): string {
+  return new Date(2024, m, 1).toLocaleDateString('id-ID', { month: 'long' })
+}
 
 export function CalendarCard({ year, month, data, totalKaryawan, selectedDate, onSelectedDateChange }: CalendarCardProps) {
   return (
@@ -21,7 +23,7 @@ export function CalendarCard({ year, month, data, totalKaryawan, selectedDate, o
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            Kalender Absensi — {monthNames[month]} {year}
+            Kalender Absensi — {monthName(month)} {year}
           </h3>
         </div>
 

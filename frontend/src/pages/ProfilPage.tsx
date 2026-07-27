@@ -10,7 +10,10 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { toast } from 'sonner'
+import { PhoneDisplay } from '@/components/shared/PhoneDisplay'
+import { validatePhone } from '@/lib/validation'
 import { Camera, Loader2, Save, Pencil, CheckCircle2 } from 'lucide-react'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { ImageCropperDialog } from '@/components/shared/ImageCropperDialog'
 import { ImageViewer } from '@/components/shared/ImageViewer'
 
@@ -38,12 +41,9 @@ export default function ProfilPage() {
     if (!form.nama.trim()) errs.nama = 'Nama harus diisi'
     else if (form.nama.length > MAX_NAMA_LENGTH) errs.nama = `Maksimal ${MAX_NAMA_LENGTH} karakter`
     if (!form.jabatan.trim()) errs.jabatan = 'Jabatan harus diisi'
-    else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = `Maksimal ${MAX_JABATAN_LENGTH} karakter`
-    if (form.phone) {
-      const digitsOnly = form.phone.replace(/\D/g, '')
-      if (digitsOnly.length < 10) errs.phone = 'Minimal 10 angka'
-      else if (digitsOnly.length > 15) errs.phone = 'Maksimal 15 angka'
-    }
+    else     if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = `Maksimal ${MAX_JABATAN_LENGTH} karakter`
+    const phoneErr = validatePhone(form.phone)
+    if (phoneErr) errs.phone = phoneErr
     if (form.alamat && form.alamat.length > MAX_ALAMAT_LENGTH) errs.alamat = `Maksimal ${MAX_ALAMAT_LENGTH} karakter`
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -113,10 +113,15 @@ export default function ProfilPage() {
                 <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
               </Avatar>
               {editing && (
-                <button type="button" className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow-sm"
-                  onClick={() => fileInputRef.current?.click()}>
-                  <Camera className="h-3.5 w-3.5" />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow-sm"
+                      onClick={() => fileInputRef.current?.click()}>
+                      <Camera className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom"><p>Ganti foto profil</p></TooltipContent>
+                </Tooltip>
               )}
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
             </div>
@@ -135,22 +140,23 @@ export default function ProfilPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Nama</Label>
-                  <Input value={form.nama} maxLength={MAX_NAMA_LENGTH} onChange={(e) => setForm({ ...form, nama: e.target.value })} className={errors.nama ? 'border-destructive' : ''} />
+                  <Label htmlFor="edit-nama">Nama</Label>
+                  <Input id="edit-nama" value={form.nama} maxLength={MAX_NAMA_LENGTH} onChange={(e) => setForm({ ...form, nama: e.target.value })} className={errors.nama ? 'border-destructive' : ''} />
                   {errors.nama && <p className="text-xs text-destructive">{errors.nama}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input value={form.email} disabled />
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input id="edit-email" value={form.email} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label>Jabatan</Label>
-                  <Input value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className={errors.jabatan ? 'border-destructive' : ''} />
+                  <Label htmlFor="edit-jabatan">Jabatan</Label>
+                  <Input id="edit-jabatan" value={form.jabatan} maxLength={MAX_JABATAN_LENGTH} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className={errors.jabatan ? 'border-destructive' : ''} />
                   {errors.jabatan && <p className="text-xs text-destructive">{errors.jabatan}</p>}
                 </div>
                 <div className="sm:col-span-2 space-y-2">
-                  <Label>Telepon</Label>
+                  <Label htmlFor="edit-phone">Telepon</Label>
                   <PhoneInput
+                    id="edit-phone"
                     value={form.phone}
                     onChange={(v) => { setForm({ ...form, phone: v }); setErrors((p) => ({ ...p, phone: '' })) }}
                     error={errors.phone}
@@ -159,8 +165,8 @@ export default function ProfilPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Alamat</Label>
-                <textarea className={`flex min-h-[60px] w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${errors.alamat ? 'border-destructive' : 'border-input'}`}
+                <Label htmlFor="edit-alamat">Alamat</Label>
+                <textarea id="edit-alamat" className={`flex min-h-[60px] w-full rounded-lg border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${errors.alamat ? 'border-destructive' : 'border-input'}`}
                   value={form.alamat} maxLength={MAX_ALAMAT_LENGTH} onChange={(e) => { setForm({ ...form, alamat: e.target.value }); setErrors((p) => ({ ...p, alamat: '' })) }} />
                 {errors.alamat && <p className="text-xs text-destructive">{errors.alamat}</p>}
               </div>
@@ -177,7 +183,6 @@ export default function ProfilPage() {
                 {[
                   { label: 'Email', value: user.email },
                   { label: 'Jabatan', value: user.jabatan },
-                  { label: 'Telepon', value: user.phone || '-' },
                   { label: 'Role', value: user.role },
                 ].map((item) => (
                   <div key={item.label}>
@@ -185,6 +190,10 @@ export default function ProfilPage() {
                     <p className="font-medium mt-0.5">{item.value}</p>
                   </div>
                 ))}
+                <div>
+                  <p className="text-muted-foreground text-xs">Telepon</p>
+                  <div className="font-medium mt-0.5">{user.phone ? <PhoneDisplay value={user.phone} /> : '-'}</div>
+                </div>
                 <div className="sm:col-span-2">
                   <p className="text-muted-foreground text-xs">Alamat</p>
                   <p className="font-medium mt-0.5">{user.alamat || '-'}</p>
@@ -200,7 +209,7 @@ export default function ProfilPage() {
               )}
 
               <Button onClick={() => setEditing(true)} className="w-full gap-2">
-                <Pencil className="h-4 w-4" /> Edit Profil
+                <Pencil className="h-4 w-4" /> Ubah Profil
               </Button>
             </div>
           )}

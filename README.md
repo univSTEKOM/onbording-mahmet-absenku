@@ -7,7 +7,8 @@ Aplikasi absensi karyawan dengan dua role (**Karyawan** & **Admin**). Meliputi c
 | Software | Minimal Versi |
 |----------|--------------|
 | [Node.js](https://nodejs.org/) | ≥ 18.x |
-| npm | ≥ 9.x (bawaan Node.js) |
+| [Bun](https://bun.sh/) | ≥ 1.x (untuk frontend) |
+| npm | ≥ 9.x (untuk mock-api) |
 | [Git](https://git-scm.com/) | — |
 
 ## 🚀 Quick Start
@@ -52,19 +53,19 @@ Stop-Process -Id <PID> -Force
 ```bash
 cd frontend
 
-# Install dependencies (bisa makan waktu 1-2 menit)
-npm install
+# Install dependencies
+bun install
 
 # Copy environment variables
 cp .env.example .env
 
 # Start development server
-npm run dev
+bun run dev
 ```
 
 > Frontend berjalan di **http://localhost:5173**
 
-**Catatan:** Proses pertama `npm run dev` akan meng-generate route tree secara otomatis oleh TanStack Router.
+**Catatan:** Proses pertama `bun run dev` akan meng-generate route tree secara otomatis oleh TanStack Router.
 
 ### 4. Buka Browser
 
@@ -96,10 +97,10 @@ Buka **http://localhost:5173** untuk mulai menggunakan aplikasi.
 
 | Script | Perintah | Deskripsi |
 |--------|----------|-----------|
-| Dev | `npm run dev` | Start Vite dev server + hot reload |
-| Build | `npm run build` | TypeScript check + build production |
-| Lint | `npm run lint` | Jalankan oxlint static analysis |
-| Preview | `npm run preview` | Preview production build lokal |
+| Dev | `bun run dev` | Start Vite dev server + hot reload |
+| Build | `bun run build` | TypeScript check + build production |
+| Lint | `bun run lint` | Jalankan oxlint static analysis |
+| Preview | `bun run preview` | Preview production build lokal |
 
 ### Mock API (`mock-api/`)
 
@@ -129,7 +130,7 @@ Hapus `routeTree.gen.ts` lalu restart Vite:
 ```bash
 cd frontend
 Remove-Item src/routeTree.gen.ts -Force
-npm run dev
+bun run dev
 ```
 
 TanStack Router plugin akan auto-generate ulang route tree.
@@ -140,7 +141,7 @@ Pastikan dependencies ter-install:
 
 ```bash
 cd frontend
-npm install
+bun install
 ```
 
 ### 4. Mock API error saat startup
@@ -197,20 +198,25 @@ on-boarding-trials/
 │       │   ├── pengguna/            # User profile components
 │       │   └── shared/              # Reusable shared components
 │       ├── hooks/                   # TanStack Query hooks
-│       ├── lib/                     # Utilities & constants
-│       ├── pages/                   # Page components
-│       ├── routes/                  # TanStack Router routes
+│       ├── lib/                     # Utilities, constants, chart config
+│       ├── pages/                   # Page components (16 pages)
+│       ├── routes/                  # TanStack Router routes + role guards
 │       └── types/                   # TypeScript interfaces
 ├── mock-api/                        # json-server + Express mock API
 │   ├── .env                         # Environment variables
 │   ├── .env.example                 # Template .env
 │   ├── package.json
-│   ├── server.js                    # Express server with custom routes
+│   ├── server.js                    # Express server with custom routes (20+ endpoints)
 │   ├── auth.js                      # better-auth configuration
 │   ├── db-schema.js                 # Drizzle ORM schema
 │   ├── seed.js                      # Database seeder
 │   └── db.json                      # JSON database
 ├── docs/                            # Project documentation
+│   ├── README.md                    # Dokumentasi utama
+│   ├── SETUP.md                     # Instalasi & konfigurasi
+│   ├── ARCHITECTURE.md              # Tech stack & arsitektur
+│   ├── API.md                       # API reference (semua endpoint)
+│   └── PRD.md                       # Product requirements
 └── README.md                        # File ini
 ```
 
@@ -225,6 +231,7 @@ on-boarding-trials/
 | Framework | React | 19.x |
 | Language | TypeScript | 6.x |
 | Bundler | Vite | 8.x |
+| Package Manager | Bun | 1.x |
 | Styling | Tailwind CSS | 4.x |
 | UI Components | shadcn/ui (+ Radix) | latest |
 | Routing | TanStack Router | 1.x |
@@ -232,6 +239,7 @@ on-boarding-trials/
 | HTTP Client | Axios | 1.x |
 | Authentication | better-auth (client) | 1.x |
 | Chart | Recharts | 3.x |
+| Excel Export | ExcelJS | 4.4.x |
 | Face Recognition | face-api.js | 0.x |
 | Crop Image | react-easy-crop | 6.x |
 | Icons | lucide-react | 1.x |
@@ -251,6 +259,18 @@ on-boarding-trials/
 
 ---
 
+## 📖 Dokumentasi Lengkap
+
+| Dokumen | Untuk | Isi |
+|---------|-------|-----|
+| [docs/README.md](docs/README.md) | Developer | Fitur, quick start, akun demo |
+| [docs/SETUP.md](docs/SETUP.md) | Developer | Instalasi detail, konfigurasi, troubleshooting |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Developer Senior | Tech stack, struktur, alur data, chart system |
+| [docs/API.md](docs/API.md) | Developer + Backend | Semua endpoint, request/response, validasi, TypeScript types |
+| [docs/PRD.md](docs/PRD.md) | Stakeholder | Visi produk, fitur, roadmap |
+
+---
+
 ## Catatan Teknis
 
 - **Base URL API** dikonfigurasi via `frontend/.env` → `VITE_API_URL`. Untuk integrasi dengan API asli, cukup ubah satu baris ini.
@@ -258,3 +278,5 @@ on-boarding-trials/
 - **Verifikasi wajah** menggunakan `tinyFaceDetector` dari face-api.js. Fitur ini opsional — ada tombol skip.
 - **Route tree** di-generate otomatis oleh `@tanstack/router-plugin` setiap kali Vite start.
 - **Database mock** menggunakan `db.json` yang di-load oleh json-server. Untuk reset data, jalankan `node seed.js`.
+- **Package manager frontend** adalah `bun` — lebih cepat dari npm. Gunakan `bun run dev` / `bun run lint`.
+- **Package manager mock-api** tetap `npm` — `bun` tidak kompatibel dengan `better-sqlite3` native binding.

@@ -14,7 +14,7 @@ import { LayoutDashboard, History, FileText, Users, ShieldCheck, UserCheck } fro
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/api/axios'
-import type { User } from '@/types'
+import type { User, Pengajuan } from '@/types'
 
 const karyawanItems = [
   { title: 'Dashboard', url: '/dashboard', icon: <LayoutDashboard /> },
@@ -47,7 +47,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const { data: pendingPengajuanCount = 0 } = useQuery({
     queryKey: ['pengajuan', 'pending', 'count'],
-    queryFn: () => api.get('/pengajuan?status=pending').then((r) => (r.data as any[]).length),
+    queryFn: () => api.get('/pengajuan?status=pending').then((r) => (r.data as Pengajuan[]).length),
     enabled: isAdmin,
   })
 
@@ -62,9 +62,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ...baseItems.slice(0, 1),
         { title: 'Verifikasi Karyawan', url: '/admin/verifikasi', icon: <UserCheck />, badge: pendingCount > 0 ? pendingCount : undefined },
         ...baseItems.slice(1).map((item) => {
-          const extended = { ...item }
-          if (item.title === 'Pengajuan' && pendingPengajuanCount > 0) extended.badge = pendingPengajuanCount
-          return extended
+          if (item.title === 'Pengajuan' && pendingPengajuanCount > 0) {
+            return Object.assign(Object.create(null), item, { badge: pendingPengajuanCount })
+          }
+          return item
         }),
       ]
     : baseItems

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { canCheckIn, canCheckOut, CHECK_IN_START, CHECK_IN_END, CHECK_OUT_MIN } from '@/lib/absensiRules'
+import { canCheckIn, canCheckOut, CHECK_IN_START, CHECK_OUT_MIN } from '@/lib/absensiRules'
 
 function setTime(hours: number, minutes: number) {
   const now = new Date()

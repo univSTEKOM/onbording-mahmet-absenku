@@ -18,33 +18,35 @@ export function PasswordInput({ id, name, value, onChange, error, placeholder, m
   const showMatch = matchValue !== undefined && value.length > 0
 
   return (
-    <div className="relative">
-      <Input
-        id={id}
-        name={name}
-        type={show ? 'text' : 'password'}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={cn(error ? 'border-destructive bg-background' : 'bg-background', 'pr-12')}
-        required
-      />
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-        {showMatch && (
-          <span className="pointer-events-none">
-            {value === matchValue ? (
-              <CheckCircle2 className="size-4 text-green-500" />
-            ) : (
-              <XCircle className="size-4 text-destructive" />
-            )}
+    <div>
+      <div className="relative">
+        <Input
+          id={id}
+          name={name}
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={cn(error ? 'border-destructive bg-background' : 'bg-background', 'pr-14')}
+          required
+        />
+        {showMatch && value === matchValue && (
+          <span className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none" title="Kata sandi cocok">
+            <CheckCircle2 className="size-4 text-green-500" />
+          </span>
+        )}
+        {showMatch && value !== matchValue && (
+          <span className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none" title="Kata sandi tidak cocok">
+            <XCircle className="size-4 text-destructive" />
           </span>
         )}
         <button
           type="button"
           tabIndex={-1}
           onClick={() => setShow(!show)}
-          className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
           aria-label={show ? 'Sembunyikan password' : 'Tampilkan password'}
+          title={show ? 'Sembunyikan password' : 'Tampilkan password'}
         >
           {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>

@@ -4,7 +4,10 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "seed": "node seed.js"
+    "dev": "nodemon server.js",
+    "seed": "node seed.js",
+    "db:seed": "node seed.js",
+    "db:reset:seed": "node reset-and-seed.js"
   },
   "dependencies": {
     "better-auth": "^1.6.23",
@@ -15,5 +18,8 @@
     "express": "^5.2.1",
     "json-server": "^0.17.4",
     "multer": "^2.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }
