@@ -16,7 +16,7 @@ Aplikasi absensi karyawan modern dengan dua peran: **Karyawan** dan **Admin**.
 | Pengajuan cuti, izin, sakit | ✅ | ✅ (approve/reject) |
 | Dashboard admin (tren, rekap, verifikasi) | — | ✅ |
 | Kelola & verifikasi karyawan | — | ✅ |
-| Ekspor data ke CSV | ✅ | ✅ |
+| Ekspor data ke XLSX | ✅ | ✅ |
 
 ---
 
@@ -30,8 +30,8 @@ node server.js          # → http://localhost:3001
 
 # 2. Setup frontend
 cd frontend
-npm install
-npm run dev             # → http://localhost:5173
+bun install
+bun run dev             # → http://localhost:5173
 ```
 
 ### Akun Demo

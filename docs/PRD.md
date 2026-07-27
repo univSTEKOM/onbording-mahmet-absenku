@@ -1,6 +1,6 @@
 # Product Requirements Document — AbsenKu
 
-**Versi:** 2.0 | **Status:** Development | **Updated:** 2026-07-25
+**Versi:** 2.1 | **Status:** Development | **Updated:** 2026-07-27
 
 ---
 
@@ -45,8 +45,9 @@ Sistem absensi karyawan modern yang mudah digunakan, aman, dan memberikan insigh
 | Lihat detail karyawan + riwayat absensi | P0 | ✅ |
 | Approve/reject pengajuan cuti/izin | P0 | ✅ |
 | Riwayat seluruh karyawan (filter + search) | P0 | ✅ |
-| Ekspor data ke CSV | P1 | ✅ |
+| Ekspor data XLSX (sementara dinonaktifkan) | P1 | ✅ |
 | Kategori kehadiran (fisik, izin, tanpa izin) | P1 | ✅ |
+| Logout confirm + reset tour | P1 | ✅ |
 
 ---
 
@@ -87,7 +88,7 @@ Karyawan: Ajukan → Pending → Admin Approve/Reject
 | **Type Safety** | TypeScript strict mode, zod validation |
 | **Performance** | TanStack Query caching, debounce filter (300-400ms) |
 | **Security** | Rate limiting login, session cookie, tidak ada password di response |
-| **Lint** | oxlint — **zero errors, zero warnings** |
+| **Lint** | oxlint — **zero errors** (beberapa warning non-kritis) |
 | **Tests** | 48 unit tests (vitest) |
 
 ---
@@ -115,8 +116,9 @@ Karyawan: Ajukan → Pending → Admin Approve/Reject
 | **Phase 3** | Pengajuan, Riwayat, Filter | ✅ |
 | **Phase 4** | Attendance Category System (main/sub category) | ✅ |
 | **Phase 5** | Security audit, tooltips, accessibility | ✅ |
-| **Phase 6** | Backend integration API | 📅 Next |
-| **Phase 7** | Real backend (non mock-api) | 📅 Future |
+| **Phase 6** | Export XLSX, logout confirm + tour reset | ✅ |
+| **Phase 7** | Backend integration API | 📅 Next |
+| **Phase 8** | Real backend (non mock-api) | 📅 Future |
 
 ---
 
