@@ -41,14 +41,12 @@ docker compose up -d
 ```bash
 # Terminal 1 — Backend (mock API)
 cd mock-api
-cp .env.example .env
 bun install
-bun run seed.js    # seeding database
+bun run seed.js
 bun run server.js  # http://localhost:3001
 
 # Terminal 2 — Frontend
 cd frontend
-cp .env.example .env
 bun install
 bun run dev        # http://localhost:5173
 ```
