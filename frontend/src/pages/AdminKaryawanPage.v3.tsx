@@ -22,8 +22,9 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Separator } from '@/components/ui/separator'
 import { KaryawanUserCard } from '@/components/shared/KaryawanUserCard'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { Search, PlusCircle, RefreshCw, Users } from 'lucide-react'
+import { Search, PlusCircle, RefreshCw, Users, Trash2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { toast } from 'sonner'
 
 export default function AdminKaryawanPageV3() {
   const navigate = useNavigate()
@@ -108,6 +109,8 @@ export default function AdminKaryawanPageV3() {
       setModalOpen(false)
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gagal menyimpan'
+      console.error('Save user error:', err)
+      toast.error(msg)
       setFormError(msg)
     } finally {
       setSaving(false)
@@ -292,19 +295,24 @@ export default function AdminKaryawanPageV3() {
             {editTarget && hasFaceData(editTarget.faceDescriptor) && (
               <>
                 <Separator />
-                <div className="flex items-center justify-between gap-4">
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium">Data Wajah</p>
-                    <p className="text-xs text-muted-foreground">Wajah terdaftar untuk verifikasi absensi</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="size-2 rounded-full bg-green-500" />
+                    <span className="text-green-600 dark:text-green-400 font-medium">Wajah terdaftar</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={function() { setResetFace(!resetFace) }}
-                    className={'relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ' + (resetFace ? 'bg-destructive' : 'bg-muted')}
-                    aria-label={resetFace ? 'Aktifkan hapus data wajah' : 'Nonaktifkan hapus data wajah'}
-                  >
-                    <span className={'inline-block size-5 rounded-full bg-white shadow-sm transition-transform ' + (resetFace ? 'translate-x-[22px]' : 'translate-x-[2px]')} />
-                  </button>
+                  <p className="text-xs text-muted-foreground">Data verifikasi wajah tersedia untuk absensi</p>
+                  {resetFace ? (
+                    <div className="flex items-center gap-2 p-2 rounded-md bg-destructive/10 border border-destructive/20">
+                      <p className="text-xs text-destructive flex-1">Data wajah akan dihapus saat menyimpan</p>
+                      <Button type="button" variant="outline" size="xs" onClick={function() { setResetFace(false) }}>
+                        Batal
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button type="button" variant="destructive" size="sm" className="gap-2" onClick={function() { setResetFace(true) }}>
+                      <Trash2 className="h-4 w-4" /> Hapus Data Wajah
+                    </Button>
+                  )}
                 </div>
               </>
             )}

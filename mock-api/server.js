@@ -378,6 +378,7 @@ server.patch('/api/users/:id', async (req, res) => {
     res.json({ message: 'User berhasil diupdate' })
   } catch (e) {
     console.error('Admin update error:', e.message, e.stack)
+    console.error('Request body:', JSON.stringify(req.body))
     res.status(400).json({ message: 'Gagal update user' })
   }
 })
