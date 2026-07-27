@@ -9,6 +9,7 @@ import { Pagination } from '@/components/shared/Pagination'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { PengajuanCard } from '@/components/pengajuan/PengajuanCard'
 import { PengajuanDetailDialog } from '@/components/pengajuan/PengajuanDetailDialog'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { PlusCircle, RefreshCw, FileText, X } from 'lucide-react'
 import type { Pengajuan } from '@/types'
 
@@ -63,9 +64,14 @@ export default function PengajuanListPage() {
           <p className="text-xs md:text-sm text-muted-foreground">Izin & cuti karyawan</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={function() { refetch() }} disabled={isFetching}>
-            <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+                <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+          </Tooltip>
           <Button className="gap-2" onClick={function() { navigate({ to: '/pengajuan/baru' }) }}>
             <PlusCircle className="h-4 w-4" /> Ajukan
           </Button>

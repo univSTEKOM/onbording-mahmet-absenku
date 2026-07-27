@@ -1,6 +1,7 @@
 import { memo, useRef, useState, useEffect } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { RoleBadge } from '@/components/shared/RoleBadge'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Pencil, Trash2, Briefcase, CalendarDays } from 'lucide-react'
 import type { User } from '@/types'
 
@@ -72,25 +73,33 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
       </div>
 
       <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-12">
-        <button
-          type="button"
-          aria-label="Edit"
-          title="Edit pengguna"
-          className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
-          onClick={function(e) { e.stopPropagation(); p.onEdit(u) }}
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              aria-label="Edit"
+              className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
+              onClick={function(e) { e.stopPropagation(); p.onEdit(u) }}
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom"><p>Edit pengguna</p></TooltipContent>
+        </Tooltip>
         {u.id !== p.currentUserId && (
-          <button
-            type="button"
-            aria-label="Hapus"
-            title="Hapus pengguna"
-            className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
-            onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Hapus"
+                className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
+                onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Hapus pengguna</p></TooltipContent>
+          </Tooltip>
         )}
       </div>
 

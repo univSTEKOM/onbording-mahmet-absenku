@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { RefreshCw } from 'lucide-react'
 
 export default function RiwayatPage() {
@@ -33,9 +34,14 @@ export default function RiwayatPage() {
           <h1 className="text-xl md:text-2xl font-bold tracking-tight">Riwayat Kehadiran</h1>
           <p className="text-xs md:text-sm text-muted-foreground">Kalender absensi Anda</p>
         </div>
-        <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" aria-label="Refresh" onClick={() => refetch()} disabled={isFetching}>
+              <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+        </Tooltip>
       </div>
 
       <Card>

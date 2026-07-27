@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CalendarCard } from '@/components/CalendarCard'
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
 import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
 import { absensiChartConfig, pieDataItem } from '@/lib/chart-config'
@@ -101,9 +102,14 @@ export default function AdminDashboardPage() {
             {today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={function() { refetch() }} disabled={isFetching}>
-          <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+              <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+        </Tooltip>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">

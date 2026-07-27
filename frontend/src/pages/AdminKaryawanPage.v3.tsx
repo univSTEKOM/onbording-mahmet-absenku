@@ -20,6 +20,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Separator } from '@/components/ui/separator'
 import { KaryawanUserCard } from '@/components/shared/KaryawanUserCard'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Search, PlusCircle, RefreshCw, Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -146,9 +147,14 @@ export default function AdminKaryawanPageV3() {
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={function() { refetch() }} disabled={isFetching}>
-            <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+                <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+          </Tooltip>
           <Button className="gap-2" onClick={openCreate}>
             <PlusCircle className="h-4 w-4" /> Tambah
           </Button>

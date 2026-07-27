@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { absensiStatusBadge, absensiStatusLabel, CATEGORY_LABEL } from '@/lib/constants'
 import { exportToCsv, formatCsvDate, formatCsvTime } from '@/lib/export'
 import { ImageViewer } from '@/components/shared/ImageViewer'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
 import type { Absensi } from '@/types'
 import { formatJam, hitungJam } from '@/lib/utils'
@@ -127,9 +128,14 @@ exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0]
           }}>
             <Download className="h-4 w-4" /> CSV
           </Button>
-          <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={function() { refetch() }} disabled={isFetching}>
-            <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+                <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -307,7 +313,14 @@ exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0]
                       </>
                     )}
                     {a.faceVerified && (
-                      <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" title="Wajah terverifikasi" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="pointer-events-none">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom"><p>Wajah terverifikasi</p></TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                 </div>

@@ -15,6 +15,7 @@ import { absensiStatusBadge, absensiStatusLabel, STATUS_COLORS_MAP } from '@/lib
 import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, ChevronsUpDown, LogIn, LogOut, CheckCircle2, Sun, Moon, Sunrise } from 'lucide-react'
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
 import { CardDescription } from '@/components/ui/card'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { absensiChartConfig, pieDataItem, statusColor } from '@/lib/chart-config'
 import { formatJam, hitungJam } from '@/lib/utils'
 
@@ -311,7 +312,14 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     {a.faceVerified && (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" title="Wajah terverifikasi" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="pointer-events-none">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom"><p>Wajah terverifikasi</p></TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                 )

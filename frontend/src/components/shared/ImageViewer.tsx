@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { X } from 'lucide-react'
 
 interface ImageViewerProps {
@@ -33,15 +34,19 @@ export function ImageViewer(p: ImageViewerProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-in fade-in duration-200"
       onClick={p.onClose}
     >
-      <button
-        type="button"
-        className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
-        onClick={p.onClose}
-        aria-label="Tutup"
-        title="Tutup"
-      >
-        <X className="h-5 w-5" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+            onClick={p.onClose}
+            aria-label="Tutup"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom"><p>Tutup</p></TooltipContent>
+      </Tooltip>
 
       <img
         src={p.imageUrl}
