@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 FROM node:22-alpine
+=======
+FROM oven/bun:latest AS base
+>>>>>>> 87bd640 (feat: update Dockerfiles to oven/bun:latest + simplify README with badges)
 
 WORKDIR /app
 

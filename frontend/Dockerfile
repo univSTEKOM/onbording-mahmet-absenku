@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 # ── Stage 1: Build ──
 FROM node:22-alpine AS builder
+=======
+FROM oven/bun:latest AS builder
+>>>>>>> 87bd640 (feat: update Dockerfiles to oven/bun:latest + simplify README with badges)
 
 WORKDIR /app
 
