@@ -1,3 +1,7 @@
+import type { UseNavigateResult } from '@tanstack/react-router'
+
+type TourRoute = Parameters<UseNavigateResult>[0]['to']
+
 export interface TourStepDef {
   id: string
   type: 'spotlight' | 'welcome' | 'completion'
@@ -6,7 +10,8 @@ export interface TourStepDef {
   description: string
   icon?: string
   position?: 'top' | 'bottom' | 'left' | 'right' | 'auto'
-  route?: string
+  route?: TourRoute
+  requiresSidebar?: boolean
 }
 
 export type TourRole = 'admin' | 'karyawan'

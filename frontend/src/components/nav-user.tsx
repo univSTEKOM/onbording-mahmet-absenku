@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -10,20 +11,40 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
+import {
   SidebarMenu,
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
 import { ChevronsUpDown, User, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { clearTourStorage, clearVerificationTourStorage } from '@/components/tour/utils/tour-storage'
 
 export function NavUser() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { isMobile } = useSidebar()
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const initials = user?.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
   const fotoSrc = user?.foto || undefined
+
+  async function handleLogout() {
+    setConfirmOpen(false)
+    await logout()
+    clearTourStorage(user?.id)
+    clearVerificationTourStorage(user?.id)
+  }
 
   return (
     <SidebarMenu data-slot="nav-user">
@@ -67,9 +88,27 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>
-              <LogOut className="mr-2 size-4" /> Logout
-            </DropdownMenuItem>
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem onSelect={function(e) { e.preventDefault(); setConfirmOpen(true) }}>
+                  <LogOut className="mr-2 size-4" /> Logout
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Apakah Anda yakin ingin keluar? Product tour akan direset dan Anda akan diarahkan ke halaman login.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleLogout} className="gap-2">
+                    <LogOut className="h-4 w-4" /> Logout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

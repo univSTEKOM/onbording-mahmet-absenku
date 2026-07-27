@@ -91,7 +91,7 @@ function AuthenticatedLayout() {
       <FilterProvider>
         <AuthContextProvider value={{ user }}>
           <SidebarProvider>
-            <TourProvider role={user.role} status={user.status}>
+            <TourProvider role={user.role} status={user.status} userId={user.id}>
               <AuthenticatedLayoutContent />
             </TourProvider>
           </SidebarProvider>

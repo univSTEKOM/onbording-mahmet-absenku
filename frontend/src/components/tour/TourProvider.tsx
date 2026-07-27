@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { TourContext } from './hooks/useTour'
 import { karyawanSteps, adminSteps, verificationSteps } from './TourStepRegistry'
-import { scrollToElement, type TourRole } from './utils/tour-helpers'
+import { type TourRole } from './utils/tour-helpers'
 import { isTourCompleted, markTourCompleted, markTourSkipped, isVerificationTourCompleted, markVerificationTourCompleted, markVerificationTourSkipped } from './utils/tour-storage'
 import { TourSpotlight } from './TourSpotlight'
 import { TourTooltip } from './TourTooltip'
@@ -18,10 +18,11 @@ interface TourProviderProps {
   children: ReactNode
   role: TourRole
   status?: User['status']
+  userId?: string
   autoStart?: boolean
 }
 
-export function TourProvider({ children, role, status, autoStart = true }: TourProviderProps) {
+export function TourProvider({ children, role, status, userId, autoStart = true }: TourProviderProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { setOpen, setOpenMobile, openMobile: _openMobile, isMobile } = useSidebar()
@@ -51,47 +52,58 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
   const isOnboarding = status === 'pending' || status === 'rejected'
 
   const complete = useCallback(() => {
-    if (isOnboarding) markVerificationTourCompleted()
-    else markTourCompleted()
+    if (isOnboarding) markVerificationTourCompleted(userId)
+    else markTourCompleted(userId)
     setIsActive(false)
     setPaused(false)
     setExiting(false)
     if (!isOnboarding) {
       const target = role === 'admin' ? '/admin/dashboard' : '/dashboard'
       if (location.pathname !== target) {
-        navigate({ to: target as string })
+        navigate({ to: target as any })
       }
     }
-  }, [isOnboarding, role, navigate, location.pathname])
+  }, [isOnboarding, role, userId, navigate, location.pathname])
 
   const skip = useCallback(() => {
-    if (isOnboarding) markVerificationTourSkipped()
-    else markTourSkipped()
+    if (isOnboarding) markVerificationTourSkipped(userId)
+    else markTourSkipped(userId)
     setIsActive(false)
     setPaused(false)
     setExiting(false)
-  }, [isOnboarding])
+  }, [isOnboarding, userId])
 
-  const changeStep = useCallback((nextIndex: number) => {
+  const changeStep = useCallback(async (nextIndex: number) => {
     setExiting(true)
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    timeoutRef.current = setTimeout(() => {
-      setExiting(false)
-      const step = steps[nextIndex]
-      if (!isMobile && step.requiresSidebar) {
-        if (isMobile) setOpenMobile(true)
-        else setOpen(true)
-      } else if (!isMobile && currentStepDef?.requiresSidebar) {
-        if (isMobile) setOpenMobile(false)
+    await new Promise(r => setTimeout(r, 150))
+    setExiting(false)
+
+    const step = steps[nextIndex]
+    if (!isMobile && step.requiresSidebar) {
+      if (isMobile) setOpenMobile(true)
+      else setOpen(true)
+    } else if (!isMobile && currentStepDef?.requiresSidebar) {
+      if (isMobile) setOpenMobile(false)
+    }
+
+    if (step.route && step.route !== location.pathname) {
+      navigate({ to: step.route })
+      await new Promise(r => setTimeout(r, 300))
+    }
+
+    if (step.targetSelector) {
+      for (let i = 0; i < 10; i++) {
+        const el = document.querySelector(step.targetSelector)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          await new Promise(r => setTimeout(r, 300))
+          break
+        }
+        await new Promise(r => setTimeout(r, 500))
       }
-      if (step.route && step.route !== location.pathname) {
-        navigate({ to: step.route as string })
-      }
-      if (step.targetSelector) {
-        scrollToElement(step.targetSelector)
-      }
-      setCurrentStep(nextIndex)
-    }, 150)
+    }
+
+    setCurrentStep(nextIndex)
   }, [steps, currentStepDef, isMobile, setOpen, setOpenMobile, navigate, location.pathname])
 
   const next = useCallback(() => {
@@ -115,7 +127,7 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
   const resume = useCallback(() => {
     const route = currentStepDef?.route
     if (route && location.pathname !== route) {
-      navigate({ to: route as string })
+      navigate({ to: route })
       return
     }
     setPaused(false)
@@ -124,12 +136,12 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
   useEffect(() => {
     const isOnboarding = status === 'pending' || status === 'rejected'
     if (autoStart && !isActive) {
-      if (isOnboarding && isVerificationTourCompleted()) return
-      if (!isOnboarding && isTourCompleted()) return
+      if (isOnboarding && isVerificationTourCompleted(userId)) return
+      if (!isOnboarding && isTourCompleted(userId)) return
       const id = setTimeout(() => setIsActive(true), 800)
       return () => clearTimeout(id)
     }
-  }, [autoStart, isActive, status])
+  }, [autoStart, isActive, status, userId])
 
   useEffect(() => {
     if (!isActive) return
@@ -156,8 +168,9 @@ export function TourProvider({ children, role, status, autoStart = true }: TourP
 
   /* Cleanup timeout on unmount */
   useEffect(function() {
+    var id = timeoutRef.current
     return function() {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (id) clearTimeout(id)
     }
   }, [])
 

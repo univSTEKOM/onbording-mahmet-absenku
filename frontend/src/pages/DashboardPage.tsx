@@ -152,7 +152,7 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-            <Button size="sm" className="gap-1.5 shrink-0" onClick={function() { navigate({ to: '/absensi' }) }}>
+            <Button size="sm" className="gap-1.5 shrink-0" data-slot="absen-button" onClick={function() { navigate({ to: '/absensi' }) }}>
               <Fingerprint className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{isCheckedIn ? 'Lihat' : 'Absen'}</span>
             </Button>
@@ -168,7 +168,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4" data-slot="summary-cards">
         {statsData.map(function(stat) {
           const Icon = stat.icon
           return (

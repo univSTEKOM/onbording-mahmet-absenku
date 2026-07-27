@@ -131,7 +131,7 @@ export default function AbsensiPage() {
         <p className="text-sm text-muted-foreground">{today}</p>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden" data-slot="absensi-progress">
         <CardContent className="p-5 md:p-6">
           <div className="flex items-center gap-5 mb-5">
             <div className="flex flex-col items-center">

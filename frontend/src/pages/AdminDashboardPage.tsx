@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="flex flex-col">
+        <Card className="flex flex-col" data-slot="admin-chart">
           <CardHeader className="flex-row items-start space-y-0 pb-0 px-4 md:px-5 pt-4 md:pt-5">
             <div className="grid gap-0.5">
               <CardTitle className="text-sm md:text-base">Kehadiran Bulan Ini</CardTitle>

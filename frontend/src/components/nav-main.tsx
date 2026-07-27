@@ -28,6 +28,7 @@ export function NavMain({
               item.title === 'Riwayat' ? 'nav-riwayat' :
               item.title === 'Pengajuan' ? 'nav-pengajuan' :
               item.title === 'Verifikasi Karyawan' ? 'nav-verifikasi' :
+              item.title === 'Kelola Karyawan' ? 'nav-kelola' :
               undefined
             }
           >
