@@ -13,17 +13,13 @@
 git clone <repo-url>
 cd on-boarding-trials
 
-# 2. Copy environment file
-cp .env.example .env
-# Edit .env jika perlu (BETTER_AUTH_SECRET, DEMO_PASSWORD)
+# 2. Start — otomatis buat .env dari .env.example jika belum ada
+./start-docker.sh up -d
 
-# 3. Build dan start semua service
-docker compose up -d
-
-# 4. Cek status
+# 3. Cek status
 docker compose ps
 
-# 5. Buka browser
+# 4. Buka browser
 open http://localhost:5173
 ```
 

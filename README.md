@@ -24,9 +24,10 @@
 > Butuh: [Docker](https://docker.com) ≥ 24.x + [Docker Compose](https://docs.docker.com/compose/) ≥ 2.x
 
 ```bash
-cp .env.example .env
-docker compose up -d
+./start-docker.sh up -d
 ```
+
+Perintah di atas otomatis membuat `.env` dari `.env.example` jika belum ada, lalu menjalankan semua service.
 
 | Akses | URL |
 |-------|-----|
