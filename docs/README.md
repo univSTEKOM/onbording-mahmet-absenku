@@ -1,48 +1,66 @@
 # AbsenKu — Sistem Absensi Karyawan
 
-Sistem manajemen kehadiran dan HRD berbasis web dengan verifikasi wajah, role-based access, dan onboarding tour interaktif.
+Aplikasi absensi karyawan modern dengan dua peran: **Karyawan** dan **Admin**.
 
-**Stack:** React 19 · TypeScript 6 · Vite 8 · Tailwind 4 · shadcn/ui · TanStack Router · TanStack Query
+> Cocok untuk perusahaan kecil-menengah yang ingin digitalisasi absensi dengan fitur verifikasi wajah, manajemen cuti/izin, dan dashboard analitik.
 
 ---
 
-## Daftar Dokumen
+## ✨ Fitur Utama
 
-| Dokumen | Deskripsi | Estimasi Baca |
-|---------|-----------|---------------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Tech stack, struktur folder, alur data, role flow, auth, tour, face rec | 5 menit |
-| [SETUP.md](SETUP.md) | Instalasi, konfigurasi, menjalankan project, troubleshooting | 5 menit |
-| [API.md](API.md) | Dokumentasi lengkap endpoint API, request/response, error codes | 10 menit |
-| [GUIDE.md](GUIDE.md) | Fitur aplikasi per role, alur navigasi, workflow, status colors | 5 menit |
-| [COLORS.md](COLORS.md) | Design system — CSS variables, chart colors, status colors, radius | 3 menit |
+| Fitur | Karyawan | Admin |
+|-------|----------|-------|
+| Check-in / Check-out dengan verifikasi wajah | ✅ | — |
+| Dashboard personal (statistik kehadiran) | ✅ | — |
+| Riwayat absensi dengan filter & kalender | ✅ | ✅ (semua karyawan) |
+| Pengajuan cuti, izin, sakit | ✅ | ✅ (approve/reject) |
+| Dashboard admin (tren, rekap, verifikasi) | — | ✅ |
+| Kelola & verifikasi karyawan | — | ✅ |
+| Ekspor data ke CSV | ✅ | ✅ |
 
-## Quick Start
+---
+
+## 🚀 Mulai Cepat
 
 ```bash
-git clone <repo-url>
-cd on-boarding-trials/mock-api && bun install && bun run start
-cd ../frontend && bun install && bun run dev
+# 1. Setup mock API
+cd mock-api
+npm install
+node server.js          # → http://localhost:3001
+
+# 2. Setup frontend
+cd frontend
+npm install
+npm run dev             # → http://localhost:5173
 ```
 
-Buka **http://localhost:5173** — login: `andika@stekom.ac.id` / `password`
-
-## Fitur Utama
-
-- **Absensi** — Check-in/out dengan verifikasi wajah (face-api.js)
-- **Dashboard** — Statistik real-time + chart kehadiran (7 hari & bulan)
-- **Pengajuan** — Cuti/izin/sakit dengan approval workflow
-- **Manajemen Karyawan** — CRUD, verifikasi, role management (admin)
-- **Product Tour** — Onboarding interaktif (8 step karyawan, 8 step admin)
-- **Role-Based** — Karyawan & admin dengan route guard terpisah
-- **Dark Mode** — Tema light/dark/system
-- **Responsive** — Desktop-first dengan mobile sidebar sheet
-- **Export CSV** — Riwayat absensi (format Indonesia)
-
-## Akun Demo
+### Akun Demo
 
 | Email | Password | Role |
 |-------|----------|------|
-| andika@stekom.ac.id | password | admin |
-| rudi@stekom.ac.id | password | karyawan |
-| siti@stekom.ac.id | password | karyawan |
-| budi@stekom.ac.id | password | karyawan (pending) |
+| `andika@stekom.ac.id` | `password` | Admin |
+| `rudi@stekom.ac.id` | `password` | Karyawan |
+| `siti@stekom.ac.id` | `password` | Karyawan |
+| `budi@stekom.ac.id` | `password` | Karyawan (pending) |
+
+---
+
+## 📖 Dokumentasi
+
+| Dokumen | Untuk | Isi |
+|---------|-------|-----|
+| [SETUP.md](SETUP.md) | Developer | Instalasi, konfigurasi, troubleshooting |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Developer Senior | Tech stack, struktur, alur data |
+| [API.md](API.md) | Developer + Backend | Semua endpoint, request/response, tipe data |
+| [PRD.md](PRD.md) | Stakeholder | Visi produk, fitur, roadmap |
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend**: React 19, TypeScript 6, Vite 8, Tailwind CSS 4
+- **UI**: shadcn/ui, TanStack Router, TanStack Query
+- **Auth**: better-auth (cookie-based session)
+- **Charts**: Recharts 3
+- **Mock API**: json-server 0.17 + Express 5 + SQLite
+- **Linter**: oxlint (zero warnings)
