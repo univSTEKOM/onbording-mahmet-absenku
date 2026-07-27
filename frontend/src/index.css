@@ -139,23 +139,77 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 }
 
 /* react-international-phone — theme sync */
-.phone-input .react-international-phone-country-selector-button,
-.phone-input .react-international-phone-input {
-  background-color: hsl(var(--background)) !important;
+:root {
+  --react-international-phone-height: 40px;
+  --react-international-phone-font-size: 0.875rem;
+  --react-international-phone-border-color: hsl(var(--border));
+  --react-international-phone-background-color: hsl(var(--background));
+  --react-international-phone-outline-color: hsl(var(--ring));
+  --react-international-phone-country-selector-border-color: hsl(var(--border));
+  --react-international-phone-country-selector-background-color: hsl(var(--background));
+  --react-international-phone-country-selector-background-color-hover: hsl(var(--accent));
+  --react-international-phone-dropdown-item-background-color: hsl(var(--popover));
+  --react-international-phone-dropdown-item-text-color: hsl(var(--popover-foreground));
+  --react-international-phone-dropdown-item-background-color-hover: hsl(var(--accent));
+  --react-international-phone-dropdown-item-text-color-hover: hsl(var(--accent-foreground));
+  --react-international-phone-country-selector-arrow-color: hsl(var(--muted-foreground));
+}
+
+.phone-input .react-international-phone-input,
+.phone-input .react-international-phone-country-selector-button {
   color: hsl(var(--foreground)) !important;
-  border-color: hsl(var(--border)) !important;
-  height: 40px;
+  background-color: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
 }
-.phone-input .react-international-phone-country-selector-button:hover {
-  background-color: hsl(var(--accent)) !important;
+
+.phone-input .react-international-phone-country-selector-button {
+  border-right: none !important;
+  border-radius: var(--radius) 0 0 var(--radius) !important;
 }
-.phone-input .react-international-phone-dropdown {
+
+.phone-input .react-international-phone-input {
+  border-radius: 0 var(--radius) var(--radius) 0 !important;
+}
+
+.phone-input .react-international-phone-input:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring)) !important;
+  border-color: hsl(var(--ring)) !important;
+  z-index: 1;
+}
+
+.phone-input.has-error .react-international-phone-input,
+.phone-input.has-error .react-international-phone-country-selector-button {
+  border-color: hsl(var(--destructive)) !important;
+}
+
+.phone-input.has-error .react-international-phone-input:focus {
+  box-shadow: 0 0 0 2px hsl(var(--destructive)) !important;
+  border-color: hsl(var(--destructive)) !important;
+}
+
+.react-international-phone-country-selector-dropdown {
   background-color: hsl(var(--popover)) !important;
-  color: hsl(var(--popover-foreground)) !important;
-  border-color: hsl(var(--border)) !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
 }
-.phone-input .react-international-phone-country-selector-button__dropdown-arrow {
-  border-top-color: hsl(var(--muted-foreground)) !important;
+
+.react-international-phone-country-selector-dropdown__list-item {
+  padding: 8px 12px !important;
+  font-size: 0.875rem !important;
+  color: hsl(var(--popover-foreground)) !important;
+  background-color: hsl(var(--popover)) !important;
+}
+
+.react-international-phone-country-selector-dropdown__list-item:hover {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+.react-international-phone-country-selector-dropdown__list-item--focused {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
 }
 
 @keyframes tour-fade-in {

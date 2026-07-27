@@ -10,6 +10,8 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { toast } from 'sonner'
+import { PhoneDisplay } from '@/components/shared/PhoneDisplay'
+import { validatePhone } from '@/lib/validation'
 import { Camera, Loader2, Save, Pencil, CheckCircle2 } from 'lucide-react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { ImageCropperDialog } from '@/components/shared/ImageCropperDialog'
@@ -39,12 +41,9 @@ export default function ProfilPage() {
     if (!form.nama.trim()) errs.nama = 'Nama harus diisi'
     else if (form.nama.length > MAX_NAMA_LENGTH) errs.nama = `Maksimal ${MAX_NAMA_LENGTH} karakter`
     if (!form.jabatan.trim()) errs.jabatan = 'Jabatan harus diisi'
-    else if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = `Maksimal ${MAX_JABATAN_LENGTH} karakter`
-    if (form.phone) {
-      const digitsOnly = form.phone.replace(/\D/g, '')
-      if (digitsOnly.length < 10) errs.phone = 'Minimal 10 angka'
-      else if (digitsOnly.length > 15) errs.phone = 'Maksimal 15 angka'
-    }
+    else     if (form.jabatan.length > MAX_JABATAN_LENGTH) errs.jabatan = `Maksimal ${MAX_JABATAN_LENGTH} karakter`
+    const phoneErr = validatePhone(form.phone)
+    if (phoneErr) errs.phone = phoneErr
     if (form.alamat && form.alamat.length > MAX_ALAMAT_LENGTH) errs.alamat = `Maksimal ${MAX_ALAMAT_LENGTH} karakter`
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -184,7 +183,6 @@ export default function ProfilPage() {
                 {[
                   { label: 'Email', value: user.email },
                   { label: 'Jabatan', value: user.jabatan },
-                  { label: 'Telepon', value: user.phone || '-' },
                   { label: 'Role', value: user.role },
                 ].map((item) => (
                   <div key={item.label}>
@@ -192,6 +190,10 @@ export default function ProfilPage() {
                     <p className="font-medium mt-0.5">{item.value}</p>
                   </div>
                 ))}
+                <div>
+                  <p className="text-muted-foreground text-xs">Telepon</p>
+                  <div className="font-medium mt-0.5">{user.phone ? <PhoneDisplay value={user.phone} /> : '-'}</div>
+                </div>
                 <div className="sm:col-span-2">
                   <p className="text-muted-foreground text-xs">Alamat</p>
                   <p className="font-medium mt-0.5">{user.alamat || '-'}</p>

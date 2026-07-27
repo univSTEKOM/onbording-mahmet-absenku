@@ -1,4 +1,3 @@
-import { isValidPhoneNumber } from 'react-international-phone'
 import { z } from 'zod'
 import {
   MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH,
@@ -35,6 +34,11 @@ const jabatanSchema = z
   .trim()
   .min(1, 'Jabatan harus diisi')
   .max(MAX_JABATAN_LENGTH, 'Jabatan maksimal ' + MAX_JABATAN_LENGTH + ' karakter')
+
+function isValidPhoneNumber(phone: string): boolean {
+  const digits = phone.replace(/\D/g, '')
+  return digits.length >= 6 && digits.length <= 15 && phone.startsWith('+')
+}
 
 const phoneSchema = z
   .string()

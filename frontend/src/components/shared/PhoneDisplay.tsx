@@ -7,24 +7,32 @@ const flagMap: Record<string, string> = {
   '91': '🇮🇳',
 }
 
-function getFlag(phone: string): string {
+function getCountryCode(phone: string): string {
   const m = phone.match(/^\+(\d+)/)
   if (!m) return ''
   for (let len = 3; len >= 1; len--) {
     const code = m[1].slice(0, len)
-    if (flagMap[code]) return flagMap[code]
+    if (flagMap[code]) return code
   }
   return ''
 }
 
-function formatDisplay(phone: string): string {
+function getFlag(phone: string): string {
+  const code = getCountryCode(phone)
+  return code ? flagMap[code] : ''
+}
+
+function formatNational(phone: string): string {
+  const code = getCountryCode(phone)
   const digits = phone.replace(/\D/g, '')
-  if (digits.length <= 3) return digits
+  const national = code ? digits.slice(code.length) : digits
+  if (!national) return phone
+
   const parts: string[] = []
-  for (let i = 0; i < digits.length; i += 4) {
-    parts.push(digits.slice(i, i + 4))
+  for (let i = 0; i < national.length; i += 4) {
+    parts.push(national.slice(i, i + 4))
   }
-  return parts.join(' ')
+  return '+' + code + ' ' + parts.join(' ')
 }
 
 interface PhoneDisplayProps {
@@ -36,7 +44,7 @@ export function PhoneDisplay({ value, className }: PhoneDisplayProps) {
   if (!value) return <span className={cn('text-muted-foreground', className)}>-</span>
 
   const flag = getFlag(value)
-  const display = formatDisplay(value)
+  const display = formatNational(value)
 
   return (
     <span className={cn('inline-flex items-center gap-1.5', className)}>
