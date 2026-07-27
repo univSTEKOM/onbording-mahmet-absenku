@@ -16,7 +16,8 @@ import { toast } from 'sonner'
 import api from '@/api/axios'
 import type { User } from '@/types'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { CheckCircle2, XCircle, RefreshCw, Trash2, UserPlus, Clock, Briefcase, CalendarDays, Mail, Phone, MapPin } from 'lucide-react'
+import { CheckCircle2, XCircle, RefreshCw, Trash2, UserPlus, Clock, Briefcase, CalendarDays, Mail, MapPin } from 'lucide-react'
+import { PhoneDisplay } from '@/components/shared/PhoneDisplay'
 
 interface VerifikasiUserCardProps {
   user: User
@@ -90,9 +91,8 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
             </div>
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
               {u.phone && (
-                <span className="flex items-center gap-1 truncate max-w-[160px]">
-                  <Phone className="h-3 w-3 shrink-0" />
-                  {u.phone}
+                <span className="flex items-center gap-1 truncate max-w-[200px]">
+                  <PhoneDisplay value={u.phone} />
                 </span>
               )}
               {u.alamat && (
@@ -302,7 +302,6 @@ export default function AdminVerifikasiPage() {
             const fields = [
               { icon: Mail, label: 'Email', value: u.email },
               { icon: Briefcase, label: 'Jabatan', value: u.jabatan || '-' },
-              { icon: Phone, label: 'Telepon', value: u.phone || '-' },
               { icon: MapPin, label: 'Alamat', value: u.alamat || '-' },
               { icon: CalendarDays, label: 'Terdaftar', value: joinedDate },
             ]
@@ -341,6 +340,15 @@ export default function AdminVerifikasiPage() {
                         </div>
                       )
                     })}
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center shrink-0">
+                        <span className="inline-flex items-center justify-center size-3.5 text-muted-foreground text-xs font-bold">📞</span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] text-muted-foreground leading-none mb-0.5">Telepon</p>
+                        <div className="font-medium">{u.phone ? <PhoneDisplay value={u.phone} /> : '-'}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
