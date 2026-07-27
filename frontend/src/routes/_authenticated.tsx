@@ -26,7 +26,7 @@ function LoadingScreen({ timedOut }: { timedOut?: boolean }) {
         <Skeleton className="h-8 w-32" />
         <div className="space-y-2">
           {function() {
-            var skIdx = 0
+            let skIdx = 0
             return Array.from({ length: 4 }).map(function() {
               skIdx++
               return <Skeleton key={`sk-item-${skIdx}`} className="h-9 w-full rounded-lg" />

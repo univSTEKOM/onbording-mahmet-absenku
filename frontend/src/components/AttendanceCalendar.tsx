@@ -131,7 +131,7 @@ export function AttendanceCalendar({ year, month, data, totalKaryawan, onDayClic
           <div key={day} className="text-center text-[11px] font-semibold text-muted-foreground py-1">{day}</div>
         ))}
         {function() {
-          var cellIdx = 0
+          let cellIdx = 0
           return calendarDays.map(function(day) {
             cellIdx++
             if (!day) return <div key={`gap-${year}-${month}-${cellIdx}`} />
