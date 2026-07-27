@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useAbsensiList } from '@/hooks/useAbsensi'
 import { useMonthAttendance } from '@/hooks/useDashboard'
@@ -27,6 +27,20 @@ export default function RiwayatPage() {
     ? allPengajuan.find(function(p) { return p.status === 'approved' && p.userId === user?.id && p.tanggalMulai <= detailDate && p.tanggalSelesai >= detailDate })
     : null
 
+  const approvedLeave = useMemo(function() {
+    if (!allPengajuan || !user?.id) return undefined
+    const map = new Map<string, string>()
+    allPengajuan.forEach(function(p) {
+      if (p.status !== 'approved' || p.userId !== user?.id) return
+      const start = new Date(p.tanggalMulai + 'T00:00:00')
+      const end = new Date(p.tanggalSelesai + 'T00:00:00')
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        map.set(d.toISOString().split('T')[0], p.jenis)
+      }
+    })
+    return map
+  }, [allPengajuan, user?.id])
+
   return (
     <div className="space-y-5 md:space-y-6">
       <div className="flex items-center justify-between gap-2">
@@ -51,6 +65,7 @@ export default function RiwayatPage() {
               year={curYear}
               month={curMonth}
               data={monthData.data}
+              approvedLeave={approvedLeave}
               onDayClick={(tgl) => setDetailDate(tgl === detailDate ? null : tgl)}
             />
           ) : (

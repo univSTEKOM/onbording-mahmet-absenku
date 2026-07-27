@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAbsensiToday, useCheckIn, useCheckOut } from '@/hooks/useAbsensi'
 import { useAbsensiList } from '@/hooks/useAbsensi'
+import { useAllPengajuan } from '@/hooks/usePengajuan'
+import { pengajuanJenisLabel } from '@/lib/constants'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -21,6 +23,7 @@ export default function AbsensiPage() {
   const navigate = useNavigate()
   const { data: absensi, isLoading } = useAbsensiToday()
   const { data: recentAbsensi } = useAbsensiList({ userId: user?.id, _sort: 'tanggal', _order: 'desc' })
+  const { data: allPengajuan } = useAllPengajuan()
   const checkInMutation = useCheckIn()
   const checkOutMutation = useCheckOut()
   const [showFaceVerification, setShowFaceVerification] = useState(false)
@@ -35,6 +38,12 @@ export default function AbsensiPage() {
   const today = clock.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const currentTime = clock.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
   const checkInGate = canCheckIn()
+
+  const todayLeave = allPengajuan?.find(function(p) {
+    return p.status === 'approved' && p.userId === user?.id
+      && p.tanggalMulai <= clock.toISOString().split('T')[0]
+      && p.tanggalSelesai >= clock.toISOString().split('T')[0]
+  })
 
   const isCheckedIn = !!absensi?.checkIn
   const isCheckedOut = !!absensi?.checkOut
@@ -61,6 +70,48 @@ export default function AbsensiPage() {
       <div className="space-y-4">
         <h1 className="text-xl md:text-2xl font-bold tracking-tight">Absensi Hari Ini</h1>
         <LoadingState />
+      </div>
+    )
+  }
+
+  if (todayLeave && !absensi) {
+    var leaveLabel = pengajuanJenisLabel[todayLeave.jenis as keyof typeof pengajuanJenisLabel] || todayLeave.jenis
+    var leaveDateRange = new Date(todayLeave.tanggalMulai + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })
+      + ' — ' + new Date(todayLeave.tanggalSelesai + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+
+    return (
+      <div className="space-y-5 md:space-y-6 max-w-2xl animate-in fade-in duration-500">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Absensi Hari Ini</h1>
+          <p className="text-sm text-muted-foreground">{today}</p>
+        </div>
+
+        <Card className="border-t-2 border-t-blue-500">
+          <CardContent className="p-6 text-center space-y-4">
+            <div className="text-4xl">📋</div>
+            <div>
+              <p className="text-lg font-semibold">Hari ini Anda sedang <span className="text-blue-600">{leaveLabel.toLowerCase()}</span></p>
+              <p className="text-sm text-muted-foreground mt-1">{leaveDateRange}</p>
+            </div>
+            {todayLeave.alasan && (
+              <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 max-w-md mx-auto">
+                "{todayLeave.alasan}"
+              </p>
+            )}
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/40">
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              Tidak perlu melakukan absensi hari ini.
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-muted/30">
+          <CardContent className="py-4 text-center">
+            <Button variant="outline" size="sm" onClick={function() { navigate({ to: '/pengajuan' }) }}>
+              Lihat daftar pengajuan
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
