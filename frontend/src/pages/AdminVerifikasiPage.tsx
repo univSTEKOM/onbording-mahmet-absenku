@@ -108,6 +108,8 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
       <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-12">
         <button
           type="button"
+          aria-label="Setujui"
+          title="Setujui pengguna ini"
           className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
           onClick={function(e) { e.stopPropagation(); p.onApprove(u.id) }}
           disabled={p.isApproving}
@@ -116,6 +118,8 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
         </button>
         <button
           type="button"
+          aria-label="Tolak"
+          title="Tolak pengguna ini"
           className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
           onClick={function(e) { e.stopPropagation(); p.onReject(u) }}
         >
@@ -123,6 +127,8 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
         </button>
         <button
           type="button"
+          aria-label="Hapus"
+          title="Hapus pengguna ini"
           className="flex items-center justify-center bg-red-600/60 hover:bg-red-600/80 text-white transition-colors border-t border-white/20 min-h-[36px]"
           onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
         >
@@ -192,7 +198,7 @@ export default function AdminVerifikasiPage() {
           <h1 className="text-xl md:text-2xl font-bold tracking-tight">Verifikasi Karyawan</h1>
           <p className="text-xs md:text-sm text-muted-foreground">Tinjau dan setujui pendaftaran karyawan baru</p>
         </div>
-        <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+        <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={function() { refetch() }} disabled={isFetching}>
           <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
         </Button>
       </div>

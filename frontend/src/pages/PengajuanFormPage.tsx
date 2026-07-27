@@ -89,7 +89,7 @@ export default function PengajuanFormPage() {
   return (
     <div className="space-y-5 md:space-y-6 max-w-xl animate-in fade-in duration-500">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon-sm" aria-label="Kembali" onClick={function() { navigate({ to: '/pengajuan' }) }}>
+        <Button variant="ghost" size="icon-sm" aria-label="Kembali" title="Kembali ke daftar pengajuan" onClick={function() { navigate({ to: '/pengajuan' }) }}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>

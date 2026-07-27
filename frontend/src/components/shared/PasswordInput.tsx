@@ -29,26 +29,27 @@ export function PasswordInput({ id, name, value, onChange, error, placeholder, m
         className={cn(error ? 'border-destructive bg-background' : 'bg-background', 'pr-12')}
         required
       />
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-        {showMatch && (
-          <span className="pointer-events-none">
-            {value === matchValue ? (
-              <CheckCircle2 className="size-4 text-green-500" />
-            ) : (
-              <XCircle className="size-4 text-destructive" />
-            )}
+      {showMatch && (
+        value === matchValue ? (
+          <span title="Kata sandi cocok" className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
+            <CheckCircle2 className="size-4 text-green-500" />
           </span>
-        )}
-        <button
-          type="button"
-          tabIndex={-1}
-          onClick={() => setShow(!show)}
-          className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label={show ? 'Sembunyikan password' : 'Tampilkan password'}
-        >
-          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-        </button>
-      </div>
+        ) : (
+          <span title="Kata sandi tidak cocok" className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
+            <XCircle className="size-4 text-destructive" />
+          </span>
+        )
+      )}
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => setShow(!show)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+        aria-label={show ? 'Sembunyikan password' : 'Tampilkan password'}
+        title={show ? 'Sembunyikan password' : 'Tampilkan password'}
+      >
+        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>
   )

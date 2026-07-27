@@ -75,6 +75,7 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
         <button
           type="button"
           aria-label="Edit"
+          title="Edit pengguna"
           className="flex-1 flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-h-[48px]"
           onClick={function(e) { e.stopPropagation(); p.onEdit(u) }}
         >
@@ -84,6 +85,7 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
           <button
             type="button"
             aria-label="Hapus"
+            title="Hapus pengguna"
             className="flex-1 flex items-center justify-center bg-red-600 hover:bg-red-700 text-white transition-colors border-t border-white/20 min-h-[48px]"
             onClick={function(e) { e.stopPropagation(); p.onDelete(u) }}
           >

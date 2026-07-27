@@ -63,7 +63,7 @@ export default function PengajuanListPage() {
           <p className="text-xs md:text-sm text-muted-foreground">Izin & cuti karyawan</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+          <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={function() { refetch() }} disabled={isFetching}>
             <RefreshCw className={'h-4 w-4 ' + (isFetching ? 'animate-spin' : '')} />
           </Button>
           <Button className="gap-2" onClick={function() { navigate({ to: '/pengajuan/baru' }) }}>

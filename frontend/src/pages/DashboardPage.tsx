@@ -311,7 +311,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     {a.faceVerified && (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" title="Wajah terverifikasi" />
                     )}
                   </div>
                 )

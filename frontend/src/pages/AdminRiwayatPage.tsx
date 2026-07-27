@@ -127,7 +127,7 @@ exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0]
           }}>
             <Download className="h-4 w-4" /> CSV
           </Button>
-          <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
+          <Button variant="outline" size="icon" aria-label="Refresh" title="Muat ulang data" onClick={function() { refetch() }} disabled={isFetching}>
             <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
           </Button>
         </div>
@@ -307,7 +307,7 @@ exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0]
                       </>
                     )}
                     {a.faceVerified && (
-                      <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" />
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500 ml-auto shrink-0" title="Wajah terverifikasi" />
                     )}
                   </div>
                 </div>

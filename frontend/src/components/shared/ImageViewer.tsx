@@ -38,6 +38,7 @@ export function ImageViewer(p: ImageViewerProps) {
         className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
         onClick={p.onClose}
         aria-label="Tutup"
+        title="Tutup"
       >
         <X className="h-5 w-5" />
       </button>
