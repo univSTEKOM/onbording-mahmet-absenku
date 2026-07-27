@@ -16,7 +16,7 @@ import { Fingerprint, Clock, CalendarDays, TrendingUp, ChevronRight, ChevronsUpD
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
 import { CardDescription } from '@/components/ui/card'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { absensiChartConfig, pieDataItem, statusColor } from '@/lib/chart-config'
+import { attendanceCategoryConfig, pieDataItem } from '@/lib/chart-config'
 import { formatJam, hitungJam } from '@/lib/utils'
 
 const now = new Date()
@@ -66,38 +66,37 @@ export default function DashboardPage() {
   }, [allAbsensi])
 
   const pie7Data = useMemo(function() {
-    const counts: Record<string, number> = { hadir: 0, pulangCepat: 0, terlambat: 0, tidakHadir: 0 }
+    const counts = { present: 0, absentPermit: 0, absentUnpermit: 0 }
     recentAbsensi?.forEach(function(item) {
-      if (item.status === 'hadir') counts.hadir++
-      else if (item.status === 'pulang_cepat') counts.pulangCepat++
-      else if (item.status === 'terlambat') counts.terlambat++
-      else counts.tidakHadir++
+      if (['hadir','terlambat','pulang_cepat'].includes(item.status)) counts.present++
+      else if (['izin','sakit','cuti'].includes(item.status)) counts.absentPermit++
+      else counts.absentUnpermit++
     })
     return [
-      pieDataItem('hadir', counts.hadir),
-      pieDataItem('pulang_cepat', counts.pulangCepat),
-      pieDataItem('terlambat', counts.terlambat),
-      pieDataItem('tidakHadir', counts.tidakHadir),
+      pieDataItem('present', counts.present),
+      pieDataItem('absentPermit', counts.absentPermit),
+      pieDataItem('absentUnpermit', counts.absentUnpermit),
     ]
   }, [recentAbsensi])
 
   const total7 = pie7Data.reduce(function(s, d) { return s + d.value }, 0)
-  const hadir7 = pie7Data[0].value
-  const pulangCepat7 = pie7Data[1].value
-  const pct7 = total7 > 0 ? Math.round(((hadir7 + pulangCepat7) / total7) * 100) : 0
-
-  const totalMonth = monthStats.hadir + monthStats.pulangCepat + monthStats.terlambat + monthStats.izinSakit
-  const totalKehadiran = monthStats.hadir + monthStats.pulangCepat
-  const pctMonth = totalMonth > 0 ? Math.round((totalKehadiran / totalMonth) * 100) : 0
+  const pct7 = total7 > 0 ? Math.round(((pie7Data[0]?.value || 0) / total7) * 100) : 0
 
   const pieMonthData = useMemo(function() {
+    if (!monthData?.data) return []
+    const present = monthData.data.reduce(function(s, d) { return s + d.hadir + d.pulangCepat + d.terlambat + d.checkInOnly }, 0)
+    const permit = monthData.data.reduce(function(s, d) { return s + d.izin + d.sakit + d.cuti }, 0)
+    const alfa = monthData.data.reduce(function(s, d) { return s + d.tidakHadir }, 0)
     return [
-      pieDataItem('hadir', monthStats.hadir),
-      pieDataItem('pulang_cepat', monthStats.pulangCepat),
-      pieDataItem('terlambat', monthStats.terlambat),
-      { name: 'izin/sakit', value: monthStats.izinSakit, fill: statusColor('sakit') },
+      pieDataItem('present', present),
+      pieDataItem('absentPermit', permit),
+      pieDataItem('absentUnpermit', alfa),
     ]
-  }, [monthStats.hadir, monthStats.pulangCepat, monthStats.terlambat, monthStats.izinSakit])
+  }, [monthData])
+
+  const totalMonth = pieMonthData.reduce(function(s, d) { return s + d.value }, 0)
+  const totalKehadiran = monthStats.hadir + monthStats.pulangCepat
+  const pctMonth = totalMonth > 0 ? Math.round(((pieMonthData[0]?.value || 0) / totalMonth) * 100) : 0
 
   if (!user) return null
 
@@ -204,7 +203,7 @@ export default function DashboardPage() {
             <AttendancePieChart
               id="pie-7hari"
               data={pie7Data}
-              config={absensiChartConfig}
+              config={attendanceCategoryConfig}
               centerLabel={pct7 + '%'}
               centerSub="kehadiran"
               loading={weekLoading}
@@ -232,7 +231,7 @@ export default function DashboardPage() {
             <AttendancePieChart
               id="pie-bulan"
               data={pieMonthData}
-              config={{ ...absensiChartConfig, 'izin/sakit': { label: 'Izin/Sakit', color: statusColor('sakit') } }}
+              config={attendanceCategoryConfig}
               centerLabel={pctMonth + '%'}
               centerSub="kehadiran"
             />
@@ -247,6 +246,8 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      {/* DISABLED — kalender. Aktifkan: ganti className="hidden" → className="" */}
+      <div className="hidden">
       <Card>
         <CardContent className="p-4 md:p-5">
           {monthData ? (
@@ -275,6 +276,7 @@ export default function DashboardPage() {
           onClose={function() { setDetailDate(null) }}
         />
       )}
+      </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between px-4 md:px-5 pt-4 md:pt-5">

@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AttendanceCalendar, DayDetailDialog } from '@/components/AttendanceCalendar'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { RefreshCw } from 'lucide-react'
+import { ExportDialog } from '@/components/shared/ExportDialog'
+import { exportWorkbook } from '@/lib/export-xlsx'
+import { buildExportWorkbook } from '@/lib/export-templates'
+import { getAbsensi } from '@/api/absensi'
+import { Download, RefreshCw } from 'lucide-react'
 
 export default function RiwayatPage() {
   const { user } = useAuth()
@@ -16,6 +20,7 @@ export default function RiwayatPage() {
   const curMonth = now.getMonth()
   const curYear = now.getFullYear()
   const [detailDate, setDetailDate] = useState<string | null>(null)
+  const [exportOpen, setExportOpen] = useState(false)
 
   const { data: monthData, refetch, isFetching } = useMonthAttendance(curYear, curMonth + 1, user?.id)
   const { data: allPengajuan } = useAllPengajuan()
@@ -51,14 +56,30 @@ export default function RiwayatPage() {
           <h1 className="text-xl md:text-2xl font-bold tracking-tight">Riwayat Kehadiran</h1>
           <p className="text-xs md:text-sm text-muted-foreground">Kalender absensi Anda</p>
         </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline" size="icon" aria-label="Refresh" onClick={() => refetch()} disabled={isFetching}>
-              <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
-        </Tooltip>
+        <div className="flex gap-2">
+          {/*
+            EXPORT — dinonaktifkan sementara.
+            Aktifkan: hapus <div className="hidden"> pembungkus
+          */}
+          <div className="hidden">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2" onClick={function() { setExportOpen(true) }}>
+                <Download className="h-4 w-4" /> Export
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Export ke XLSX</p></TooltipContent>
+          </Tooltip>
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Refresh" onClick={() => refetch()} disabled={isFetching}>
+                <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
+          </Tooltip>
+        </div>
       </div>
 
       <Card>
@@ -90,6 +111,33 @@ export default function RiwayatPage() {
           onClose={() => setDetailDate(null)}
         />
       )}
+
+      {/* DISABLED — Export XLSX. Aktifkan: hapus <div className="hidden"> */}
+      <div className="hidden">
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        onExport={async function(from, to, filters) {
+          if (!user) return
+          try {
+            var allData = await getAbsensi({ userId: user.id })
+            var filtered = allData
+            if (from) filtered = filtered.filter(function(a) { return a.tanggal >= from && (!to || a.tanggal <= to) })
+            if (filters.mainCategory) filtered = filtered.filter(function(a) { return a.mainCategory === filters.mainCategory })
+            if (filters.statuses.length > 0) filtered = filtered.filter(function(a) { return filters.statuses.includes(a.status as import('@/types').AbsensiStatus) })
+            if (!filtered.length) return
+            var data = filtered.map(function(a) {
+              return { tanggal: a.tanggal, checkIn: a.checkIn, checkOut: a.checkOut, status: a.status, subCategory: a.subCategory, mainCategory: a.mainCategory }
+            })
+            var wb = await buildExportWorkbook(data, from, to, false)
+            await exportWorkbook(wb, 'riwayat-absensi-' + new Date().toISOString().split('T')[0])
+            setExportOpen(false)
+          } catch (e) {
+            console.error('Export gagal:', e)
+          }
+        }}
+      />
+      </div>
     </div>
   )
 }

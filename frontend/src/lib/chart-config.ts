@@ -38,3 +38,19 @@ export const categoryChartConfig: ChartConfig = Object.fromEntries(
 ) as ChartConfig
 
 export type CategoryKey = keyof typeof categoryChartConfig
+
+export const attendanceCategoryConfig: ChartConfig = {
+  present:        { label: 'Hadir',          color: categoryColor('var(--color-status-hadir)') },
+  absentPermit:   { label: 'Izin / Sakit',    color: categoryColor('var(--color-status-izin)') },
+  absentUnpermit: { label: 'Alfa',             color: categoryColor('var(--color-status-tidakHadir)') },
+}
+
+/* ── 3-Category Bulan Ini Chart Config ── */
+
+export const bulanIniChartConfig: ChartConfig = {
+  hadirGroup:   { label: 'Hadir',        color: statusColor('hadir') },
+  izinGroup:    { label: 'Izin / Sakit',  color: statusColor('izin') },
+  tidakHadir:   { label: 'Alfa',          color: statusColor('tidakHadir') },
+}
+
+export type BulanIniKey = keyof typeof bulanIniChartConfig

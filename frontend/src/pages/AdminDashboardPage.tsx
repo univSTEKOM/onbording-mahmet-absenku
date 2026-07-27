@@ -3,18 +3,18 @@ import { useNavigate } from '@tanstack/react-router'
 import { useAdminWeek, useMonthAttendance } from '@/hooks/useDashboard'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CalendarCard } from '@/components/CalendarCard'
 import { AttendancePieChart } from '@/components/shared/AttendancePieChart'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import { RefreshCw, Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
+import { Users, CheckCircle2, AlertTriangle, UserCheck, ArrowRight } from 'lucide-react'
 import { WeekAttendanceChart } from '@/components/shared/WeekAttendanceChart'
-import { absensiChartConfig, pieDataItem } from '@/lib/chart-config'
+import { attendanceCategoryConfig, pieDataItem } from '@/lib/chart-config'
 import api from '@/api/axios'
 import type { User } from '@/types'
 
 const today = new Date()
+const weekStart = new Date(today)
+weekStart.setDate(today.getDate() - 7)
 const currentMonth = today.getMonth()
 const currentYear = today.getFullYear()
 
@@ -22,7 +22,7 @@ const pieId = 'pie-kehadiran'
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
-  const { data: adminData, isLoading, refetch, isFetching } = useAdminWeek()
+  const { data: adminData, isLoading } = useAdminWeek()
   const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
   const { data: pendingUsers } = useQuery({
     queryKey: ['users', 'pending'],
@@ -43,18 +43,16 @@ export default function AdminDashboardPage() {
     const izinTotal = monthData.data.reduce(function(sum, d) { return sum + (d.izin || 0) }, 0)
     const sakitTotal = monthData.data.reduce(function(sum, d) { return sum + (d.sakit || 0) }, 0)
     const cutiTotal = monthData.data.reduce(function(sum, d) { return sum + (d.cuti || 0) }, 0)
+    const tidakHadirTotal = monthData.data.reduce(function(sum, d) { return sum + (d.tidakHadir || 0) }, 0)
     return [
-      pieDataItem('hadir', hadirTotal),
-      pieDataItem('pulangCepat', pulangCepatTotal),
-      pieDataItem('terlambat', terlambatTotal),
-      pieDataItem('izin', izinTotal),
-      pieDataItem('sakit', sakitTotal),
-      pieDataItem('cuti', cutiTotal),
+      pieDataItem('present', hadirTotal + pulangCepatTotal + terlambatTotal),
+      pieDataItem('absentPermit', izinTotal + sakitTotal + cutiTotal),
+      pieDataItem('absentUnpermit', tidakHadirTotal),
     ]
   }, [monthData])
 
   const totalAbsen = donutData.reduce(function(s, d) { return s + d.value }, 0)
-  const hadirVal = (donutData[0]?.value || 0) + (donutData[1]?.value || 0)
+  const hadirVal = donutData[0]?.value || 0
   const hadirPct = totalAbsen > 0 ? Math.round((hadirVal / totalAbsen) * 100) : 0
 
   const statsData = [
@@ -75,12 +73,13 @@ export default function AdminDashboardPage() {
       iconBg: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
     },
     {
-      label: 'Terlambat',
-      value: isLoading ? '-' : String(s?.terlambatHariIni || 0),
+      label: 'Alfa Hari Ini',
+      value: isLoading ? '-' : String(s?.alfaHariIni || 0),
+      subtitle: s?.alfaHariIni !== undefined ? 'dari ' + totalKaryawan + ' (' + (totalKaryawan > 0 ? Math.round((s.alfaHariIni / totalKaryawan) * 100) : 0) + '%)' : null,
       icon: AlertTriangle,
-      accent: 'border-t-amber-500',
-      iconBg: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
-      link: s?.terlambatHariIni && s.terlambatHariIni > 0 ? { text: 'Lihat detail', to: '/admin/riwayat' } : null,
+      accent: 'border-t-red-500',
+      iconBg: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+      link: s?.alfaHariIni && s.alfaHariIni > 0 ? { text: 'Lihat detail', to: '/admin/riwayat' } : null,
     },
     {
       label: 'Verifikasi',
@@ -102,14 +101,6 @@ export default function AdminDashboardPage() {
             {today.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
-              <RefreshCw className={'h-4 w-4' + (isFetching ? ' animate-spin' : '')} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom"><p>Muat ulang data</p></TooltipContent>
-        </Tooltip>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
@@ -144,36 +135,22 @@ export default function AdminDashboardPage() {
         })}
       </div>
 
-      {!isLoading && s?.presentMonth !== undefined && (
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Bulan Ini:</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Hadir: {s.presentMonth}</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> Izin/Sakit: {s.permitMonth}</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Alfa: {s.unpermitMonth}</span>
-              <span className="text-muted-foreground/60">·</span>
-              <span className="text-muted-foreground">Total: {s.totalAbsensiBulanIni} absensi</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
         <Card className="lg:col-span-2">
           <CardHeader className="px-4 md:px-5 pt-4 md:pt-5 pb-2">
             <CardTitle className="text-sm md:text-base">Tren Kehadiran 7 Hari</CardTitle>
             <CardDescription className="text-[11px] md:text-xs">
-              {new Date(today.getTime() - 6 * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+              {weekStart.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
               {' — '}
-              {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+              {new Date(today.getTime() - 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
             </CardDescription>
           </CardHeader>
           <CardContent className="px-4 md:px-5 pb-4 md:pb-5">
             <WeekAttendanceChart
               data={chart}
-              config={absensiChartConfig}
-              legendOrder={['cuti', 'sakit', 'terlambat', 'pulangCepat', 'izin', 'hadir', 'tidakHadir']}
+              config={attendanceCategoryConfig}
+              legendOrder={['present', 'absentPermit', 'absentUnpermit']}
               loading={isLoading}
             />
           </CardContent>
@@ -192,18 +169,20 @@ export default function AdminDashboardPage() {
             <AttendancePieChart
               id={pieId}
               data={donutData}
-              config={absensiChartConfig}
+              config={attendanceCategoryConfig}
               centerLabel={hadirPct + '%'}
-              centerSub="hadir & pulang"
+              centerSub="kehadiran"
               loading={monthLoading}
             />
-            <p className="text-[11px] text-muted-foreground text-center -mt-1">
-              {totalAbsen > 0 ? 'Total ' + totalAbsen + ' absensi tercatat' : 'Belum ada data'}
-            </p>
+            {!totalAbsen && (
+              <p className="text-[11px] text-muted-foreground text-center mt-1">Belum ada data</p>
+            )}
           </CardContent>
         </Card>
       </div>
 
+      {/* DISABLED — kalender. Aktifkan: ganti className="hidden" → className="" */}
+      <div className="hidden">
       <Card>
         <CardContent className="p-4 md:p-5">
           {monthData ? (
@@ -220,6 +199,7 @@ export default function AdminDashboardPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

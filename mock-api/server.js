@@ -28,7 +28,7 @@ async function syncSeedUsers() {
         const result = await auth.api.signUpEmail({
           body: {
             email: seed.email,
-            password: seed.password,
+            password: process.env.DEMO_PASSWORD || 'password',
             name: seed.nama,
             role: seed.role || 'karyawan',
             status: seed.status || 'approved',
@@ -46,23 +46,16 @@ async function syncSeedUsers() {
           router.db.get('pengajuan').filter({ userId: seed.id.toString() }).each((p) => { p.userId = newId }).value()
           router.db.get('pengajuan').filter({ userId: seed.id }).each((p) => { p.userId = newId }).value()
           router.db.write()
-        } else {
-          router.db.get('users').push({
-            id: newId, email: seed.email,
-            nama: seed.nama, jabatan: seed.jabatan || '',
-            role: seed.role || 'karyawan', status: seed.status || 'approved',
-            rejectionNotes: [], foto: '', phone: seed.phone || '',
-            alamat: seed.alamat || '', createdAt: new Date().toISOString(),
-          }).write()
+          synced++
         }
-        synced++
-      } catch (e) { /* user already exists */ }
+      } catch (e) { /* user already exists — skip */ }
     }
-    console.log(`Sync: ${synced} seed users synced`)
+    console.log(`Sync: ${synced} users synced to auth`)
   } catch (e) { console.error('Sync error:', e.message) }
 }
 
 server.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+server.disable('etag')
 
 /* ── Rate limiting (manual body parsing — before Better Auth) ── */
 const loginAttempts = new Map()
@@ -631,13 +624,13 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
   const ms = new Date(); ms.setDate(1); const msStr = ms.toISOString().split('T')[0]
 
   const dayOfWeek = today.getDay()
-  const monday = new Date(today)
-  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+  const weekStart = new Date(today)
+  weekStart.setDate(today.getDate() - 7)
 
   const pengajuan = router.db.get('pengajuan').value()
   const chart = []
   for (let i = 0; i < 7; i++) {
-    const d = new Date(monday); d.setDate(monday.getDate() + i)
+    const d = new Date(weekStart); d.setDate(weekStart.getDate() + i)
     const tgl = d.toISOString().split('T')[0]
     const da = a.filter((x) => x.tanggal === tgl)
     const dp = pengajuan.filter((x) => x.status === 'approved' && x.tanggalMulai <= tgl && x.tanggalSelesai >= tgl)
@@ -651,7 +644,8 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
     /* Category-type counts */
     var present = da.filter((x) => catType(x) === 'present').length
     var absentPermit = da.filter((x) => catType(x) === 'absent_permit').length + dp.filter((x) => x.jenis === 'izin').length
-    var absentUnpermit = da.filter((x) => catType(x) === 'absent_unpermit').length
+    var tidakHadir = Math.max(0, k.length - hadir - pulangCepat - terlambat - izin - sakit - cuti)
+    var absentUnpermit = tidakHadir
     chart.push({
       name: d.toLocaleDateString('id-ID', { weekday: 'short' }),
       hadir,
@@ -660,7 +654,7 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
       izin,
       sakit,
       cuti,
-      tidakHadir: Math.max(0, k.length - hadir - pulangCepat - terlambat - izin - sakit - cuti),
+      tidakHadir,
       present,
       absentPermit,
       absentUnpermit,
@@ -673,6 +667,7 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
   var terlambatHariIni = ta.filter((x) => x.status === 'terlambat').length
   var izinHariIni = ta.filter((x) => ['izin', 'sakit', 'cuti'].includes(x.status)).length
   var sudahAbsen = ta.filter((x) => x.checkIn).length
+  var alfaHariIni = Math.max(0, k.length - hadirHariIni - terlambatHariIni - izinHariIni)
   var weekAvg = chart.length ? Math.round(chart.reduce((s, c) => s + c.persen, 0) / chart.length) : 0
   var totalThisMonth = a.filter((x) => x.tanggal >= msStr).length
   var presentMonth = a.filter((x) => x.tanggal >= msStr && catType(x) === 'present').length
@@ -686,6 +681,7 @@ server.get('/api/dashboard/admin/week', async (req, res) => {
       hadirHariIni,
       terlambatHariIni,
       izinHariIni,
+      alfaHariIni,
       belumAbsen: k.length - sudahAbsen,
       totalAbsensiBulanIni: totalThisMonth,
       weekAvg,
@@ -718,7 +714,7 @@ server.get('/api/dashboard/month', async (req, res) => {
 
   const requestUserId = req.query.userId || null
   const isAdmin = session.user.role === 'admin'
-  const effectiveUserId = requestUserId && isAdmin ? requestUserId : session.user.id
+  const effectiveUserId = requestUserId || (!isAdmin ? session.user.id : null)
 
   const tahun = parseInt(req.query.tahun) || new Date().getFullYear()
   const bulan = parseInt(req.query.bulan) || (new Date().getMonth() + 1)
@@ -755,7 +751,8 @@ server.get('/api/dashboard/month', async (req, res) => {
     const totalLain = izin + sakit + cuti
     var present = dayAbsensi.filter(function(x) { return catType(x) === 'present' }).length
     var absentPermit = dayAbsensi.filter(function(x) { return catType(x) === 'absent_permit' }).length + dayPengajuan.filter(function(x) { return x.jenis === 'izin' }).length
-    var absentUnpermit = dayAbsensi.filter(function(x) { return catType(x) === 'absent_unpermit' }).length
+    var tidakHadir = Math.max(0, total - hadir - pulangCepat - terlambat - checkInOnly - totalLain)
+    var absentUnpermit = tidakHadir
     data.push({
       tanggal: tgl,
       hadir,
@@ -765,7 +762,7 @@ server.get('/api/dashboard/month', async (req, res) => {
       izin,
       sakit,
       cuti,
-      tidakHadir: Math.max(0, total - hadir - pulangCepat - terlambat - checkInOnly - totalLain),
+      tidakHadir,
       present,
       absentPermit,
       absentUnpermit,

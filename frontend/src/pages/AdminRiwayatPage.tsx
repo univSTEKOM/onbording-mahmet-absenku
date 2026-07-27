@@ -13,14 +13,15 @@ import { Pagination } from '@/components/shared/Pagination'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { absensiStatusBadge, absensiStatusLabel, CATEGORY_LABEL } from '@/lib/constants'
-import { exportToCsv, formatCsvDate, formatCsvTime, exportToXlsx } from '@/lib/export'
-import { buildAdminRiwayatSheets } from '@/lib/export-templates'
+import { buildExportWorkbook } from '@/lib/export-templates'
+import { exportWorkbook } from '@/lib/export-xlsx'
 import { ExportDialog } from '@/components/shared/ExportDialog'
 import { ImageViewer } from '@/components/shared/ImageViewer'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { Download, RefreshCw, X, Search, History, CheckCircle2, LogIn, LogOut, Clock, CalendarDays } from 'lucide-react'
 import type { Absensi } from '@/types'
 import { formatJam, hitungJam } from '@/lib/utils'
+import api from '@/api/axios'
 
 const PAGE_SIZE = 15 /* Admin sees more rows than employee (10) */
 const curMonth = new Date().getMonth()
@@ -121,9 +122,15 @@ export default function AdminRiwayatPage() {
           <p className="text-xs md:text-sm text-muted-foreground">Seluruh karyawan</p>
         </div>
         <div className="flex gap-2 shrink-0">
+          {/*
+            EXPORT — dinonaktifkan sementara.
+            Aktifkan: hapus baris `false &&` dan `</div>` di bawah, lalu hapus <div className="hidden"> pembungkus
+          */}
+          <div className="hidden">
           <Button variant="outline" size="sm" className="gap-2" onClick={function() { setExportOpen(true) }}>
             <Download className="h-4 w-4" /> Export
           </Button>
+          </div>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="icon" aria-label="Refresh" onClick={function() { refetch() }} disabled={isFetching}>
@@ -382,30 +389,35 @@ export default function AdminRiwayatPage() {
 
       <ImageViewer open={!!previewImage} imageUrl={previewImage} onClose={function() { setPreviewImage('') }} />
 
+      {/* DISABLED — Export XLSX. Aktifkan: hapus <div className="hidden"> */}
+      <div className="hidden">
       <ExportDialog
         open={exportOpen}
         onOpenChange={setExportOpen}
-        onExport={async function(format, from, to) {
-          if (!absensi?.length) return
-          if (format === 'csv') {
-            var filtered = from ? (absensi.filter(function(a) { return a.tanggal >= from && (!to || a.tanggal <= to) }) || absensi) : absensi
-            exportToCsv('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0],
-              ['Karyawan', 'Tanggal', 'Masuk', 'Pulang', 'Status', 'Kategori'],
-              filtered.map(function(a) {
-                return [users?.find(function(u) { return u.id === a.userId })?.nama || '-', formatCsvDate(a.tanggal), formatCsvTime(a.checkIn), formatCsvTime(a.checkOut), a.status, CATEGORY_LABEL[a.subCategory || ''] || a.subCategory || '-']
-              }))
-          } else {
-            var filtered = from ? (absensi.filter(function(a) { return a.tanggal >= from && (!to || a.tanggal <= to) }) || absensi) : absensi
-            var data = filtered.map(function(a) {
+        initialFilters={{ mainCategory: selectedMainCategory, statuses: selectedStatuses as import('@/types').AbsensiStatus[] }}
+        onExport={async function(from, to, filters) {
+          try {
+            var params: Record<string, string | string[]> = { _sort: 'tanggal', _order: 'desc' }
+            if (from) params.tanggal_gte = from
+            if (to) params.tanggal_lte = to
+            if (filters.mainCategory) params.mainCategory = filters.mainCategory
+            if (filters.statuses.length > 0) params.status = filters.statuses
+            var res = await api.get('/absensi', { params: params })
+            var allData = (res.data || []) as Absensi[]
+            if (!allData.length) return
+            var data = allData.map(function(a) {
               var u = users?.find(function(u) { return u.id === a.userId })
-              return { nama: u?.nama || '-', tanggal: a.tanggal, checkIn: a.checkIn, checkOut: a.checkOut, status: a.status, subCategory: a.subCategory }
+              return { nama: u?.nama || '-', tanggal: a.tanggal, checkIn: a.checkIn, checkOut: a.checkOut, status: a.status, subCategory: a.subCategory, mainCategory: a.mainCategory }
             })
-            var sheets = buildAdminRiwayatSheets(data)
-            await exportToXlsx('riwayat-seluruh-karyawan-' + new Date().toISOString().split('T')[0], sheets)
+            var wb = await buildExportWorkbook(data, from, to, true)
+            await exportWorkbook(wb, 'laporan-absensi-' + new Date().toISOString().split('T')[0])
+            setExportOpen(false)
+          } catch (e) {
+            console.error('Export gagal:', e)
           }
-          setExportOpen(false)
         }}
       />
+      </div>
     </div>
   )
 }
