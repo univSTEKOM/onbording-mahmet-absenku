@@ -105,7 +105,7 @@ export function NavUser() {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={handleLogout} className="gap-2">
+          <AlertDialogAction variant="destructive" onClick={handleLogout} className="gap-2">
             <LogOut className="h-4 w-4" /> Logout
           </AlertDialogAction>
         </AlertDialogFooter>
