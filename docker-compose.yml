@@ -1,0 +1,34 @@
+services:
+  mock-api:
+    build:
+      context: ./mock-api
+      dockerfile: Dockerfile
+    container_name: absenku-api
+    ports:
+      - "${MOCK_API_PORT:-3001}:3001"
+    env_file:
+      - .env
+    environment:
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-dev-secret-key-change-in-production}
+      - DEMO_PASSWORD=${DEMO_PASSWORD:-password}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/me', r => {process.exit(r.statusCode===401?0:1)})"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:3001}
+    container_name: absenku-web
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      mock-api:
+        condition: service_healthy
+    restart: unless-stopped
