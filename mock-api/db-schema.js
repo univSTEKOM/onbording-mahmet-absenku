@@ -18,14 +18,14 @@ export const users = sqliteTable('user', {
 
 export const sessions = sqliteTable('session', {
   id: text('id').primaryKey(),
-  userId: text('user_id'),
+  userId: text('userId'),
   token: text('token'),
   expiresAt: text('expires_at'),
 })
 
 export const accounts = sqliteTable('account', {
   id: text('id').primaryKey(),
-  userId: text('user_id'),
+  userId: text('userId'),
   providerId: text('provider_id'),
   accountId: text('account_id'),
   password: text('password'),
