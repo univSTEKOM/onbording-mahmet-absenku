@@ -246,31 +246,15 @@ export default function WelcomePage() {
                   )
                 })}
               </div>
-              {!user && (
-                <div className="mt-6 md:mt-8">
-                  <Link to="/register">
-                    <Button size="lg" className="gap-2 text-sm md:text-base w-full sm:w-auto">
-                      Mulai Sekarang <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              )}
             </div>
             <div className="reveal-on-scroll translate-y-6 opacity-0 transition-all duration-700 delay-200 ease-out flex-1 w-full">
-              <div className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-primary/5 p-6 md:p-10">
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
-                  {[
-                    { label: 'Check-in', value: '07:45', status: 'on-time' },
-                    { label: 'Check-out', value: '16:30', status: 'on-time' },
-                    { label: 'Kehadiran', value: '95%', status: 'good' },
-                    { label: 'Tim', value: '12 org', status: 'neutral' },
-                  ].map((stat) => (
-                    <div key={stat.label} className="bg-card/80 rounded-xl p-3 md:p-4 border border-border/50">
-                      <p className="text-[10px] md:text-xs text-muted-foreground mb-0.5 md:mb-1">{stat.label}</p>
-                      <p className="text-sm md:text-lg font-bold">{stat.value}</p>
-                    </div>
-                  ))}
-                </div>
+              <div className="rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
+                <img
+                  src="/why-choose-me-illustration.png"
+                  alt="Ilustrasi AbsenKu"
+                  className="w-full h-auto object-contain"
+                  loading="lazy"
+                />
               </div>
             </div>
           </div>
@@ -310,9 +294,6 @@ export default function WelcomePage() {
                     </>
                   )}
                 </div>
-                <p className="mt-4 text-[11px] md:text-xs text-primary-foreground/60">
-                  Demo: <kbd className="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px] md:text-[11px]">andika@stekom.ac.id</kbd> / <kbd className="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px] md:text-[11px]">password</kbd>
-                </p>
               </div>
             </div>
           </div>
@@ -326,7 +307,7 @@ export default function WelcomePage() {
             <span className="text-xs md:text-sm text-muted-foreground">Sistem Absensi Karyawan</span>
           </div>
           <p className="text-[10px] md:text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} AbsenKu. All rights reserved.
+            &copy; {new Date().getFullYear()} AbsenKu by <a href="https://github.com/MAHMETT" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">github.com/MAHMETT</a>
           </p>
         </div>
       </footer>
