@@ -2,7 +2,7 @@ import { z } from 'zod'
 import {
   MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH,
   MAX_NAMA_LENGTH, MAX_JABATAN_LENGTH,
-  MAX_EMAIL_LENGTH,
+  MAX_EMAIL_LENGTH, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS,
 } from '@/lib/constants'
 
 /* ── Zod Schemas ── */
@@ -37,7 +37,7 @@ const jabatanSchema = z
 
 function isValidPhoneNumber(phone: string): boolean {
   const digits = phone.replace(/\D/g, '')
-  return digits.length >= 6 && digits.length <= 15 && phone.startsWith('+')
+  return digits.length >= MIN_PHONE_DIGITS && digits.length <= MAX_PHONE_DIGITS && phone.startsWith('+')
 }
 
 const phoneSchema = z

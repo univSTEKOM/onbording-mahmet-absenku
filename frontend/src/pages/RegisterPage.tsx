@@ -8,6 +8,7 @@ import { PhoneInput } from '@/components/ui/phone-input'
 import { Logo } from '@/components/Logo'
 import { Loader2, UserPlus } from 'lucide-react'
 import { PasswordInput } from '@/components/shared/PasswordInput'
+import { PasswordRequirements } from '@/components/shared/PasswordRequirements'
 import { getApiErrorMessage } from '@/lib/utils'
 import { validateEmail, validatePassword, validateNama, validateJabatan, validatePhone } from '@/lib/validation'
 
@@ -144,6 +145,7 @@ export default function RegisterPage() {
                     />
                   </div>
                 </div>
+                <PasswordRequirements value={form.password} />
 
                 <div className="space-y-2">
                     <Label htmlFor="jabatan">Jabatan</Label>
