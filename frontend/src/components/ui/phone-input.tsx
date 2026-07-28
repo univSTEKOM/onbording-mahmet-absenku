@@ -19,12 +19,15 @@ export function PhoneInput({ value, onChange, error, className, id, name, disabl
       <LibPhoneInput
         defaultCountry="id"
         value={value}
-        onChange={(phone) => onChange(phone || '')}
+        onChange={(phone) => {
+          const raw = phone || ''
+          const digits = raw.replace(/\D/g, '')
+          onChange(digits.length <= 3 ? '' : raw)
+        }}
         countries={defaultCountries}
         placeholder={placeholder}
         inputProps={{ id, name, disabled }}
       />
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>
   )
 }
