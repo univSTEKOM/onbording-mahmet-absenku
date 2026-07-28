@@ -133,7 +133,6 @@ export default function RegisterPage() {
                       value={form.password} onChange={handleChange}
                       error={errors.password}
                     />
-                    <p className="text-xs text-muted-foreground">Minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="konfirmasiPassword">Konfirmasi</Label>
