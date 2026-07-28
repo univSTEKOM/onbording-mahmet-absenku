@@ -14,6 +14,9 @@ Set via **Dokploy Dashboard → Project → Environment Variables**:
 | `VITE_API_URL` | ✅ | `http://localhost:3001` | `https://api.domain.com` |
 | `BETTER_AUTH_SECRET` | ✅ | `change-this-in-production` | `random-string-min-32-characters` |
 | `DEMO_PASSWORD` | — | `password` | `password` |
+| `CORS_ORIGIN` | — | `http://localhost:5173` | `https://absenku.domain.com` |
+| `MOCK_API_PORT` | — | `9876` | *(host port mock API)* |
+| `MOCK_API_CONTAINER_PORT` | — | `9089` | *(internal container port mock API)* |
 | `FRONTEND_PORT` | — | `5173` | *(kosongkan untuk Dokploy)* |
 
 ### Keterangan
