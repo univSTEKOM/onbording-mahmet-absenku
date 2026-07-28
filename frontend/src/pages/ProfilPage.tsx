@@ -104,7 +104,7 @@ export default function ProfilPage() {
         <p className="text-muted-foreground">Kelola data diri Anda</p>
       </div>
 
-      <Card>
+      <Card data-slot="profile-card">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
             <div className="relative">
