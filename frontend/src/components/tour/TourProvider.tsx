@@ -34,7 +34,12 @@ export function TourProvider({ children, role, status, userId, autoStart = true 
   const [exiting, setExiting] = useState(false)
 
   const steps = useMemo(() => {
-    if (status === 'pending' || status === 'rejected') return verificationSteps
+    if (status === 'pending' || status === 'rejected') {
+      if (status === 'pending') {
+        return verificationSteps.filter(s => s.id !== 'v-rejection-notes')
+      }
+      return verificationSteps
+    }
     return role === 'admin' ? adminSteps : karyawanSteps
   }, [role, status])
 
