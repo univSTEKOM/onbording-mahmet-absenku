@@ -262,7 +262,7 @@ export default function WelcomePage() {
 
         <section className="py-16 md:py-24 px-4 md:px-8">
           <div className="reveal-on-scroll translate-y-6 opacity-0 transition-all duration-700 ease-out max-w-5xl mx-auto">
-            <div className="relative overflow-hidden bg-primary rounded-2xl md:rounded-3xl p-8 md:p-16 text-center text-primary-foreground">
+            <div className="relative overflow-hidden bg-primary rounded-2xl md:rounded-3xl p-8 md:p-16 text-center text-primary-foreground selection:bg-white/20 selection:text-white">
               <div className="absolute top-0 right-0 w-48 h-48 md:w-64 md:h-64 bg-white/10 rounded-full blur-3xl -mr-24 md:-mr-32 -mt-24 md:-mt-32 pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-32 h-32 md:w-48 md:h-48 bg-white/5 rounded-full blur-3xl -ml-16 md:-ml-24 -mb-16 md:-mb-24 pointer-events-none" />
 
@@ -287,7 +287,7 @@ export default function WelcomePage() {
                         </Button>
                       </Link>
                       <Link to="/login" className="w-full sm:w-auto">
-                        <Button size="lg" variant="outline" className="border-white/30 text-primary-foreground hover:bg-white/10 px-6 md:px-10 py-4 md:py-6 rounded-xl text-sm md:text-base font-bold w-full sm:w-auto">
+                        <Button size="lg" variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20 px-6 md:px-10 py-4 md:py-6 rounded-xl text-sm md:text-base font-bold w-full sm:w-auto">
                           Masuk
                         </Button>
                       </Link>
