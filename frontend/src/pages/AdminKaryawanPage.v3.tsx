@@ -327,7 +327,6 @@ export default function AdminKaryawanPageV3() {
                       error={fieldErrors.customPassword}
                       placeholder="Minimal 8 karakter"
                     />
-                    <p className="text-xs text-muted-foreground -mt-1">Minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka</p>
                     <PasswordInput
                       id="confirmPassword"
                       value={confirmPassword}
