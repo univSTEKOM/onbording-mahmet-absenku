@@ -6,9 +6,12 @@ services:
     container_name: absenku-api
     ports:
       - "3001:3001"
+    env_file: .env
     environment:
-      - BETTER_AUTH_SECRET=dev-secret-key-this-is-just-for-local-dev-env
-      - DEMO_PASSWORD=password
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - DEMO_PASSWORD=${DEMO_PASSWORD}
+    volumes:
+      - mock-api-data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/me', r => {process.exit(r.statusCode===401?0:1)})"]
@@ -22,7 +25,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://localhost:3001
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:3001}
     container_name: absenku-web
     ports:
       - "5173:80"
@@ -30,3 +33,6 @@ services:
       mock-api:
         condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  mock-api-data:
