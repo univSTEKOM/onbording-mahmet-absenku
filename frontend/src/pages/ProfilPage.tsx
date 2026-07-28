@@ -154,7 +154,7 @@ export default function ProfilPage() {
                   {errors.jabatan && <p className="text-xs text-destructive">{errors.jabatan}</p>}
                 </div>
                 <div className="sm:col-span-2 space-y-2">
-                  <Label htmlFor="edit-phone">Telepon</Label>
+                  <Label htmlFor="edit-phone">Telepon <span className="text-muted-foreground font-normal">(opsional)</span></Label>
                   <PhoneInput
                     id="edit-phone"
                     value={form.phone}
