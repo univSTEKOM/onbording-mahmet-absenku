@@ -108,21 +108,20 @@ export default function ProfilPage() {
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
             <div className="relative">
-              <Avatar className={'h-24 w-24 ring-2 ring-border ' + (fotoPreview ? 'cursor-pointer' : '')} onClick={function() { if (fotoPreview) setPreviewAvatar(fotoPreview) }}>
-                <AvatarImage src={fotoPreview || undefined} />
-                <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
-              </Avatar>
-              {editing && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="absolute bottom-0 right-0 p-1.5 rounded-full bg-primary text-primary-foreground shadow-sm"
-                      onClick={() => fileInputRef.current?.click()}>
-                      <Camera className="h-3.5 w-3.5" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom"><p>Ganti foto profil</p></TooltipContent>
-                </Tooltip>
-              )}
+              <div className="relative" onClick={function() { if (editing) fileInputRef.current?.click(); else if (fotoPreview) setPreviewAvatar(fotoPreview) }}>
+                <Avatar className={'h-24 w-24 ring-2 ring-border ' + (editing || fotoPreview ? 'cursor-pointer' : '')}>
+                  <AvatarImage src={fotoPreview || undefined} />
+                  <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+                </Avatar>
+                {editing && (
+                  <Tooltip>
+                    <TooltipTrigger className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                      <Camera className="h-8 w-8 text-white" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Ganti foto profil</TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
             </div>
             <div className="text-center sm:text-left">
