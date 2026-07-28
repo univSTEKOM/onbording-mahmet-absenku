@@ -2,8 +2,8 @@ FROM oven/bun:latest AS base
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+COPY package.json ./
+RUN bun install --production
 
 COPY . .
 RUN chmod +x docker-entrypoint.sh
