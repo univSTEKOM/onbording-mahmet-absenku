@@ -4,16 +4,18 @@ services:
       context: ./mock-api
       dockerfile: Dockerfile
     container_name: absenku-api
-    ports:
-      - "3001:3001"
     environment:
+      - PORT=9089
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-this-in-production}
       - DEMO_PASSWORD=${DEMO_PASSWORD:-password}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+    ports:
+      - "9876:9089"
     volumes:
       - mock-api-data:/app/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/me', r => {process.exit(r.statusCode===401?0:1)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:9089/api/me', r => {process.exit(r.statusCode===401?0:1)})"]
       interval: 10s
       timeout: 5s
       retries: 5

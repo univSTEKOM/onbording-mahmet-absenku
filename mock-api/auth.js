@@ -6,7 +6,7 @@ import * as schema from './db-schema.js'
 const sqliteDb = new Database('./auth.db')
 
 export const auth = betterAuth({
-  baseURL: 'http://localhost:3001',
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
   database: sqliteDb,
   emailAndPassword: {
     enabled: true,
@@ -34,7 +34,7 @@ export const auth = betterAuth({
       },
     },
   },
-  trustedOrigins: ['http://localhost:5173'],
+  trustedOrigins: [process.env.CORS_ORIGIN || 'http://localhost:5173'],
 })
 
 export const db = drizzle(sqliteDb, { schema })
