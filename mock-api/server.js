@@ -54,7 +54,7 @@ async function syncSeedUsers() {
   } catch (e) { console.error('Sync error:', e.message) }
 }
 
-server.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+server.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173', credentials: true }))
 server.disable('etag')
 
 /* ── Rate limiting (manual body parsing — before Better Auth) ── */
