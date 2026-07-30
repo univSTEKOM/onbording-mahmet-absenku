@@ -99,7 +99,16 @@ function registerRateLimiter(req: Request, res: Response, next: NextFunction) {
   if (r && now - (r.blockedAt || now) >= REGISTER_WINDOW) {
     attempts.delete(ipKey);
   }
-  recordAttempt(ipKey, MAX_REGISTER_ATTEMPTS);
+
+  const origJson = res.json.bind(res) as JsonFn;
+  res.json = function (data: Record<string, unknown>) {
+    if (data?.success === true) {
+      attempts.delete(ipKey);
+    } else {
+      recordAttempt(ipKey, MAX_REGISTER_ATTEMPTS);
+    }
+    return origJson(data);
+  };
   next();
 }
 

@@ -16,11 +16,7 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AbsensiService } from './absensi.service';
 import { checkInSchema, checkOutSchema } from './absensi.schema';
 import type { CheckInDto, CheckOutDto } from './absensi.schema';
-
-interface UserFromSession {
-  id: string;
-  role: string;
-}
+import type { UserFromSession } from '../common/types';
 
 @Controller()
 export class AbsensiController {

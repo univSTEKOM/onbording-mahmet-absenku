@@ -4,11 +4,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { DashboardService } from './dashboard.service';
-
-interface UserFromSession {
-  id: string;
-  role: string;
-}
+import type { UserFromSession } from '../common/types';
 
 @Controller()
 export class DashboardController {

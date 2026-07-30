@@ -23,11 +23,7 @@ import type {
   CreatePengajuanDto,
   UpdatePengajuanDto,
 } from './pengajuan.schema';
-
-interface UserFromSession {
-  id: string;
-  role: string;
-}
+import type { UserFromSession } from '../common/types';
 
 @Controller()
 export class PengajuanController {

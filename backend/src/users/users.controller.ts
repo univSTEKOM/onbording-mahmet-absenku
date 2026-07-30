@@ -28,6 +28,7 @@ import type {
   UpdateUserStatusDto,
   AddNoteDto,
 } from './users.schema';
+import type { UserFromSession } from '../common/types';
 
 @Controller()
 export class UsersController {
@@ -35,7 +36,7 @@ export class UsersController {
 
   @Get('/api/me')
   @UseGuards(AuthGuard)
-  async getProfile(@CurrentUser() currentUser: { id: string }) {
+  async getProfile(@CurrentUser() currentUser: UserFromSession) {
     const profile = await this.usersService.getProfile(currentUser.id);
     return { success: true, data: profile };
   }
@@ -46,7 +47,7 @@ export class UsersController {
   async updateProfile(
     @Param('id') id: string,
     @Body() body: UpdateUserDto,
-    @CurrentUser() currentUser: { id: string },
+    @CurrentUser() currentUser: UserFromSession,
   ) {
     const profile = await this.usersService.updateProfile(
       id,
