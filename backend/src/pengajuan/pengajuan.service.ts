@@ -1,5 +1,5 @@
 import { Injectable, Inject, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'
-import { eq, and, count, sql } from 'drizzle-orm'
+import { eq, and, count, sql, type SQLWrapper } from 'drizzle-orm'
 import { DRIZZLE_DB } from '../database/database.providers'
 import { pengajuan } from '../database/schema/pengajuan.schema'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
@@ -35,7 +35,7 @@ export class PengajuanService {
     const limit = params._limit || 10
     const offset = (page - 1) * limit
 
-    const filters: any[] = []
+    const filters: SQLWrapper[] = []
 
     if (params.userId) filters.push(eq(pengajuan.userId, params.userId))
     if (params.jenis) filters.push(eq(pengajuan.jenis, params.jenis))

@@ -1,5 +1,5 @@
 import { Injectable, Inject, NotFoundException, ForbiddenException, ConflictException, BadRequestException } from '@nestjs/common'
-import { eq, and, gte, lte, inArray, ilike, count, sql } from 'drizzle-orm'
+import { eq, and, gte, lte, inArray, ilike, count, sql, type SQLWrapper } from 'drizzle-orm'
 import { DRIZZLE_DB } from '../database/database.providers'
 import { absensi } from '../database/schema/absensi.schema'
 import { user } from '../database/schema/auth.schema'
@@ -94,7 +94,7 @@ export class AbsensiService {
     const limit = params._limit || 10
     const offset = (page - 1) * limit
 
-    const filters: any[] = []
+    const filters: SQLWrapper[] = []
 
     if (params.userId) filters.push(eq(absensi.userId, params.userId))
     if (params.tanggal) filters.push(eq(absensi.tanggal, params.tanggal))
@@ -134,7 +134,7 @@ export class AbsensiService {
     const limit = params._limit || 15
     const offset = (page - 1) * limit
 
-    const filters: any[] = []
+    const filters: SQLWrapper[] = []
 
     if (params.q) {
       const pattern = `%${params.q}%`

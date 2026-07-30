@@ -1,5 +1,5 @@
 import { Injectable, Inject, NotFoundException, ForbiddenException } from '@nestjs/common'
-import { eq, ilike, count, sql, and } from 'drizzle-orm'
+import { eq, ilike, count, sql, and, type SQLWrapper } from 'drizzle-orm'
 import { DRIZZLE_DB } from '../database/database.providers'
 import { user } from '../database/schema/auth.schema'
 import { absensi } from '../database/schema/absensi.schema'
@@ -71,7 +71,7 @@ export class UsersService {
     const limit = params.limit || 15
     const offset = (page - 1) * limit
 
-    const filters: any[] = []
+    const filters: SQLWrapper[] = []
 
     if (params.q) {
       const pattern = `%${params.q}%`
