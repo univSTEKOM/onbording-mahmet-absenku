@@ -7,8 +7,8 @@ function toMinutes(time: string): number {
   return h * 60 + m;
 }
 
-function nowMinutes(): number {
-  const n = new Date();
+function nowMinutes(now?: Date): number {
+  const n = now ?? new Date();
   return n.getHours() * 60 + n.getMinutes();
 }
 
@@ -27,8 +27,9 @@ export type CheckInResult =
       subCategory: string;
     };
 
-export function evaluateCheckIn(): CheckInResult {
-  const current = nowMinutes();
+/** @param now — optional Date untuk testing. default: new Date() */
+export function evaluateCheckIn(now?: Date): CheckInResult {
+  const current = nowMinutes(now);
   const start = toMinutes(CHECK_IN_START);
   const end = toMinutes(CHECK_IN_END);
 
@@ -48,11 +49,12 @@ export function evaluateCheckIn(): CheckInResult {
   };
 }
 
-export function evaluateCheckOut(): {
+/** @param now — optional Date untuk testing. default: new Date() */
+export function evaluateCheckOut(now?: Date): {
   pulangCepat: boolean;
   subCategory: string;
 } {
-  const current = nowMinutes();
+  const current = nowMinutes(now);
   if (current < toMinutes(CHECK_OUT_MIN)) {
     return { pulangCepat: true, subCategory: 'physical_violation' };
   }

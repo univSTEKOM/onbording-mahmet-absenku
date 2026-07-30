@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { AbsensiService } from './absensi.service';
 import { DRIZZLE_DB } from '../database/database.providers';
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 
 describe('AbsensiService', () => {
   let service: AbsensiService;
