@@ -1,98 +1,268 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# AbsenKu Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API absensi karyawan — NestJS 11 + PostgreSQL + Drizzle ORM + Better Auth.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Layer | Teknologi |
+|-------|-----------|
+| Framework | NestJS 11 |
+| Language | TypeScript 5.7 (strict) |
+| Database | PostgreSQL 17 |
+| ORM | Drizzle ORM |
+| Auth | Better Auth (cookie session) |
+| Validation | Zod 4 |
+| File Storage | MinIO (S3-compatible) |
+| Rate Limiting | In-memory Map |
+| Testing | Jest (unit) + Supertest (E2E) |
+| Linter | ESLint + typescript-eslint |
+| Container | Docker Compose |
 
-## Project setup
+---
 
-```bash
-$ pnpm install
-```
+## Prerequisites
 
-## Compile and run the project
+| Tool | Version | Untuk |
+|------|---------|-------|
+| Node.js | ≥ 18.x | Runtime |
+| pnpm | ≥ 9.x | Package manager |
+| Docker | ≥ 24.x | PostgreSQL + MinIO |
+| PostgreSQL 17 | — | Database (via Docker) |
+| MinIO | latest | File storage (via Docker) |
 
-```bash
-# development
-$ pnpm run start
+---
 
-# watch mode
-$ pnpm run start:dev
+## Setup
 
-# production mode
-$ pnpm run start:prod
-```
-
-## Run tests
+### 1. Start Dependencies
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+# PostgreSQL + MinIO dalam 1 command
+docker compose -f docker-compose.dev.yml up -d
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 2. Install Dependencies
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 3. Environment
 
-## Resources
+Copy `.env` (already provided dengan default untuk development):
+```env
+PORT=9090
+DATABASE_URL=postgresql://absenku:absenku@localhost:5432/absenku
+BETTER_AUTH_SECRET=change-this-in-production-min-32-chars
+BETTER_AUTH_URL=http://localhost:9090
+CORS_ORIGIN=http://localhost:5173
+MINIO_ENDPOINT=http://localhost:9000
+MINIO_PUBLIC_URL=http://localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 4. Migrate & Seed
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+# Apply database migrations
+pnpm db:migrate
 
-## Support
+# (Opsional) Seed demo data
+pnpm db:seed
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 5. Start Development Server
 
-## Stay in touch
+```bash
+pnpm start:dev
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+API berjalan di `http://localhost:9090`.
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Scripts
+
+| Perintah | Fungsi |
+|----------|--------|
+| `pnpm start:dev` | Watch mode (development) |
+| `pnpm start:prod` | Production mode |
+| `pnpm build` | Compile TypeScript |
+| `pnpm test` | Unit tests (Jest) |
+| `pnpm test:e2e` | E2E tests (Supertest) |
+| `pnpm test:cov` | Unit tests + coverage |
+| `pnpm lint` | ESLint |
+| `pnpm db:generate` | Generate Drizzle migration from schema |
+| `pnpm db:migrate` | Apply pending migrations |
+| `pnpm db:push` | Push schema to DB (dev only) |
+| `pnpm db:seed` | Seed demo data |
+
+---
+
+## Environment Variables
+
+| Variable | Default | Wajib | Deskripsi |
+|----------|---------|-------|-----------|
+| `PORT` | `9090` | — | Port server |
+| `NODE_ENV` | `development` | — | Environment |
+| `DATABASE_URL` | — | ✅ | PostgreSQL connection string |
+| `BETTER_AUTH_SECRET` | — | ✅ | Secret key (min 32 chars) |
+| `BETTER_AUTH_URL` | `http://localhost:9090` | — | Backend URL untuk Better Auth |
+| `CORS_ORIGIN` | `http://localhost:5173` | — | Origin yang diizinkan |
+| `DEMO_PASSWORD` | `password` | — | Password untuk akun demo |
+| `APP_RELEASE_DATE` | `2026-07-13` | — | Tanggal rilis aplikasi |
+| `MINIO_ENDPOINT` | `http://localhost:9000` | — | Endpoint MinIO S3 API |
+| `MINIO_PUBLIC_URL` | `http://localhost:9000` | — | URL publik untuk akses file |
+| `MINIO_ACCESS_KEY` | `minioadmin` | — | Access key MinIO |
+| `MINIO_SECRET_KEY` | `minioadmin` | — | Secret key MinIO |
+
+---
+
+## Project Structure
+
+```
+src/
+├── attendance-categories.ts    # Shared category helpers
+├── common/                     # Shared infrastructure
+│   ├── decorators/             # @CurrentUser(), @Roles()
+│   ├── filters/                # HttpExceptionFilter
+│   ├── guards/                 # AuthGuard, RolesGuard
+│   ├── pipes/                  # ZodValidationPipe
+│   └── utils.ts                # fmtDate(), dll
+├── config/
+│   └── env.config.ts           # Zod schema validasi env
+├── database/
+│   ├── database.module.ts      # Global module
+│   ├── database.providers.ts   # PG pool + Drizzle factory
+│   └── schema/                 # Drizzle table definitions
+│       ├── auth.schema.ts      # user, session, account, verification
+│       ├── absensi.schema.ts
+│       └── pengajuan.schema.ts
+├── auth/                       # Auth module
+│   ├── auth.controller.ts      # POST /api/register
+│   ├── auth.instance.ts        # Better Auth singleton
+│   ├── auth.module.ts
+│   ├── auth.rate-limiter.ts    # Login + Register rate limiter
+│   ├── auth.register.schema.ts # Zod schema
+│   └── auth.service.ts
+├── users/                      # Users module
+│   ├── users.controller.ts     # /users, /api/users/*
+│   ├── users.service.ts
+│   └── users.schema.ts
+├── absensi/                    # Absensi module
+│   ├── absensi.controller.ts   # /absensi, /api/absensi/search
+│   ├── absensi.service.ts
+│   ├── absensi.schema.ts
+│   └── absensi.rules.ts        # Check-in/out time rules
+├── pengajuan/                  # Pengajuan module
+│   ├── pengajuan.controller.ts # /pengajuan
+│   ├── pengajuan.service.ts
+│   └── pengajuan.schema.ts
+├── dashboard/                  # Dashboard module
+│   ├── dashboard.controller.ts # /api/dashboard/*
+│   └── dashboard.service.ts
+├── storage/                    # File storage module
+│   ├── storage.controller.ts   # POST /api/upload/foto
+│   ├── storage.service.ts      # MinIO S3 client
+│   └── storage.module.ts
+├── seed/                       # Seed system
+│   ├── seed.service.ts
+│   ├── seed.data.ts
+│   └── seed.ts                 # CLI entry: ts-node src/seed/seed.ts
+├── main.ts                     # Entry point
+└── migrate.ts                  # Drizzle migrator
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Auth | Role | Description |
+|--------|----------|------|------|-------------|
+| `POST` | `/api/auth/sign-in/email` | — | — | Login |
+| `POST` | `/api/auth/sign-out` | Required | — | Logout |
+| `GET` | `/api/auth/get-session` | — | — | Cek session |
+| `POST` | `/api/register` | Optional | — | Register akun baru |
+| `GET` | `/api/me` | Required | — | Profile sendiri |
+| `PATCH` | `/users/:id` | Required | Self | Update profile |
+| `GET` | `/api/users/pending` | Required | Admin | User pending |
+| `GET` | `/api/users/all` | Required | Admin | Semua user |
+| `PATCH` | `/api/users/:id` | Required | Admin | Update user |
+| `PATCH` | `/api/users/:id/status` | Required | Admin | Approve/reject |
+| `POST` | `/api/users/:id/notes` | Required | Admin | Tambah catatan |
+| `DELETE` | `/api/users/:id` | Required | Admin | Hapus user |
+| `POST` | `/absensi` | Required | — | Check-in |
+| `PATCH` | `/absensi/:id` | Required | — | Check-out |
+| `GET` | `/absensi` | Required | — | Riwayat absensi |
+| `GET` | `/api/absensi/search` | Required | — | Cari absensi by nama |
+| `POST` | `/pengajuan` | Required | — | Buat pengajuan |
+| `GET` | `/pengajuan` | Required | — | List pengajuan |
+| `PATCH` | `/pengajuan/:id` | Required | Admin | Update status |
+| `DELETE` | `/pengajuan/:id` | Required | Self | Hapus pengajuan |
+| `GET` | `/api/dashboard/recent` | Required | — | 7 hari terakhir |
+| `GET` | `/api/dashboard/admin/week` | Required | Admin | Tren 7 hari |
+| `GET` | `/api/dashboard/month` | Required | — | Data bulanan |
+| `POST` | `/api/upload/foto` | Required | — | Upload foto |
+
+---
+
+## Testing
+
+```bash
+# Semua unit tests
+pnpm test
+
+# File spesifik
+pnpm test -- src/absensi/absensi.service.spec.ts
+
+# E2E tests (butuh PostgreSQL running)
+pnpm test:e2e
+```
+
+**Coverage:** 41 unit tests, 6 test suites.
+
+---
+
+## Demo Akun
+
+| Email | Password | Role | Status |
+|-------|----------|------|--------|
+| andika@stekom.ac.id | password | admin | approved |
+| rudi@stekom.ac.id | password | karyawan | approved |
+| siti@stekom.ac.id | password | karyawan | approved |
+| dewi@stekom.ac.id | password | karyawan | approved |
+| ani@stekom.ac.id | password | karyawan | approved |
+| tono@stekom.ac.id | password | karyawan | approved |
+| budi@stekom.ac.id | password | karyawan | pending |
+| ferry@stekom.ac.id | password | karyawan | pending |
+
+---
+
+## Docker
+
+### Development (PostgreSQL + MinIO saja)
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+### Full Stack (PostgreSQL + Backend + Frontend)
+
+```bash
+# Dari root project
+cd ..
+docker compose up -d
+```
+
+---
+
+## Dokumentasi
+
+| Dokumen | Lokasi |
+|---------|--------|
+| PRD | `docs/PRD.md` |
+| API Reference | `docs/API.md` (project root) |
+| Architecture | `docs/ARCHITECTURE.md` (project root) |
