@@ -1,0 +1,126 @@
+import { Test } from '@nestjs/testing';
+import { PengajuanService } from './pengajuan.service';
+import { DRIZZLE_DB } from '../database/database.providers';
+import { ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
+
+function mockDb() {
+  const chain: Record<string, unknown> = {
+    from: () => chain,
+    where: () => chain,
+    limit: () => Promise.resolve([]),
+    orderBy: () => chain,
+    offset: () => chain,
+    values: () => ({ returning: () => Promise.resolve([{ id: 1, status: 'pending' }]) }),
+    set: () => chain,
+    returning: () => Promise.resolve([{ id: 1, status: 'approved' }]),
+  };
+  return {
+    select: () => chain,
+    insert: () => chain,
+    update: () => chain,
+    delete: () => ({ where: () => Promise.resolve() }),
+  };
+}
+
+describe('PengajuanService', () => {
+  let service: PengajuanService;
+  let db: ReturnType<typeof mockDb>;
+
+  beforeEach(async () => {
+    db = mockDb();
+    const module = await Test.createTestingModule({
+      providers: [
+        PengajuanService,
+        { provide: DRIZZLE_DB, useValue: db },
+      ],
+    }).compile();
+    service = module.get(PengajuanService);
+  });
+
+  describe('create', () => {
+    it('should reject non-admin create for other user', async () => {
+      await expect(
+        service.create(
+          { userId: 'user-2', jenis: 'cuti', tanggalMulai: '2026-08-01', tanggalSelesai: '2026-08-03', alasan: 'Liburan tahunan keluarga' },
+          'user-1',
+          'karyawan',
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow admin create for any user', async () => {
+      (db.insert() as Record<string, unknown>).values = () => ({
+        returning: () => Promise.resolve([{ id: 1, userId: 'user-2', jenis: 'cuti', status: 'pending' }]),
+      });
+      const result = await service.create(
+        { userId: 'user-2', jenis: 'cuti', tanggalMulai: '2026-08-01', tanggalSelesai: '2026-08-03', alasan: 'Liburan tahunan keluarga' },
+        'admin-1',
+        'admin',
+      );
+      expect(result).toHaveProperty('status', 'pending');
+      expect(result).toHaveProperty('id', 1);
+    });
+  });
+
+  describe('update', () => {
+    it('should reject update for non-existent pengajuan', async () => {
+      (db.select() as Record<string, unknown>).limit = () => Promise.resolve([]);
+      await expect(
+        service.update(999, { status: 'approved' }, 'admin'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should reject update for already processed pengajuan', async () => {
+      (db.select() as Record<string, unknown>).limit = () =>
+        Promise.resolve([{ id: 1, status: 'approved' }]);
+      await expect(
+        service.update(1, { status: 'rejected' }, 'admin'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject status change by non-admin', async () => {
+      (db.select() as Record<string, unknown>).limit = () =>
+        Promise.resolve([{ id: 1, status: 'pending' }]);
+      await expect(
+        service.update(1, { status: 'approved' }, 'karyawan'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow admin to approve', async () => {
+      (db.select() as Record<string, unknown>).limit = () =>
+        Promise.resolve([{ id: 1, status: 'pending' }]);
+      (db.update() as Record<string, unknown>).set = () => ({
+        where: () => ({ returning: () => Promise.resolve([{ id: 1, status: 'approved' }]) }),
+      });
+
+      const result = await service.update(1, { status: 'approved' }, 'admin');
+      expect(result).toHaveProperty('status', 'approved');
+    });
+  });
+
+  describe('delete', () => {
+    it('should reject delete for non-existent pengajuan', async () => {
+      (db.select() as Record<string, unknown>).limit = () => Promise.resolve([]);
+      await expect(service.delete(999, 'user-1', 'karyawan')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should reject delete for processed pengajuan', async () => {
+      (db.select() as Record<string, unknown>).limit = () =>
+        Promise.resolve([{ id: 1, status: 'approved', userId: 'user-1' }]);
+      await expect(service.delete(1, 'user-1', 'karyawan')).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject delete by non-owner, non-admin', async () => {
+      (db.select() as Record<string, unknown>).limit = () =>
+        Promise.resolve([{ id: 1, status: 'pending', userId: 'user-1' }]);
+      await expect(service.delete(1, 'user-2', 'karyawan')).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow owner to delete pending', async () => {
+      (db.select() as Record<string, unknown>).limit = () =>
+        Promise.resolve([{ id: 1, status: 'pending', userId: 'user-1' }]);
+      const result = await service.delete(1, 'user-1', 'karyawan');
+      expect(result).toHaveProperty('message', 'Dihapus');
+    });
+  });
+});
