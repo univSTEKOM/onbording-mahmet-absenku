@@ -115,7 +115,8 @@ export class AbsensiService {
     const [totalResult] = await this.db.select({ total: count() }).from(absensi).where(where)
     const total = totalResult?.total || 0
 
-    const sortField = params._sort || 'tanggal'
+    const allowedSortFields = ['tanggal', 'checkIn', 'checkOut', 'status', 'mainCategory', 'subCategory', 'createdAt']
+    const sortField = params._sort && allowedSortFields.includes(params._sort) ? params._sort : 'tanggal'
     const orderDir = params._order === 'asc' ? 'ASC' : 'DESC'
     const sortOrder = sql`${sql.identifier(sortField)} ${sql.raw(orderDir)}`
 
