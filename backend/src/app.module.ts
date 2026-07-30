@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module'
 import { AbsensiModule } from './absensi/absensi.module'
 import { PengajuanModule } from './pengajuan/pengajuan.module'
 import { DashboardModule } from './dashboard/dashboard.module'
+import { StorageModule } from './storage/storage.module'
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DashboardModule } from './dashboard/dashboard.module'
     AbsensiModule,
     PengajuanModule,
     DashboardModule,
+    StorageModule,
   ],
 })
 export class AppModule {}
