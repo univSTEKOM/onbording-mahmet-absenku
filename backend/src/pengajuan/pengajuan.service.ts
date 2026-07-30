@@ -35,11 +35,11 @@ export class PengajuanService {
     const limit = params._limit || 10
     const offset = (page - 1) * limit
 
-    const filters: ReturnType<typeof sql>[] = []
+    const filters: any[] = []
 
-    if (params.userId) filters.push(eq(pengajuan.userId, params.userId) as unknown as ReturnType<typeof sql>)
-    if (params.jenis) filters.push(eq(pengajuan.jenis, params.jenis) as unknown as ReturnType<typeof sql>)
-    if (params.status) filters.push(eq(pengajuan.status, params.status) as unknown as ReturnType<typeof sql>)
+    if (params.userId) filters.push(eq(pengajuan.userId, params.userId))
+    if (params.jenis) filters.push(eq(pengajuan.jenis, params.jenis))
+    if (params.status) filters.push(eq(pengajuan.status, params.status))
 
     const where = filters.length > 0 ? and(...filters) : undefined
 
@@ -61,13 +61,17 @@ export class PengajuanService {
 
     if (existing.status !== 'pending') throw new BadRequestException('Pengajuan sudah diproses')
 
+    if (dto.status !== undefined && currentUserRole !== 'admin') {
+      throw new ForbiddenException('Hanya admin yang bisa mengubah status pengajuan')
+    }
+
     const updateFields: Record<string, unknown> = {}
     if (dto.status !== undefined) updateFields.status = dto.status
     if (dto.catatan !== undefined) updateFields.catatan = dto.catatan
 
     if (Object.keys(updateFields).length === 0) return existing
 
-    const [updated] = await this.db.update(pengajuan).set(updateFields as never)
+    const [updated] = await this.db.update(pengajuan).set(updateFields)
       .where(eq(pengajuan.id, id)).returning()
 
     return updated

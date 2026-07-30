@@ -94,21 +94,21 @@ export class AbsensiService {
     const limit = params._limit || 10
     const offset = (page - 1) * limit
 
-    const filters: ReturnType<typeof sql>[] = []
+    const filters: any[] = []
 
-    if (params.userId) filters.push(eq(absensi.userId, params.userId) as unknown as ReturnType<typeof sql>)
-    if (params.tanggal) filters.push(eq(absensi.tanggal, params.tanggal) as unknown as ReturnType<typeof sql>)
-    if (params.tanggal_gte) filters.push(gte(absensi.tanggal, params.tanggal_gte) as unknown as ReturnType<typeof sql>)
-    if (params.tanggal_lte) filters.push(lte(absensi.tanggal, params.tanggal_lte) as unknown as ReturnType<typeof sql>)
+    if (params.userId) filters.push(eq(absensi.userId, params.userId))
+    if (params.tanggal) filters.push(eq(absensi.tanggal, params.tanggal))
+    if (params.tanggal_gte) filters.push(gte(absensi.tanggal, params.tanggal_gte))
+    if (params.tanggal_lte) filters.push(lte(absensi.tanggal, params.tanggal_lte))
 
     const statusArr = normalizeArray(params.status)
-    if (statusArr) filters.push(inArray(absensi.status, statusArr) as unknown as ReturnType<typeof sql>)
+    if (statusArr) filters.push(inArray(absensi.status, statusArr))
 
     const mainCatArr = normalizeArray(params.mainCategory)
-    if (mainCatArr) filters.push(inArray(absensi.mainCategory, mainCatArr) as unknown as ReturnType<typeof sql>)
+    if (mainCatArr) filters.push(inArray(absensi.mainCategory, mainCatArr))
 
     const subCatArr = normalizeArray(params.subCategory)
-    if (subCatArr) filters.push(inArray(absensi.subCategory, subCatArr) as unknown as ReturnType<typeof sql>)
+    if (subCatArr) filters.push(inArray(absensi.subCategory, subCatArr))
 
     const where = filters.length > 0 ? and(...filters) : undefined
 
@@ -134,7 +134,7 @@ export class AbsensiService {
     const limit = params._limit || 15
     const offset = (page - 1) * limit
 
-    const filters: ReturnType<typeof sql>[] = []
+    const filters: any[] = []
 
     if (params.q) {
       const pattern = `%${params.q}%`
@@ -143,18 +143,18 @@ export class AbsensiService {
       filters.push(sql`${absensi.userId} IN (${matchedIds})`)
     }
 
-    if (params.userId) filters.push(eq(absensi.userId, params.userId) as unknown as ReturnType<typeof sql>)
-    if (params.tanggal_gte) filters.push(gte(absensi.tanggal, params.tanggal_gte) as unknown as ReturnType<typeof sql>)
-    if (params.tanggal_lte) filters.push(lte(absensi.tanggal, params.tanggal_lte) as unknown as ReturnType<typeof sql>)
+    if (params.userId) filters.push(eq(absensi.userId, params.userId))
+    if (params.tanggal_gte) filters.push(gte(absensi.tanggal, params.tanggal_gte))
+    if (params.tanggal_lte) filters.push(lte(absensi.tanggal, params.tanggal_lte))
 
     const statusArr = normalizeArray(params.status)
-    if (statusArr) filters.push(inArray(absensi.status, statusArr) as unknown as ReturnType<typeof sql>)
+    if (statusArr) filters.push(inArray(absensi.status, statusArr))
 
     const mainCatArr = normalizeArray(params.mainCategory)
-    if (mainCatArr) filters.push(inArray(absensi.mainCategory, mainCatArr) as unknown as ReturnType<typeof sql>)
+    if (mainCatArr) filters.push(inArray(absensi.mainCategory, mainCatArr))
 
     const subCatArr = normalizeArray(params.subCategory)
-    if (subCatArr) filters.push(inArray(absensi.subCategory, subCatArr) as unknown as ReturnType<typeof sql>)
+    if (subCatArr) filters.push(inArray(absensi.subCategory, subCatArr))
 
     const where = filters.length > 0 ? and(...filters) : undefined
 

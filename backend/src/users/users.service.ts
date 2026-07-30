@@ -71,14 +71,14 @@ export class UsersService {
     const limit = params.limit || 15
     const offset = (page - 1) * limit
 
-    const filters: ReturnType<typeof sql>[] = []
+    const filters: any[] = []
 
     if (params.q) {
       const pattern = `%${params.q}%`
       filters.push(sql`(${ilike(user.name, pattern)} OR ${ilike(user.email, pattern)})`)
     }
-    if (params.role) filters.push(eq(user.role, params.role) as unknown as ReturnType<typeof sql>)
-    if (params.status) filters.push(eq(user.status, params.status) as unknown as ReturnType<typeof sql>)
+    if (params.role) filters.push(eq(user.role, params.role))
+    if (params.status) filters.push(eq(user.status, params.status))
 
     const where = filters.length > 0 ? and(...filters) : undefined
 
