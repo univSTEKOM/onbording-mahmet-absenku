@@ -7,7 +7,6 @@ import { pengajuan } from '../database/schema/pengajuan.schema';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../database/schema';
 
-const APP_RELEASE_DATE = process.env.APP_RELEASE_DATE || '2026-07-13';
 type DrizzleDb = NodePgDatabase<typeof schema>;
 
 /** Format date ke YYYY-MM-DD menggunakan local timezone (bukan UTC) */
@@ -34,7 +33,11 @@ function catType(record: {
 
 @Injectable()
 export class DashboardService {
-  constructor(@Inject(DRIZZLE_DB) private readonly db: DrizzleDb) {}
+  private readonly appReleaseDate: string;
+
+  constructor(@Inject(DRIZZLE_DB) private readonly db: DrizzleDb) {
+    this.appReleaseDate = process.env.APP_RELEASE_DATE || '2026-07-13';
+  }
 
   async getRecent(userId: string) {
     const today = new Date();
@@ -274,7 +277,7 @@ export class DashboardService {
     for (let d = 1; d <= daysInMonth; d++) {
       const tgl = `${tahun}-${String(bulan).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
-      if (tgl < APP_RELEASE_DATE || tgl > todayStr) {
+      if (tgl < this.appReleaseDate || tgl > todayStr) {
         data.push({
           tanggal: tgl,
           hadir: 0,

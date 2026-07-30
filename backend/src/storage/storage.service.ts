@@ -12,9 +12,6 @@ import {
 } from '@aws-sdk/client-s3';
 import { randomUUID } from 'node:crypto';
 
-const ENDPOINT = process.env.MINIO_ENDPOINT || 'http://localhost:9000';
-const PUBLIC_URL = process.env.MINIO_PUBLIC_URL || ENDPOINT;
-
 function mimeExt(mime: string): string {
   if (mime === 'image/svg+xml') return 'svg';
   return mime.split('/')[1] || 'jpg';
@@ -24,11 +21,14 @@ function mimeExt(mime: string): string {
 export class StorageService implements OnModuleInit {
   private readonly s3: S3Client;
   private readonly bucket: string;
+  private readonly publicUrl: string;
 
   constructor() {
+    const endpoint = process.env.MINIO_ENDPOINT || 'http://localhost:9000';
+    this.publicUrl = process.env.MINIO_PUBLIC_URL || endpoint;
     this.s3 = new S3Client({
       region: 'auto',
-      endpoint: ENDPOINT,
+      endpoint,
       credentials: {
         accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
         secretAccessKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
@@ -69,7 +69,7 @@ export class StorageService implements OnModuleInit {
       });
     }
 
-    return `${PUBLIC_URL}/${this.bucket}/${key}`;
+    return `${this.publicUrl}/${this.bucket}/${key}`;
   }
 
   async delete(url: string): Promise<void> {
