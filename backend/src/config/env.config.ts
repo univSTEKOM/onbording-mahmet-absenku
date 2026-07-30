@@ -8,6 +8,7 @@ export const envSchema = z.object({
   BETTER_AUTH_URL: z.string().url().default('http://localhost:9090'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   MINIO_ENDPOINT: z.string().default('http://localhost:9000'),
+  MINIO_PUBLIC_URL: z.string().default('http://localhost:9000'),
   MINIO_ACCESS_KEY: z.string().default('minioadmin'),
   MINIO_SECRET_KEY: z.string().default('minioadmin'),
   MINIO_BUCKET_FOTO: z.string().default('absenku-foto'),
