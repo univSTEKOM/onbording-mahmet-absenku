@@ -5,6 +5,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
+import { canvasToWebP } from '@/lib/image'
 import { Loader2, Scissors } from 'lucide-react'
 
 interface ImageCropperDialogProps {
@@ -45,7 +46,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
     size,
   )
 
-  return canvas.toDataURL('image/jpeg', 0.8)
+  return canvasToWebP(canvas)
 }
 
 export function ImageCropperDialog({ open, imageSrc, onCropComplete, onCancel }: ImageCropperDialogProps) {

@@ -19,6 +19,7 @@ import {
 } from '@/lib/faceDetection'
 import { useAuth } from '@/hooks/useAuth'
 import { useUpdateUser } from '@/hooks/useUsers'
+import { canvasToWebP } from '@/lib/image'
 import { CheckCircle2, XCircle, Loader2, AlertTriangle } from 'lucide-react'
 
 interface FaceVerificationProps {
@@ -168,7 +169,7 @@ export function FaceVerification({
 
   async function handleManualCapture(canvas: HTMLCanvasElement) {
     if (finishedRef.current) return
-    const photoUrl = canvas.toDataURL('image/jpeg', 0.7)
+    const photoUrl = canvasToWebP(canvas)
     setCapturedPhoto(photoUrl)
     setProcessing(true)
     setStatus('idle')
