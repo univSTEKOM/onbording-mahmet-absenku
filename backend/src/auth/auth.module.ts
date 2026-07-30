@@ -1,12 +1,12 @@
-import { Module } from '@nestjs/common'
-import { DatabaseModule } from '../database/database.module'
-import { PG_POOL } from '../database/database.providers'
-import { createAuth } from './auth.instance'
-import { AuthService } from './auth.service'
-import { AuthController } from './auth.controller'
-import type { Pool } from 'pg'
+import { Module } from '@nestjs/common';
+import { DatabaseModule } from '../database/database.module';
+import { PG_POOL } from '../database/database.providers';
+import { createAuth } from './auth.instance';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import type { Pool } from 'pg';
 
-export const AUTH_INSTANCE = 'AUTH_INSTANCE'
+export const AUTH_INSTANCE = 'AUTH_INSTANCE';
 
 @Module({
   imports: [DatabaseModule],

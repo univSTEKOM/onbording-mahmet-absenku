@@ -1,11 +1,11 @@
-import { betterAuth } from 'better-auth'
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import type { Pool } from 'pg'
-import { drizzle } from 'drizzle-orm/node-postgres'
-import * as schema from '../database/schema'
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import type { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '../database/schema';
 
 export function createAuth(pool: Pool) {
-  const db = drizzle(pool, { schema })
+  const db = drizzle(pool, { schema });
 
   return betterAuth({
     baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:9090',
@@ -33,7 +33,7 @@ export function createAuth(pool: Pool) {
       },
     },
     trustedOrigins: ['*'],
-  })
+  });
 }
 
-export type Auth = ReturnType<typeof createAuth>
+export type Auth = ReturnType<typeof createAuth>;

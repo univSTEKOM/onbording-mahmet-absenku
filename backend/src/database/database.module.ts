@@ -1,5 +1,10 @@
-import { Global, Module } from '@nestjs/common'
-import { poolProvider, drizzleProvider, PG_POOL, DRIZZLE_DB } from './database.providers'
+import { Global, Module } from '@nestjs/common';
+import {
+  poolProvider,
+  drizzleProvider,
+  PG_POOL,
+  DRIZZLE_DB,
+} from './database.providers';
 
 @Global()
 @Module({
