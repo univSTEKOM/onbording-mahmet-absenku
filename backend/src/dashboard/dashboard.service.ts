@@ -1,6 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common'
-import { eq, and, gte, lte, count } from 'drizzle-orm'
-import type { SQLWrapper } from 'drizzle-orm'
+import { eq, and, gte, lte, count, type SQLWrapper } from 'drizzle-orm'
 import { DRIZZLE_DB } from '../database/database.providers'
 import { absensi } from '../database/schema/absensi.schema'
 import { user } from '../database/schema/auth.schema'
@@ -11,8 +10,12 @@ import * as schema from '../database/schema'
 const APP_RELEASE_DATE = process.env.APP_RELEASE_DATE || '2026-07-13'
 type DrizzleDb = NodePgDatabase<typeof schema>
 
+/** Format date ke YYYY-MM-DD menggunakan local timezone (bukan UTC) */
 function fmtDate(d: Date): string {
-  return d.toISOString().split('T')[0]
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 function catType(record: { mainCategory?: string | null; status?: string | null }): string {
@@ -32,10 +35,13 @@ export class DashboardService {
 
   async getRecent(userId: string) {
     const today = new Date()
+    const sevenDaysAgo = new Date(today)
+    sevenDaysAgo.setDate(today.getDate() - 6)
+
     const rows = await this.db.select().from(absensi)
       .where(and(
         eq(absensi.userId, userId),
-        gte(absensi.tanggal, fmtDate(new Date(today.getTime() - 6 * 86400000))),
+        gte(absensi.tanggal, fmtDate(sevenDaysAgo)),
       ))
       .orderBy(absensi.tanggal)
 
@@ -61,7 +67,9 @@ export class DashboardService {
   async getAdminWeek() {
     const today = new Date()
     const todayStr = fmtDate(today)
-    const weekStartStr = fmtDate(new Date(today.getTime() - 7 * 86400000))
+    const weekStart = new Date(today)
+    weekStart.setDate(today.getDate() - 7)
+    const weekStartStr = fmtDate(weekStart)
     const monthStartStr = fmtDate(new Date(today.getFullYear(), today.getMonth(), 1))
 
     const [karyawanCount] = await this.db.select({ total: count() }).from(user).where(eq(user.role, 'karyawan'))
@@ -79,10 +87,9 @@ export class DashboardService {
       present: number; absentPermit: number; absentUnpermit: number; persen: number
     }> = []
 
-    const weekStart = new Date(today.getTime() - 7 * 86400000)
-
     for (let i = 0; i < 7; i++) {
-      const d = new Date(weekStart.getTime() + i * 86400000)
+      const d = new Date(weekStart)
+      d.setDate(weekStart.getDate() + i)
       const tgl = fmtDate(d)
 
       const da = absensiRows.filter((a) => a.tanggal === tgl)
@@ -136,16 +143,26 @@ export class DashboardService {
   }
 
   async getMonth(tahun: number, bulan: number, userId?: string) {
-    const todayStr = fmtDate(new Date())
+    const today = new Date()
+    const todayStr = fmtDate(today)
     const daysInMonth = new Date(tahun, bulan, 0).getDate()
+    const monthStart = `${tahun}-${String(bulan).padStart(2, '0')}-01`
+    const monthEnd = `${tahun}-${String(bulan).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`
 
-    const absConditions: SQLWrapper[] = []
+    const absConditions: SQLWrapper[] = [
+      gte(absensi.tanggal, monthStart),
+      lte(absensi.tanggal, monthEnd),
+    ]
     if (userId) absConditions.push(eq(absensi.userId, userId))
-    const absWhere = absConditions.length > 0 ? and(...absConditions) : undefined
+    const absWhere = and(...absConditions)
 
-    const pengConditions: SQLWrapper[] = []
+    const pengConditions: SQLWrapper[] = [
+      eq(pengajuan.status, 'approved'),
+      lte(pengajuan.tanggalMulai, monthEnd),
+      gte(pengajuan.tanggalSelesai, monthStart),
+    ]
     if (userId) pengConditions.push(eq(pengajuan.userId, userId))
-    const pengWhere = pengConditions.length > 0 ? and(...pengConditions) : undefined
+    const pengWhere = and(...pengConditions)
 
     const [absensiRows, pengajuanRows] = await Promise.all([
       this.db.select().from(absensi).where(absWhere),
@@ -157,19 +174,20 @@ export class DashboardService {
     const data: Array<{
       tanggal: string; hadir: number; pulangCepat: number; terlambat: number
       checkInOnly: number; izin: number; sakit: number; cuti: number; tidakHadir: number
+      present: number; absentPermit: number; absentUnpermit: number
     }> = []
 
     for (let d = 1; d <= daysInMonth; d++) {
       const tgl = `${tahun}-${String(bulan).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
       if (tgl < APP_RELEASE_DATE || tgl > todayStr) {
-        data.push({ tanggal: tgl, hadir: 0, pulangCepat: 0, terlambat: 0, checkInOnly: 0, izin: 0, sakit: 0, cuti: 0, tidakHadir: 0 })
+        data.push({ tanggal: tgl, hadir: 0, pulangCepat: 0, terlambat: 0, checkInOnly: 0, izin: 0, sakit: 0, cuti: 0, tidakHadir: 0, present: 0, absentPermit: 0, absentUnpermit: 0 })
         continue
       }
 
       const da = absensiRows.filter((a) => a.tanggal === tgl)
       const dp = pengajuanRows.filter(
-        (p) => p.status === 'approved' && p.tanggalMulai <= tgl && p.tanggalSelesai >= tgl,
+        (p) => p.tanggalMulai <= tgl && p.tanggalSelesai >= tgl,
       )
 
       const hadir = da.filter((a) => a.status === 'hadir').length
@@ -180,8 +198,11 @@ export class DashboardService {
       const sakit = da.filter((a) => a.status === 'sakit').length + dp.filter((p) => p.jenis === 'sakit').length
       const cuti = da.filter((a) => a.status === 'cuti').length + dp.filter((p) => p.jenis === 'cuti').length
       const tidakHadir = Math.max(0, total - hadir - pulangCepat - terlambat - checkInOnly - izin - sakit - cuti)
+      const present = da.filter((a) => catType(a) === 'present').length
+      const absentPermit = da.filter((a) => catType(a) === 'absent_permit').length + dp.filter((p) => p.jenis === 'izin').length
+      const absentUnpermit = da.filter((a) => catType(a) === 'absent_unpermit').length
 
-      data.push({ tanggal: tgl, hadir, pulangCepat, terlambat, checkInOnly, izin, sakit, cuti, tidakHadir })
+      data.push({ tanggal: tgl, hadir, pulangCepat, terlambat, checkInOnly, izin, sakit, cuti, tidakHadir, present, absentPermit, absentUnpermit })
     }
 
     return { data, totalKaryawan: total }
