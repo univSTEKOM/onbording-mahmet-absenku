@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { eq, ilike, count, sql, and, type SQLWrapper } from 'drizzle-orm';
 import { DRIZZLE_DB } from '../database/database.providers';
@@ -61,7 +62,16 @@ export class UsersService {
       updateFields.name = dto.nama;
       updateFields.nama = dto.nama;
     }
-    if (dto.email !== undefined) updateFields.email = dto.email;
+    if (dto.email !== undefined) {
+      const [emailOwner] = await this.db
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.email, dto.email))
+        .limit(1);
+      if (emailOwner && emailOwner.id !== userId)
+        throw new ConflictException('Email sudah digunakan');
+      updateFields.email = dto.email;
+    }
     if (dto.jabatan !== undefined) updateFields.jabatan = dto.jabatan;
     if (dto.phone !== undefined) updateFields.phone = dto.phone;
     if (dto.alamat !== undefined) updateFields.alamat = dto.alamat;
@@ -158,9 +168,17 @@ export class UsersService {
       updateFields.name = dto.nama;
       updateFields.nama = dto.nama;
     }
-    if (dto.email !== undefined) updateFields.email = dto.email;
+    if (dto.email !== undefined) {
+      const [emailOwner] = await this.db
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.email, dto.email))
+        .limit(1);
+      if (emailOwner && emailOwner.id !== userId)
+        throw new ConflictException('Email sudah digunakan');
+      updateFields.email = dto.email;
+    }
     if (dto.jabatan !== undefined) updateFields.jabatan = dto.jabatan;
-    if (dto.phone !== undefined) updateFields.phone = dto.phone;
     if (dto.alamat !== undefined) updateFields.alamat = dto.alamat;
     if (dto.role !== undefined) updateFields.role = dto.role;
     if (dto.foto !== undefined) {
