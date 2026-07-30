@@ -1,39 +1,55 @@
 services:
-  mock-api:
-    build:
-      context: ./mock-api
-      dockerfile: Dockerfile
-    container_name: absenku-api
+  postgres:
+    image: postgres:16-alpine
+    container_name: absenku-db
     environment:
-      - PORT=9089
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-this-in-production}
-      - DEMO_PASSWORD=${DEMO_PASSWORD:-password}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      POSTGRES_DB: absenku
+      POSTGRES_USER: absenku
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-absenku}
     ports:
-      - "9876:9089"
+      - "5432:5432"
     volumes:
-      - mock-api-data:/app/data
+      - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:9089/api/me', r => {process.exit(r.statusCode===401?0:1)})"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U absenku"]
+      interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 15s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: absenku-backend
+    environment:
+      - PORT=9090
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://absenku:${POSTGRES_PASSWORD:-absenku}@postgres:5432/absenku
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-this-in-production-min-32-chars}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:9090}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      - DEMO_PASSWORD=${DEMO_PASSWORD:-password}
+      - APP_RELEASE_DATE=${APP_RELEASE_DATE:-2026-07-13}
+    ports:
+      - "9090:9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost:3001}
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:9090}
     container_name: absenku-web
     ports:
       - "${FRONTEND_PORT:-5173}:80"
     depends_on:
-      mock-api:
-        condition: service_healthy
+      - backend
     restart: unless-stopped
 
 volumes:
-  mock-api-data:
+  postgres-data:

@@ -11,7 +11,10 @@ describe('DashboardService', () => {
       select: () => ({
         from: () => ({
           where: () => ({
-            orderBy: () => ({ limit: mockLimit, then: (resolve: (v: unknown) => void) => resolve(mockLimit()) }),
+            orderBy: () => ({
+              limit: mockLimit,
+              then: (resolve: (v: unknown) => void) => resolve(mockLimit()),
+            }),
             limit: mockLimit,
             then: (resolve: (v: unknown) => void) => resolve(mockLimit()),
           }),
@@ -23,10 +26,7 @@ describe('DashboardService', () => {
   beforeEach(async () => {
     mockLimit = jest.fn();
     const module = await Test.createTestingModule({
-      providers: [
-        DashboardService,
-        { provide: DRIZZLE_DB, useFactory: db },
-      ],
+      providers: [DashboardService, { provide: DRIZZLE_DB, useFactory: db }],
     }).compile();
     service = module.get(DashboardService);
   });
@@ -41,7 +41,12 @@ describe('DashboardService', () => {
     it('should fill in matching data for existing records', async () => {
       const today = new Date().toISOString().split('T')[0];
       mockLimit.mockResolvedValue([
-        { tanggal: today, checkIn: new Date(), checkOut: new Date(), status: 'hadir' },
+        {
+          tanggal: today,
+          checkIn: new Date(),
+          checkOut: new Date(),
+          status: 'hadir',
+        },
       ]);
       const result = await service.getRecent('user-1');
       const todayEntry = result.data[6];

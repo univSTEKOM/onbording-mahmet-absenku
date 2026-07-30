@@ -1,4 +1,10 @@
-import { evaluateCheckIn, evaluateCheckOut, CHECK_IN_START, CHECK_IN_END, CHECK_OUT_MIN } from './absensi.rules';
+import {
+  evaluateCheckIn,
+  evaluateCheckOut,
+  CHECK_IN_START,
+  CHECK_IN_END,
+  CHECK_OUT_MIN,
+} from './absensi.rules';
 
 function time(h: number, m: number): Date {
   const d = new Date('2026-07-30');

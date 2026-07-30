@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
       });
     }
 
-    (req as Record<string, unknown>).user = session.user;
+    (req as unknown as Record<string, unknown>).user = session.user;
     return true;
   }
 }

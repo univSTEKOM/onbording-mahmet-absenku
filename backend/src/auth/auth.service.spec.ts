@@ -1,5 +1,7 @@
 jest.mock('better-auth', () => ({ betterAuth: jest.fn() }));
-jest.mock('better-auth/adapters/drizzle', () => ({ drizzleAdapter: jest.fn() }));
+jest.mock('better-auth/adapters/drizzle', () => ({
+  drizzleAdapter: jest.fn(),
+}));
 jest.mock('better-auth/node', () => ({
   fromNodeHeaders: jest.fn(),
   toNodeHandler: jest.fn(),
@@ -30,10 +32,7 @@ describe('AuthService', () => {
     mockGetSession = jest.fn();
     mockSignUpEmail = jest.fn();
     const module = await Test.createTestingModule({
-      providers: [
-        AuthService,
-        { provide: AUTH_INSTANCE, useValue: mockAuth },
-      ],
+      providers: [AuthService, { provide: AUTH_INSTANCE, useValue: mockAuth }],
     }).compile();
     service = module.get(AuthService);
   });
@@ -65,7 +64,8 @@ describe('AuthService', () => {
       mockGetSession.mockResolvedValue(null);
       mockSignUpEmail.mockResolvedValue({
         status: 400,
-        text: () => Promise.resolve(JSON.stringify({ message: 'User already exists' })),
+        text: () =>
+          Promise.resolve(JSON.stringify({ message: 'User already exists' })),
         json: () => Promise.resolve({ message: 'User already exists' }),
       });
 
@@ -81,12 +81,30 @@ describe('AuthService', () => {
       mockGetSession.mockResolvedValue(null);
       mockSignUpEmail.mockResolvedValue({
         status: 200,
-        json: () => Promise.resolve({ user: { id: 'new-id', email: 'new@test.com', name: 'New User', createdAt: '2026-07-30' } }),
-        text: () => Promise.resolve(JSON.stringify({ user: { id: 'new-id', email: 'new@test.com', name: 'New User' } })),
+        json: () =>
+          Promise.resolve({
+            user: {
+              id: 'new-id',
+              email: 'new@test.com',
+              name: 'New User',
+              createdAt: '2026-07-30',
+            },
+          }),
+        text: () =>
+          Promise.resolve(
+            JSON.stringify({
+              user: { id: 'new-id', email: 'new@test.com', name: 'New User' },
+            }),
+          ),
       });
 
       const result = await service.register(
-        { email: 'new@test.com', password: 'ValidPass1', nama: 'New User', jabatan: 'Staff' },
+        {
+          email: 'new@test.com',
+          password: 'ValidPass1',
+          nama: 'New User',
+          jabatan: 'Staff',
+        },
         mockRequest() as never,
       );
       expect(result).toHaveProperty('id', 'new-id');
@@ -97,12 +115,20 @@ describe('AuthService', () => {
       mockGetSession.mockResolvedValue({ user: { role: 'admin' } });
       mockSignUpEmail.mockResolvedValue({
         status: 200,
-        json: () => Promise.resolve({ user: { id: 'new-id', email: 'new@test.com', name: 'New User' } }),
+        json: () =>
+          Promise.resolve({
+            user: { id: 'new-id', email: 'new@test.com', name: 'New User' },
+          }),
         text: () => Promise.resolve(''),
       });
 
       const result = await service.register(
-        { email: 'new@test.com', password: 'simple', nama: 'New User', role: 'karyawan' },
+        {
+          email: 'new@test.com',
+          password: 'simple',
+          nama: 'New User',
+          role: 'karyawan',
+        },
         mockRequest() as never,
       );
       expect(result).toHaveProperty('status', 'approved');
