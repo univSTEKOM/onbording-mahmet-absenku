@@ -179,6 +179,7 @@ export class UsersService {
       updateFields.email = dto.email;
     }
     if (dto.jabatan !== undefined) updateFields.jabatan = dto.jabatan;
+    if (dto.phone !== undefined) updateFields.phone = dto.phone;
     if (dto.alamat !== undefined) updateFields.alamat = dto.alamat;
     if (dto.role !== undefined) updateFields.role = dto.role;
     if (dto.foto !== undefined) {

@@ -5,6 +5,7 @@ import { DRIZZLE_DB } from '../database/database.providers';
 import { user } from '../database/schema/auth.schema';
 import { absensi } from '../database/schema/absensi.schema';
 import { pengajuan } from '../database/schema/pengajuan.schema';
+import { fmtDate } from '../common/utils';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { Auth } from '../auth/auth.instance';
 import * as schema from '../database/schema';
@@ -46,7 +47,7 @@ function eachDay(from: string, to: string): string[] {
   const d = new Date(from + 'T00:00:00');
   const end = new Date(to + 'T00:00:00');
   while (d <= end) {
-    days.push(d.toISOString().split('T')[0]);
+    days.push(fmtDate(d));
     d.setDate(d.getDate() + 1);
   }
   return days;
@@ -129,7 +130,7 @@ export class SeedService {
     users: { persona: (typeof PERSONAS)[number]; id: string }[],
   ) {
     const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = fmtDate(today);
     const workDays = eachDay(APP_RELEASE, todayStr).filter(
       (tgl) => !isWeekend(tgl),
     );

@@ -4,32 +4,12 @@ import { DRIZZLE_DB } from '../database/database.providers';
 import { absensi } from '../database/schema/absensi.schema';
 import { user } from '../database/schema/auth.schema';
 import { pengajuan } from '../database/schema/pengajuan.schema';
+import { fmtDate } from '../common/utils';
+import { catType } from '../attendance-categories';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../database/schema';
 
 type DrizzleDb = NodePgDatabase<typeof schema>;
-
-/** Format date ke YYYY-MM-DD menggunakan local timezone (bukan UTC) */
-function fmtDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function catType(record: {
-  mainCategory?: string | null;
-  status?: string | null;
-}): string {
-  const m = record.mainCategory || '';
-  if (m === 'physical_present') return 'present';
-  if (m === 'absent_permit') return 'absent_permit';
-  if (m === 'absent_unpermit') return 'absent_unpermit';
-  const s = record.status || '';
-  if (['hadir', 'terlambat', 'pulang_cepat'].includes(s)) return 'present';
-  if (['izin', 'sakit', 'cuti'].includes(s)) return 'absent_permit';
-  return 'absent_unpermit';
-}
 
 @Injectable()
 export class DashboardService {
