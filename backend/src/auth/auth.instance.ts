@@ -32,7 +32,7 @@ export function createAuth(pool: Pool) {
         rejectionNotes: { type: 'string' },
       },
     },
-    trustedOrigins: ['*'],
+    trustedOrigins: [process.env.CORS_ORIGIN || 'http://localhost:5173'],
   });
 }
 
