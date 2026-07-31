@@ -42,7 +42,13 @@ export class StorageService implements OnModuleInit {
     try {
       await this.s3.send(new HeadBucketCommand({ Bucket: this.bucket }));
     } catch {
-      await this.s3.send(new CreateBucketCommand({ Bucket: this.bucket }));
+      try {
+        await this.s3.send(new CreateBucketCommand({ Bucket: this.bucket }));
+      } catch (e) {
+        console.warn(
+          `MinIO tidak tersedia (${(e as Error).message}). Upload akan gagal sampai MinIO jalan.`,
+        );
+      }
     }
   }
 
