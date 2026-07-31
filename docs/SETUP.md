@@ -5,7 +5,7 @@
 | Software | Min Versi | Cek |
 |----------|-----------|-----|
 | Node.js | 18.x | `node -v` |
-| pnpm | 9.x | `pnpm -v` |
+| Bun | ≥ 1.x | `bun --version` |
 | PostgreSQL | 17.x | — |
 | Docker | 24.x | `docker -v` |
 | Git | — | `git --version` |
@@ -30,19 +30,19 @@ docker compose -f docker-compose.dev.yml up -d
 
 ```bash
 cd backend
-pnpm install
+bun install
 cp .env.example .env      # sesuaikan DATABASE_URL
-pnpm db:migrate:seed      # migrate + seed demo data
-pnpm start:dev            # http://localhost:9090
+bun run db:migrate:seed      # migrate + seed demo data
+bun run start:dev            # http://localhost:9090
 ```
 
 ## 4. Frontend
 
 ```bash
 cd frontend
-pnpm install
+bun install
 cp .env.example .env      # VITE_API_URL=http://localhost:9090
-pnpm dev                  # http://localhost:5173
+bun dev                  # http://localhost:5173
 ```
 
 ## Akun Demo
@@ -77,14 +77,14 @@ pnpm dev                  # http://localhost:5173
 
 | Perintah | Fungsi |
 |----------|--------|
-| `pnpm start:dev` | Watch mode |
-| `pnpm test` | Unit tests (Jest) |
-| `pnpm lint` | ESLint |
-| `pnpm db:generate` | Generate migration dari schema |
-| `pnpm db:migrate` | Apply pending migrations |
-| `pnpm db:seed` | Seed demo data (idempotent, auto-repair) |
-| `pnpm db:migrate:seed` | Migrate + seed |
-| `pnpm db:fresh` | Reset ALL + migrate + seed |
+| `bun run start:dev` | Watch mode |
+| `bun run test` | Unit tests (Jest) |
+| `bun run lint` | ESLint |
+| `bun run db:generate` | Generate migration dari schema |
+| `bun run db:migrate` | Apply pending migrations |
+| `bun run db:seed` | Seed demo data (idempotent, auto-repair) |
+| `bun run db:migrate:seed` | Migrate + seed |
+| `bun run db:fresh` | Reset ALL + migrate + seed |
 
 ## Troubleshooting
 
@@ -94,4 +94,4 @@ pnpm dev                  # http://localhost:5173
 | **Route tree tidak muncul** | Hapus `frontend/src/routeTree.gen.ts` → restart Vite |
 | **Seed gagal** | Cek `DATABASE_URL` + PostgreSQL running |
 | **MinIO upload gagal** | Cek `docker compose -f backend/docker-compose.dev.yml up -d` |
-| **Module not found** | `pnpm install` di folder yang benar |
+| **Module not found** | `bun install` di folder yang benar |

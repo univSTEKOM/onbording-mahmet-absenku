@@ -101,7 +101,7 @@ docker compose -f docker-compose.dev.yml up -d
 
 ```bash
 cd backend
-pnpm db:fresh   # Drop ALL + migrate + seed
+bun run db:fresh   # Drop ALL + migrate + seed
 ```
 
 ## Troubleshooting
