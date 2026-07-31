@@ -17,6 +17,21 @@ export const createPengajuanSchema = z.object({
 });
 
 export const updatePengajuanSchema = z.object({
+  jenis: z.enum(['cuti', 'izin', 'sakit']).optional(),
+  tanggalMulai: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD')
+    .optional(),
+  tanggalSelesai: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD')
+    .optional(),
+  alasan: z
+    .string()
+    .trim()
+    .min(10, 'Alasan minimal 10 karakter')
+    .max(500, 'Alasan maksimal 500 karakter')
+    .optional(),
   status: z.enum(['approved', 'rejected', 'pending']).optional(),
   catatan: z.string().max(500, 'Catatan maksimal 500 karakter').optional(),
 });

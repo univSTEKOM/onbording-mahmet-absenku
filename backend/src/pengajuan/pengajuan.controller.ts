@@ -76,6 +76,7 @@ export class PengajuanController {
     const record = await this.pengajuanService.update(
       id,
       body,
+      currentUser.id,
       currentUser.role,
     );
     return { success: true, data: record };

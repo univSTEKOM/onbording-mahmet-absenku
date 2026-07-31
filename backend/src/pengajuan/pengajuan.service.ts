@@ -87,7 +87,12 @@ export class PengajuanService {
     };
   }
 
-  async update(id: number, dto: UpdatePengajuanDto, currentUserRole: string) {
+  async update(
+    id: number,
+    dto: UpdatePengajuanDto,
+    currentUserId: string,
+    currentUserRole: string,
+  ) {
     const [existing] = await this.db
       .select()
       .from(pengajuan)
@@ -98,6 +103,14 @@ export class PengajuanService {
     if (existing.status !== 'pending')
       throw new BadRequestException('Pengajuan sudah diproses');
 
+    /* Ownership: non-admin hanya bisa edit pengajuan sendiri */
+    if (currentUserRole !== 'admin' && existing.userId !== currentUserId) {
+      throw new ForbiddenException(
+        'Anda hanya bisa mengubah pengajuan sendiri',
+      );
+    }
+
+    /* Status: admin-only */
     if (dto.status !== undefined && currentUserRole !== 'admin') {
       throw new ForbiddenException(
         'Hanya admin yang bisa mengubah status pengajuan',
@@ -105,6 +118,12 @@ export class PengajuanService {
     }
 
     const updateFields: Record<string, unknown> = {};
+    if (dto.jenis !== undefined) updateFields.jenis = dto.jenis;
+    if (dto.tanggalMulai !== undefined)
+      updateFields.tanggalMulai = dto.tanggalMulai;
+    if (dto.tanggalSelesai !== undefined)
+      updateFields.tanggalSelesai = dto.tanggalSelesai;
+    if (dto.alasan !== undefined) updateFields.alasan = dto.alasan;
     if (dto.status !== undefined) updateFields.status = dto.status;
     if (dto.catatan !== undefined) updateFields.catatan = dto.catatan;
 

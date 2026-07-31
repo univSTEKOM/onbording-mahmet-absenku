@@ -84,34 +84,79 @@ describe('PengajuanService', () => {
     it('should reject update for non-existent pengajuan', async () => {
       db.select().limit = () => Promise.resolve([]);
       await expect(
-        service.update(999, { status: 'approved' }, 'admin'),
+        service.update(999, { status: 'approved' }, 'admin-1', 'admin'),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should reject update for already processed pengajuan', async () => {
       db.select().limit = () =>
-        Promise.resolve([{ id: 1, status: 'approved' }]);
+        Promise.resolve([{ id: 1, status: 'approved', userId: 'user-1' }]);
       await expect(
-        service.update(1, { status: 'rejected' }, 'admin'),
+        service.update(1, { status: 'rejected' }, 'admin-1', 'admin'),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should reject status change by non-admin', async () => {
-      db.select().limit = () => Promise.resolve([{ id: 1, status: 'pending' }]);
+    it('should reject edit pengajuan orang lain oleh non-admin', async () => {
+      db.select().limit = () =>
+        Promise.resolve([{ id: 1, status: 'pending', userId: 'user-2' }]);
       await expect(
-        service.update(1, { status: 'approved' }, 'karyawan'),
+        service.update(
+          1,
+          { alasan: 'Alasan baru di sini' },
+          'user-1',
+          'karyawan',
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 
+    it('should reject status change by non-admin', async () => {
+      db.select().limit = () =>
+        Promise.resolve([{ id: 1, status: 'pending', userId: 'user-1' }]);
+      await expect(
+        service.update(1, { status: 'approved' }, 'user-1', 'karyawan'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow owner to edit own pending pengajuan', async () => {
+      db.select().limit = () =>
+        Promise.resolve([{ id: 1, status: 'pending', userId: 'user-1' }]);
+      let setData: Record<string, unknown> = {};
+      db.update().set = (data: Record<string, unknown>) => {
+        setData = data;
+        return {
+          where: () => ({
+            returning: () =>
+              Promise.resolve([{ id: 1, ...data, status: 'pending' }]),
+          }),
+        };
+      };
+
+      const result = await service.update(
+        1,
+        { alasan: 'Alasan baru di sini', tanggalMulai: '2026-08-05' },
+        'user-1',
+        'karyawan',
+      );
+      expect(setData).toHaveProperty('alasan', 'Alasan baru di sini');
+      expect(setData).toHaveProperty('tanggalMulai', '2026-08-05');
+      expect(result).toHaveProperty('status', 'pending');
+    });
+
     it('should allow admin to approve', async () => {
-      db.select().limit = () => Promise.resolve([{ id: 1, status: 'pending' }]);
+      db.select().limit = () =>
+        Promise.resolve([{ id: 1, status: 'pending', userId: 'user-1' }]);
       db.update().set = () => ({
         where: () => ({
           returning: () => Promise.resolve([{ id: 1, status: 'approved' }]),
         }),
       });
 
-      const result = await service.update(1, { status: 'approved' }, 'admin');
+      const result = await service.update(
+        1,
+        { status: 'approved' },
+        'admin-1',
+        'admin',
+      );
       expect(result).toHaveProperty('status', 'approved');
     });
   });
