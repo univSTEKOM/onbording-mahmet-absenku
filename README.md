@@ -38,16 +38,16 @@ cd backend
 docker compose -f docker-compose.dev.yml up -d
 
 # 2. Migrate + seed
-pnpm install
-pnpm db:migrate:seed
+bun install
+bun run db:migrate:seed
 
 # 3. Terminal 1 — Backend
-pnpm start:dev        # http://localhost:9090
+bun run start:dev        # http://localhost:9090
 
 # 4. Terminal 2 — Frontend
 cd frontend
-pnpm install
-pnpm dev              # http://localhost:5173
+bun install
+bun dev              # http://localhost:5173
 ```
 
 ---
@@ -75,7 +75,7 @@ Password bisa diubah via env `DEMO_PASSWORD`.
 
 **Backend:** NestJS 11 · PostgreSQL · Drizzle ORM · Better Auth · MinIO · Zod
 
-**Tools:** pnpm · Docker Compose · Jest · ESLint
+**Tools:** Bun · Docker Compose · Jest · ESLint
 
 ---
 

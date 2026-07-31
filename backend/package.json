@@ -6,19 +6,19 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "rm -rf dist && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/src/main",
+    "start:prod": "bun dist/src/main",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx --env-file=.env src/seed/seed.ts",
-    "db:migrate:seed": "drizzle-kit migrate && pnpm db:seed",
-    "db:fresh": "tsx --env-file=.env src/reset.ts && drizzle-kit migrate && tsx --env-file=.env src/seed/seed.ts",
-    "db:migrate:fresh": "pnpm db:fresh",
+    "db:seed": "bun --env-file=.env src/seed/seed.ts",
+    "db:migrate:seed": "drizzle-kit migrate && bun run db:seed",
+    "db:fresh": "bun --env-file=.env src/reset.ts && drizzle-kit migrate && bun --env-file=.env src/seed/seed.ts",
+    "db:migrate:fresh": "bun run db:fresh",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -63,7 +63,6 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.23.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
@@ -85,11 +84,6 @@
     "testEnvironment": "node",
     "transformIgnorePatterns": [
       "/node_modules/(?!better-auth|better-call)/"
-    ]
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
     ]
   }
 }

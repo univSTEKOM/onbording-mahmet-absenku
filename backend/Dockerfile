@@ -1,18 +1,14 @@
-FROM node:20-alpine AS builder
-
-RUN corepack enable
+FROM oven/bun:1 AS builder
 
 WORKDIR /app
 
 COPY package.json ./
-RUN pnpm install
+RUN bun install
 
 COPY . .
-RUN pnpm build
+RUN bun run build
 
-FROM node:20-alpine
-
-RUN corepack enable
+FROM oven/bun:1
 
 WORKDIR /app
 
@@ -23,4 +19,4 @@ COPY --from=builder /app/drizzle ./drizzle
 
 EXPOSE 9090
 
-CMD ["sh", "-c", "node dist/src/migrate.js && node dist/src/seed/seed.js && node dist/src/main.js"]
+CMD ["sh", "-c", "bun dist/src/migrate.js && bun dist/src/seed/seed.js && bun dist/src/main.js"]
