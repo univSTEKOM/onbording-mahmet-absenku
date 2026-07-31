@@ -6,7 +6,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { fromNodeHeaders } from 'better-auth/node';
-import { AUTH_INSTANCE } from '../../auth/auth.module';
+import { AUTH_INSTANCE } from '../../auth/auth.constants';
 import type { Auth } from '../../auth/auth.instance';
 import type { Request } from 'express';
 

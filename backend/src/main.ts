@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import type { Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { AUTH_INSTANCE } from './auth/auth.module';
+import { AUTH_INSTANCE } from './auth/auth.constants';
 import {
   loginRateLimiter,
   registerRateLimiter,

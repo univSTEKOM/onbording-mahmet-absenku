@@ -5,7 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { fromNodeHeaders } from 'better-auth/node';
-import { AUTH_INSTANCE } from './auth.module';
+import { AUTH_INSTANCE } from './auth.constants';
 import type { Auth } from './auth.instance';
 import type { RegisterDto } from './auth.register.schema';
 import type { Request } from 'express';

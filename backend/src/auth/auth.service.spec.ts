@@ -9,7 +9,7 @@ jest.mock('better-auth/node', () => ({
 
 import { Test } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { AUTH_INSTANCE } from './auth.module';
+import { AUTH_INSTANCE } from './auth.constants';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 
 function mockRequest(): Record<string, unknown> {

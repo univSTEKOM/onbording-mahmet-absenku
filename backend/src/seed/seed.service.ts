@@ -1,6 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
-import { AUTH_INSTANCE } from '../auth/auth.module';
+import { eq, and } from 'drizzle-orm';
+import { AUTH_INSTANCE } from '../auth/auth.constants';
 import { DRIZZLE_DB } from '../database/database.providers';
 import { user } from '../database/schema/auth.schema';
 import { absensi } from '../database/schema/absensi.schema';
@@ -151,6 +151,17 @@ export class SeedService {
     for (const u of users) {
       if (!u.persona.weights) continue;
 
+      /* Idempotent: skip user yang sudah punya absensi records */
+      const [existingAbsensi] = await this.db
+        .select({ id: absensi.id })
+        .from(absensi)
+        .where(eq(absensi.userId, u.id))
+        .limit(1);
+      if (existingAbsensi) {
+        this.logger.log(`Skip absensi for ${u.persona.email} — sudah ada data`);
+        continue;
+      }
+
       for (const tgl of workDays) {
         const status = pickWeighted(
           Object.entries(u.persona.weights).map(([k, w]) => ({
@@ -207,6 +218,25 @@ export class SeedService {
         u.persona.email.startsWith(s.emailPrefix),
       );
       if (!match) continue;
+
+      /* Idempotent: skip kalau sudah ada pengajuan yang sama */
+      const [existing] = await this.db
+        .select({ id: pengajuan.id })
+        .from(pengajuan)
+        .where(
+          and(
+            eq(pengajuan.userId, match.id),
+            eq(pengajuan.jenis, s.jenis),
+            eq(pengajuan.tanggalMulai, s.tanggalMulai),
+          ),
+        )
+        .limit(1);
+      if (existing) {
+        this.logger.log(
+          `Skip pengajuan for ${match.persona.email} — sudah ada`,
+        );
+        continue;
+      }
 
       await this.db.insert(pengajuan).values({
         userId: match.id,
