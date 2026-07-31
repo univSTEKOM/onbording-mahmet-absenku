@@ -25,7 +25,15 @@ async function bootstrap() {
   app.use('/api/auth/sign-in/email', loginRateLimiter);
   app.use('/api/register', registerRateLimiter);
   app.use('/api/auth/*', (req: Request, res: Response) => {
-    void toNodeHandler(auth)(req, res);
+    toNodeHandler(auth)(req, res).catch((err) => {
+      console.error('Better Auth error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          error: { code: 'INTERNAL_ERROR', message: 'Internal server error' },
+        });
+      }
+    });
   });
 
   await app.listen(process.env.PORT ?? 9090);
