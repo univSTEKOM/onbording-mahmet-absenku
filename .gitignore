@@ -1,13 +1,14 @@
 .agents/
 
-# Database files
-mock-api/auth.db
-mock-api/db.json
+# Env — sensitif, set via dashboard deployment (Dokploy/docker compose)
+**/.env
+**/.env.*
+!**/.env.example
 
-# Lock files (bun is primary package manager)
-package-lock.json
+# Lock files — dibuat saat install/build
 **/package-lock.json
-bun.lock
 **/bun.lock
+**/bun.lockb
+**/pnpm-lock.yaml
+**/yarn.lock
 skills-lock.json
-mock-api/bun.lock
