@@ -15,9 +15,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:seed": "nest build && node --env-file=.env dist/src/seed/seed.js",
+    "db:seed": "tsx --env-file=.env src/seed/seed.ts",
     "db:migrate:seed": "drizzle-kit migrate && pnpm db:seed",
-    "db:fresh": "nest build && node --env-file=.env dist/src/reset.js && drizzle-kit migrate && node --env-file=.env dist/src/seed/seed.js",
+    "db:fresh": "tsx --env-file=.env src/reset.ts && drizzle-kit migrate && tsx --env-file=.env src/seed/seed.ts",
     "db:migrate:fresh": "pnpm db:fresh",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -63,6 +63,7 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.23.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
@@ -82,6 +83,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
-    "transformIgnorePatterns": ["/node_modules/(?!better-auth|better-call)/"]
+    "transformIgnorePatterns": [
+      "/node_modules/(?!better-auth|better-call)/"
+    ]
   }
 }
