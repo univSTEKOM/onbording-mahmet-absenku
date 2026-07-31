@@ -1,5 +1,0 @@
-{
-  "watch": ["server.js", "auth.js", "db-schema.js"],
-  "ignore": ["db.json", "auth.db", "node_modules/"],
-  "ext": "js,mjs,cjs"
-}

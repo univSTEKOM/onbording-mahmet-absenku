@@ -1,59 +1,58 @@
-<p align="center">
-  <picture>
-    <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
-    <img src="https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white" alt="TypeScript 6" />
-    <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="Vite 8" />
-    <img src="https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind 4" />
-    <img src="https://img.shields.io/badge/Bun-1-000?logo=bun&logoColor=white" alt="Bun 1" />
-    <img src="https://img.shields.io/badge/Express-5-000?logo=express&logoColor=white" alt="Express 5" />
-    <img src="https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white" alt="SQLite" />
-    <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose" />
-  </picture>
-</p>
+# AbsenKu — Sistem Absensi Karyawan
 
-<h1 align="center">AbsenKu — Sistem Absensi Karyawan</h1>
-
-<p align="center">
-  Aplikasi absensi dengan dua peran (<b>Karyawan</b> & <b>Admin</b>), fitur check-in/out, verifikasi wajah, riwayat kehadiran, pengajuan cuti/izin, dashboard analitik, dan ekspor data.
-</p>
+Aplikasi absensi dengan dua peran (**Karyawan** & **Admin**), fitur check-in/out dengan verifikasi wajah, riwayat kehadiran, pengajuan cuti/izin, dashboard analitik, dan ekspor data.
 
 ---
 
-## 🐳 Cara 1: Jalankan dengan Docker (recommended)
+## 🚀 Cara 1: Production (Docker Compose)
 
-> Butuh: [Docker](https://docker.com) ≥ 24.x + [Docker Compose](https://docs.docker.com/compose/) ≥ 2.x
+> Butuh: [Docker](https://docker.com) ≥ 24.x + [Docker Compose](https://docs.docker.com/compose/) ≥ 2.x + PostgreSQL eksternal
 
 ```bash
+# 1. Setup .env (copy dari template di bawah)
+cp .env.example .env   # lalu isi DATABASE_URL, BETTER_AUTH_SECRET, dll
+
+# 2. Start semua service
 docker compose up -d
 ```
 
 | Akses | URL |
 |-------|-----|
 | Aplikasi | http://localhost:5173 |
-| API | http://localhost:3001 |
+| API | http://localhost:9090 |
+| MinIO Console | http://localhost:9001 |
+
+Service: **backend** (NestJS) + **minio** (file storage) + **frontend** (nginx). PostgreSQL dijalankan eksternal — `DATABASE_URL` diisi di `.env`.
+
+Backend otomatis: migrate → seed (skip/repair data) → start.
 
 ---
 
-## 🖥 Cara 2: Jalankan Manual
+## 🖥 Cara 2: Development Manual
 
-> Butuh: [Bun](https://bun.sh) ≥ 1.x, [Node.js](https://nodejs.org) ≥ 18.x
+> Butuh: [Bun](https://bun.sh) ≥ 1.x, PostgreSQL 17, MinIO
 
 ```bash
-# Terminal 1 — Backend (mock API)
-cd mock-api
-bun install
-bun run seed.js
-bun run server.js  # http://localhost:3001
+# 1. Start PostgreSQL + MinIO (via backend docker-compose dev)
+cd backend
+docker compose -f docker-compose.dev.yml up -d
 
-# Terminal 2 — Frontend
+# 2. Migrate + seed
+pnpm install
+pnpm db:migrate:seed
+
+# 3. Terminal 1 — Backend
+pnpm start:dev        # http://localhost:9090
+
+# 4. Terminal 2 — Frontend
 cd frontend
-bun install
-bun run dev        # http://localhost:5173
+pnpm install
+pnpm dev              # http://localhost:5173
 ```
 
 ---
 
-## 🔐 Akun Demo
+## 🔐 Akun Demo (seed)
 
 | Email | Password | Role | Status |
 |-------|----------|------|--------|
@@ -72,11 +71,11 @@ Password bisa diubah via env `DEMO_PASSWORD`.
 
 ## 🧰 Tech Stack
 
-**Frontend:** React 19 · TypeScript 6 · Vite 8 · Tailwind 4 · shadcn/ui · TanStack Router · TanStack Query · Recharts 3
+**Frontend:** React 19 · TypeScript 6 · Vite 8 · Tailwind 4 · shadcn/ui · TanStack Router · TanStack Query · Recharts 3 · face-api.js
 
-**Backend (mock):** Express 5 · json-server · better-auth · SQLite · Drizzle ORM
+**Backend:** NestJS 11 · PostgreSQL · Drizzle ORM · Better Auth · MinIO · Zod
 
-**Tools:** Bun · Docker Compose · oxlint · face-api.js · ExcelJS
+**Tools:** pnpm · Docker Compose · Jest · ESLint
 
 ---
 
@@ -85,13 +84,8 @@ Password bisa diubah via env `DEMO_PASSWORD`.
 | Dokumen | Untuk |
 |---------|-------|
 | [SETUP.md](docs/SETUP.md) | Instalasi detail, env, troubleshooting |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Tech stack, struktur, alur data, chart system |
-| [API.md](docs/API.md) | Semua endpoint + validasi + TypeScript types |
-| [PRD.md](docs/PRD.md) | Visi produk, fitur, roadmap |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Tech stack, struktur, alur data |
+| [API.md](docs/API.md) | Semua endpoint + format response |
+| [PRD.md](backend/docs/PRD.md) | Visi produk, fitur, keputusan |
 | [DOCKER.md](docs/DOCKER.md) | Panduan Docker lengkap |
-
----
-
-<p align="center">
-  <sub>© 2026 AbsenKu by <a href="https://github.com/MAHMETT">github.com/MAHMETT</a></sub>
-</p>
+| [DOKPLOY.md](docs/DOKPLOY.md) | Deploy ke Dokploy |

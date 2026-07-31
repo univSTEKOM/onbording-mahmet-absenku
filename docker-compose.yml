@@ -1,22 +1,4 @@
 services:
-  postgres:
-    image: postgres:17-alpine
-    container_name: absenku-db
-    environment:
-      POSTGRES_DB: absenku
-      POSTGRES_USER: absenku
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-absenku}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U absenku"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./backend
@@ -25,17 +7,43 @@ services:
     environment:
       - PORT=9090
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://absenku:${POSTGRES_PASSWORD:-absenku}@postgres:5432/absenku
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-this-in-production-min-32-chars}
+      - DATABASE_URL=${DATABASE_URL}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:9090}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
       - DEMO_PASSWORD=${DEMO_PASSWORD:-password}
       - APP_RELEASE_DATE=${APP_RELEASE_DATE:-2026-07-13}
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL:-http://localhost:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
+      - MINIO_BUCKET_FOTO=${MINIO_BUCKET_FOTO:-absenku-foto}
+      - MINIO_BUCKET_ABSENSI=${MINIO_BUCKET_ABSENSI:-absenku-absensi}
     ports:
       - "9090:9090"
     depends_on:
-      postgres:
+      minio:
         condition: service_healthy
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: absenku-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     restart: unless-stopped
 
   frontend:
@@ -52,4 +60,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres-data:
+  minio-data:

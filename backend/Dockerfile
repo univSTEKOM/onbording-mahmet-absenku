@@ -23,4 +23,4 @@ COPY --from=builder /app/drizzle ./drizzle
 
 EXPOSE 9090
 
-CMD ["sh", "-c", "node dist/src/migrate.js && node dist/src/main.js"]
+CMD ["sh", "-c", "node dist/src/migrate.js && node dist/src/seed/seed.js && node dist/src/main.js"]

@@ -67,12 +67,31 @@ export class SeedService {
 
     for (const p of PERSONAS) {
       const [existing] = await this.db
-        .select({ id: user.id })
+        .select()
         .from(user)
         .where(eq(user.email, p.email))
         .limit(1);
       if (existing) {
-        this.logger.log(`Already exists: ${p.email}`);
+        /* Repair: sync field profile dari PERSONAS kalau beda/kosong */
+        const repairFields: Record<string, unknown> = {};
+        const ex = existing as unknown as Record<string, unknown>;
+        if (ex.name !== p.nama) repairFields.name = p.nama;
+        if (ex.role !== p.role) repairFields.role = p.role;
+        if (ex.status !== p.status) repairFields.status = p.status;
+        if ((ex.jabatan as string) !== p.jabatan)
+          repairFields.jabatan = p.jabatan;
+        if ((ex.phone as string) !== p.phone) repairFields.phone = p.phone;
+        if ((ex.alamat as string) !== p.alamat) repairFields.alamat = p.alamat;
+
+        if (Object.keys(repairFields).length > 0) {
+          await this.db
+            .update(user)
+            .set(repairFields)
+            .where(eq(user.id, existing.id));
+          this.logger.log(`Repaired: ${p.email}`);
+        } else {
+          this.logger.log(`Already exists: ${p.email}`);
+        }
         created.push({ persona: p, id: existing.id });
         continue;
       }
