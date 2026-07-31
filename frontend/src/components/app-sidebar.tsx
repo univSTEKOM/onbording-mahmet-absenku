@@ -41,13 +41,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['users', 'pending', 'count'],
-    queryFn: () => api.get('/api/users/pending').then((r) => (r.data as User[]).length),
+    queryFn: () => api.get('/api/users/pending').then((r) => (r.data.data as User[]).length),
     enabled: isAdmin,
   })
 
   const { data: pendingPengajuanCount = 0 } = useQuery({
     queryKey: ['pengajuan', 'pending', 'count'],
-    queryFn: () => api.get('/pengajuan?status=pending').then((r) => (r.data as Pengajuan[]).length),
+    queryFn: () => api.get('/pengajuan?status=pending').then((r) => (r.data.data as Pengajuan[]).length),
     enabled: isAdmin,
   })
 

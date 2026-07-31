@@ -235,7 +235,7 @@ export default function AdminPengajuanPage() {
           <DialogHeader>
             <DialogTitle>Setujui Pengajuan</DialogTitle>
             <DialogDescription>
-              {confirmTarget && (users?.find(function(u) { return u.id === confirmTarget.userId })?.nama || 'Unknown')}
+              {confirmTarget && (users?.find(function(u) { return u.id === confirmTarget.userId })?.name || 'Unknown')}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[120px] overflow-y-auto text-sm text-muted-foreground whitespace-pre-wrap mb-2">{confirmTarget?.alasan}</div>
@@ -254,7 +254,7 @@ export default function AdminPengajuanPage() {
           <DialogHeader>
             <DialogTitle>Tolak Pengajuan</DialogTitle>
             <DialogDescription>
-              {confirmTarget && (users?.find(function(u) { return u.id === confirmTarget.userId })?.nama || 'Unknown')}
+              {confirmTarget && (users?.find(function(u) { return u.id === confirmTarget.userId })?.name || 'Unknown')}
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[120px] overflow-y-auto text-sm text-muted-foreground whitespace-pre-wrap mb-3">{confirmTarget?.alasan}</div>

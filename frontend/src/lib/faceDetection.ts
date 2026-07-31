@@ -1,4 +1,5 @@
 const MODEL_URL = '/models'
+const INPUT_SIZE = 320
 
 let faceapiRef: typeof import('face-api.js') | null = null
 let modelsLoaded = false
@@ -22,7 +23,11 @@ export async function loadModels() {
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
     ])
     modelsLoaded = true
-  })()
+  })().catch((e) => {
+    /* Reset promise supaya bisa retry kalau gagal */
+    modelsLoadPromise = null
+    throw e
+  })
   return modelsLoadPromise
 }
 
@@ -30,36 +35,58 @@ export function areModelsLoaded(): boolean {
   return modelsLoaded
 }
 
-export async function detectFace(
+type DetectedFace = import('face-api.js').WithFaceDescriptor<
+  import('face-api.js').WithFaceLandmarks<{ detection: import('face-api.js').FaceDetection }>
+>
+
+/**
+ * Preprocessing: naikkan kontras/brightness/saturasi sebelum deteksi.
+ * Bantu deteksi di pencahayaan redup dan skin tone gelap.
+ * Foto yang disimpan tetap original — enhancement hanya untuk deteksi.
+ */
+function enhanceCanvas(input: HTMLVideoElement | HTMLCanvasElement): HTMLCanvasElement {
+  const w = 'videoWidth' in input ? input.videoWidth : input.width
+  const h = 'videoHeight' in input ? input.videoHeight : input.height
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return canvas
+  ctx.filter = 'contrast(1.15) brightness(1.05) saturate(1.15)'
+  ctx.drawImage(input, 0, 0, w, h)
+  return canvas
+}
+
+/**
+ * Deteksi semua wajah, return wajah DOMINAN (area terbesar / paling dekat kamera)
+ * + jumlah wajah terdeteksi. Orang di background tidak menghalangi verifikasi.
+ */
+export async function detectDominantFace(
   input: HTMLVideoElement | HTMLCanvasElement,
   timeoutMs = 10000
-): Promise<import('face-api.js').WithFaceDescriptor<import('face-api.js').WithFaceLandmarks<{ detection: import('face-api.js').FaceDetection }>> | null> {
+): Promise<{ result: DetectedFace | null; faceCount: number }> {
   const faceapi = await getFaceapi()
   let timedOut = false
   const timer = setTimeout(() => { timedOut = true }, timeoutMs)
 
   try {
-    if (timedOut) return null
-    const result = await faceapi
-      .detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
+    if (timedOut) return { result: null, faceCount: 0 }
+    const enhanced = enhanceCanvas(input)
+    const results = await faceapi
+      .detectAllFaces(enhanced, new faceapi.TinyFaceDetectorOptions({ inputSize: INPUT_SIZE }))
       .withFaceLandmarks()
-      .withFaceDescriptor()
+      .withFaceDescriptors()
 
-    return result || null
+    if (results.length === 0) return { result: null, faceCount: 0 }
+
+    const dominant = results.reduce((a, b) =>
+      a.detection.box.width * a.detection.box.height > b.detection.box.width * b.detection.box.height ? a : b,
+    )
+    return { result: dominant, faceCount: results.length }
   } catch {
-    return null
+    return { result: null, faceCount: 0 }
   } finally {
     clearTimeout(timer)
-  }
-}
-
-export async function countFaces(input: HTMLVideoElement | HTMLCanvasElement): Promise<number> {
-  try {
-    const faceapi = await getFaceapi()
-    const results = await faceapi.detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
-    return results.length
-  } catch {
-    return 0
   }
 }
 

@@ -13,12 +13,12 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
   return {
     id: String(p.id ?? base.id),
     email: (p.email as string) ?? (base.email as string) ?? '',
-    nama: (p.nama as string) ?? (base.name as string) ?? '',
+    name: (p.name as string) ?? (base.name as string) ?? '',
     jabatan: (p.jabatan as string) ?? (base.jabatan as string) ?? '',
     role: (p.role as User['role']) ?? (base.role as User['role']) ?? 'karyawan',
     status: (p.status as User['status']) ?? (base.status as User['status']) ?? 'approved',
     rejectionNotes: (p.rejectionNotes as User['rejectionNotes']) ?? [],
-    foto: (p.foto as string) ?? (base.image as string) ?? '',
+    foto: (p.foto as string) ?? (base.image as string) ?? undefined,
     faceDescriptor: (p.faceDescriptor as string) ?? (base.faceDescriptor as string) ?? '',
     phone: (p.phone as string) ?? (base.phone as string) ?? '',
     alamat: (p.alamat as string) ?? (base.alamat as string) ?? '',
@@ -31,7 +31,7 @@ async function fetchProfile(): Promise<Record<string, unknown> | null> {
   const timeout = setTimeout(() => controller.abort(), 8000)
   try {
     const res = await api.get('/api/me', { signal: controller.signal })
-    const profileData = (res.data as Record<string, unknown>)?.user as Record<string, unknown> | undefined
+    const profileData = (res.data as Record<string, unknown>)?.data as Record<string, unknown> | undefined
     return profileData && typeof profileData === 'object' && Object.keys(profileData).length > 0 ? profileData : null
   } finally {
     clearTimeout(timeout)
@@ -78,7 +78,7 @@ export function useAuth() {
   const register = useCallback(async (data: RegisterRequest) => {
     const res = await api.post('/api/register', data)
     toast.success('Registrasi berhasil')
-    return res.data
+    return res.data.data ?? res.data
   }, [])
 
   const logout = useCallback(async () => {
@@ -90,7 +90,7 @@ export function useAuth() {
   const updateUser = useCallback(async (data: Partial<User>) => {
     if (!sessionUserId) return
     const body: Record<string, unknown> = {}
-    if (data.nama !== undefined) body.nama = data.nama
+    if (data.name !== undefined) body.nama = data.name
     if (data.jabatan !== undefined) body.jabatan = data.jabatan
     if (data.foto !== undefined) body.foto = data.foto
     if (data.phone !== undefined) body.phone = data.phone

@@ -21,9 +21,9 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
   useEffect(function() {
     const el = nameRef.current
     if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
-  }, [u.nama])
+  }, [u.name])
 
-  const initials = (u.nama || '?').charAt(0).toUpperCase()
+  const initials = (u.name || '?').charAt(0).toUpperCase()
   const joinedDate = u.createdAt
     ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     : '-'
@@ -48,9 +48,9 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
                 <p
                   ref={nameRef}
                   className={'text-sm font-semibold whitespace-nowrap ' + (isOverflow ? 'marquee' : 'truncate')}
-                  title={u.nama}
+                  title={u.name}
                 >
-                  {u.nama || '-'}
+                  {u.name || '-'}
                 </p>
               </div>
               <RoleBadge role={u.role} />
@@ -74,7 +74,8 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
 
       <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-14">
         <Tooltip>
-          <TooltipTrigger className="flex-1 flex items-stretch">
+          <TooltipTrigger asChild>
+            <span className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Edit"
@@ -83,12 +84,13 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
             >
               <Pencil className="h-4 w-4" />
             </button>
-          </TooltipTrigger>
+          </span></TooltipTrigger>
           <TooltipContent side="bottom"><p>Edit pengguna</p></TooltipContent>
         </Tooltip>
         {u.id !== p.currentUserId && (
           <Tooltip>
-            <TooltipTrigger className="flex-1 flex items-stretch">
+            <TooltipTrigger asChild>
+              <span className="flex-1 flex items-stretch">
               <button
                 type="button"
                 aria-label="Hapus"
@@ -97,7 +99,7 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
               >
                 <Trash2 className="h-4 w-4" />
               </button>
-            </TooltipTrigger>
+            </span></TooltipTrigger>
             <TooltipContent side="bottom"><p>Hapus pengguna</p></TooltipContent>
           </Tooltip>
         )}

@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useUsers } from '@/hooks/useUsers'
 import { useDebounce } from '@/hooks/useDebounce'
-import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_ALAMAT_LENGTH } from '@/lib/constants'
+import { MAX_NAMA_LENGTH, MAX_EMAIL_LENGTH, MAX_JABATAN_LENGTH, MAX_ALAMAT_LENGTH, MIN_PHONE_DIGITS, MAX_PHONE_DIGITS } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -79,7 +79,7 @@ export default function AdminKaryawanPageV3() {
 
   function openEdit(user: User) {
     setEditTarget(user)
-    setForm({ nama: user.nama, email: user.email, jabatan: user.jabatan, role: user.role, phone: user.phone || '', alamat: user.alamat || '' })
+    setForm({ nama: user.name, email: user.email, jabatan: user.jabatan, role: user.role, phone: user.phone || '', alamat: user.alamat || '' })
     setFormError('')
     setFieldErrors({})
     setResetFace(false)
@@ -379,7 +379,7 @@ export default function AdminKaryawanPageV3() {
         title="Hapus Karyawan"
         actions={[{ label: 'Hapus', onClick: handleDelete, variant: 'destructive' as const }]}
       >
-        <p className="text-sm">Yakin ingin menghapus <strong>{deleteTarget?.nama}</strong>? Data absensi terkait juga akan terhapus.</p>
+        <p className="text-sm">Yakin ingin menghapus <strong>{deleteTarget?.name}</strong>? Data absensi terkait juga akan terhapus.</p>
       </ConfirmDialog>
     </div>
   )

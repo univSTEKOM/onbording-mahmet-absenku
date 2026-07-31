@@ -19,8 +19,24 @@ function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
 }
 
-function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+function TooltipTrigger({
+  asChild,
+  children,
+  render,
+  ...props
+}: TooltipPrimitive.Trigger.Props & { asChild?: boolean }) {
+  /* base-ui pakai `render` prop, bukan `asChild` (Radix API).
+     Konversi asChild → render supaya call site lama tetap jalan. */
+  if (asChild && typeof children === 'object' && children !== null && !Array.isArray(children)) {
+    return (
+      <TooltipPrimitive.Trigger data-slot="tooltip-trigger" render={children as never} {...props} />
+    )
+  }
+  return (
+    <TooltipPrimitive.Trigger data-slot="tooltip-trigger" render={render} {...props}>
+      {children}
+    </TooltipPrimitive.Trigger>
+  )
 }
 
 function TooltipContent({
