@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, Loader2 } from 'lucide-react'
-import { detectFace, countFaces, drawFaceOverlay } from '@/lib/faceDetection'
+import { detectDominantFace, drawFaceOverlay } from '@/lib/faceDetection'
 
 /* Ubah ke true untuk mengaktifkan tombol ambil foto manual */
 const MANUAL_CAPTURE_ENABLED = false
@@ -32,8 +32,8 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
   const captureRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const scanRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const scanningRef = useRef(false)
   const stableRef = useRef(0)
-  const frameRef = useRef(0)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState('')
 
@@ -82,6 +82,7 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
     if (!active || !onAutoCapture) return
 
     scanRef.current = setInterval(async () => {
+      if (scanningRef.current) return
       const v = videoRef.current
       if (!v || v.readyState < 2) return
 
@@ -95,8 +96,9 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
       const overlay = overlayRef.current
       if (!overlay) return
 
+      scanningRef.current = true
       try {
-        const result = await detectFace(canvas, 500)
+        const { result, faceCount } = await detectDominantFace(canvas, 500)
         const boxes: { x: number; y: number; width: number; height: number }[] = []
 
         if (result) {
@@ -105,14 +107,9 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
           boxes.push({ x: box.x, y: box.y, width: box.width, height: box.height })
           drawFaceOverlay(overlay, w, h, boxes, faceStable)
 
-          frameRef.current++
-          if (frameRef.current % 3 === 0) {
-            const faceCount = await countFaces(canvas)
-            if (faceCount > 1) {
-              stableRef.current = 0
-              onFaceStatus?.({ detected: true, stable: false, message: `Terdeteksi ${faceCount} wajah. Pastikan hanya 1 wajah.`, color: 'yellow' })
-              return
-            }
+          if (faceCount > 1) {
+            /* Tetap lanjut — proses wajah terdekat (dominant) */
+            onFaceStatus?.({ detected: true, stable: false, message: `${faceCount} wajah terdeteksi — memproses wajah terdekat`, color: 'yellow' })
           }
 
           if (faceStable) {
@@ -122,10 +119,10 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
               const photoUrl = canvas.toDataURL('image/jpeg', 0.7)
               onAutoCapture(photoUrl)
             }
-            onFaceStatus?.({ detected: true, stable: true, message: 'Wajah terdeteksi, harap diam', color: 'green' })
+            onFaceStatus?.({ detected: true, stable: true, message: faceCount > 1 ? 'Wajah terdeteksi, harap diam' : 'Wajah terdeteksi, harap diam', color: 'green' })
           } else {
             stableRef.current = 0
-            onFaceStatus?.({ detected: true, stable: false, message: 'Dekatkan wajah ke kamera', color: 'yellow' })
+            onFaceStatus?.({ detected: true, stable: false, message: faceCount > 1 ? `${faceCount} wajah terdeteksi — memproses wajah terdekat` : 'Dekatkan wajah ke kamera', color: 'yellow' })
           }
         } else {
           stableRef.current = 0
@@ -134,6 +131,8 @@ export function WebcamCapture({ onCapture, processing, onVideoReady, active, onA
         }
       } catch {
         stableRef.current = 0
+      } finally {
+        scanningRef.current = false
       }
     }, SCAN_DELAY)
 

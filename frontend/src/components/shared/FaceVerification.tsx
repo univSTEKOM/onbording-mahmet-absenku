@@ -11,7 +11,7 @@ import { WebcamCapture } from './WebcamCapture'
 import {
   loadModels,
   areModelsLoaded,
-  detectFace,
+  detectDominantFace,
   descriptorToArray,
   isMatch,
   arrayToDescriptor,
@@ -85,7 +85,7 @@ export function FaceVerification({
     if (saveTimeoutRef.current) { clearTimeout(saveTimeoutRef.current); saveTimeoutRef.current = null }
   }, [open])
 
-  /* Load models hanya sekali */
+  /* Load models hanya sekali — bisa retry kalau gagal */
   useEffect(() => {
     if (!open || loadingRef.current || modelsLoaded) return
     if (areModelsLoaded()) {
@@ -98,6 +98,15 @@ export function FaceVerification({
       .catch(() => { setModelsError('Gagal memuat model. Periksa koneksi Internet.') })
       .finally(() => { loadingRef.current = false })
   }, [open, modelsLoaded])
+
+  function handleRetryModels() {
+    setModelsError('')
+    setModelsLoaded(false)
+    loadingRef.current = false
+    loadModels()
+      .then(() => { setModelsLoaded(true) })
+      .catch(() => { setModelsError('Gagal memuat model. Periksa koneksi Internet.') })
+  }
 
   useEffect(() => {
     if (!open) {
@@ -160,7 +169,7 @@ export function FaceVerification({
       canvas.height = img.height
       const ctx = canvas.getContext('2d')!
       ctx.drawImage(img, 0, 0)
-      const result = await detectFace(canvas)
+      const { result } = await detectDominantFace(canvas)
       if (!result) { setStatus('fail'); setMessage('Wajah tidak terdeteksi.'); setCapturedPhoto(null); setProcessing(false); return }
       await processResult(result.descriptor, photoUrl)
     } catch (e) { console.error('FaceVerification: auto-capture error', e); setStatus('fail'); setMessage('Gagal memproses wajah.'); setCapturedPhoto(null) }
@@ -175,7 +184,7 @@ export function FaceVerification({
     setStatus('idle')
     setMessage('')
     try {
-      const result = await detectFace(canvas)
+      const { result } = await detectDominantFace(canvas)
       if (!result) { setStatus('fail'); setMessage('Wajah tidak terdeteksi.'); setCapturedPhoto(null); setProcessing(false); return }
       await processResult(result.descriptor, photoUrl)
     } catch (e) { console.error('FaceVerification: manual-capture error', e); setStatus('fail'); setMessage('Gagal memproses wajah.'); setCapturedPhoto(null) }
@@ -211,11 +220,15 @@ export function FaceVerification({
           <div className="p-4 rounded-md bg-destructive/10 text-destructive text-sm text-center space-y-3">
             <AlertTriangle className="h-8 w-8 mx-auto" />
             <p>{modelsError}</p>
+            <Button variant="outline" size="sm" onClick={handleRetryModels}>
+              Coba Lagi
+            </Button>
           </div>
         ) : !modelsLoaded ? (
-          <div className="flex items-center justify-center py-8 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground space-y-1">
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            Memuat model pengenalan wajah...
+            <span>Memuat model pengenalan wajah...</span>
+            <span className="text-xs text-muted-foreground/70">Pertama kali butuh beberapa detik</span>
           </div>
         ) : showCaptured ? (
           <div className="flex flex-col items-center gap-3 py-4">
