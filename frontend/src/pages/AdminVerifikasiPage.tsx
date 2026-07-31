@@ -108,7 +108,8 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
 
       <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-14">
         <Tooltip>
-          <TooltipTrigger className="flex-1 flex items-stretch">
+          <TooltipTrigger asChild>
+            <span className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Setujui"
@@ -118,11 +119,12 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
             >
               <CheckCircle2 className="h-4 w-4" />
             </button>
-          </TooltipTrigger>
+          </span></TooltipTrigger>
           <TooltipContent side="bottom"><p>Setujui pengguna ini</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger className="flex-1 flex items-stretch">
+          <TooltipTrigger asChild>
+            <span className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Tolak"
@@ -131,11 +133,12 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
             >
               <XCircle className="h-4 w-4" />
             </button>
-          </TooltipTrigger>
+          </span></TooltipTrigger>
           <TooltipContent side="bottom"><p>Tolak pengguna ini</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger className="flex-1 flex items-stretch">
+          <TooltipTrigger asChild>
+            <span className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Hapus"
@@ -144,7 +147,7 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
             >
               <Trash2 className="h-4 w-4" />
             </button>
-          </TooltipTrigger>
+          </span></TooltipTrigger>
           <TooltipContent side="bottom"><p>Hapus pengguna ini</p></TooltipContent>
         </Tooltip>
       </div>

@@ -25,6 +25,14 @@ type DrizzleDb = NodePgDatabase<typeof schema>;
 function stripInternal(userRow: Record<string, unknown>) {
   const { emailVerified: _ev, ...rest } = userRow;
   void _ev;
+  /* rejectionNotes disimpan sebagai JSON string di DB — parse ke array */
+  if (typeof rest.rejectionNotes === 'string') {
+    try {
+      rest.rejectionNotes = JSON.parse(rest.rejectionNotes);
+    } catch {
+      rest.rejectionNotes = [];
+    }
+  }
   return rest;
 }
 
