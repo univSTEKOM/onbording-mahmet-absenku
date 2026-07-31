@@ -14,8 +14,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && window.location.pathname !== '/login') {
       window.location.href = '/login'
     }
+    /* Normalize backend { success, error: { message } } ke format frontend */
+    if (error.response?.data?.error?.message) {
+      error.response.data.message = error.response.data.error.message
+    }
     return Promise.reject(error)
-  }
+  },
 )
 
 export default api

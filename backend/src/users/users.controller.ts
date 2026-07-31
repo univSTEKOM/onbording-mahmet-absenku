@@ -57,6 +57,18 @@ export class UsersController {
     return { success: true, data: profile };
   }
 
+  @Get('/users')
+  @UseGuards(AuthGuard)
+  async getUsers(@Query('q') q?: string, @Query('role') role?: string) {
+    const result = await this.usersService.getAllUsers({
+      q,
+      role,
+      page: 1,
+      limit: 1000,
+    });
+    return { success: true, data: result.data };
+  }
+
   @Get('/api/users/pending')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')

@@ -31,7 +31,7 @@ async function fetchProfile(): Promise<Record<string, unknown> | null> {
   const timeout = setTimeout(() => controller.abort(), 8000)
   try {
     const res = await api.get('/api/me', { signal: controller.signal })
-    const profileData = (res.data as Record<string, unknown>)?.user as Record<string, unknown> | undefined
+    const profileData = (res.data as Record<string, unknown>)?.data as Record<string, unknown> | undefined
     return profileData && typeof profileData === 'object' && Object.keys(profileData).length > 0 ? profileData : null
   } finally {
     clearTimeout(timeout)
@@ -78,7 +78,7 @@ export function useAuth() {
   const register = useCallback(async (data: RegisterRequest) => {
     const res = await api.post('/api/register', data)
     toast.success('Registrasi berhasil')
-    return res.data
+    return res.data.data ?? res.data
   }, [])
 
   const logout = useCallback(async () => {

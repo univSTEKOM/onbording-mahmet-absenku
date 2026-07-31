@@ -27,6 +27,7 @@ export interface AdminWeekSummary {
   hadirHariIni: number
   terlambatHariIni: number
   izinHariIni: number
+  alfaHariIni: number
   belumAbsen: number
   totalAbsensiBulanIni: number
   weekAvg: number
@@ -48,7 +49,7 @@ export async function getRecentAbsensi(userId: string): Promise<RecentAbsensiIte
 
 export async function getAdminWeek(): Promise<AdminWeekData> {
   const res = await api.get('/api/dashboard/admin/week')
-  return res.data
+  return { chart: res.data.chart, summary: res.data.summary }
 }
 
 export interface DayAttendanceData {
@@ -73,5 +74,5 @@ export interface MonthAttendanceData {
 
 export async function getMonthAttendance(tahun: number, bulan: number, userId?: string): Promise<MonthAttendanceData> {
   const res = await api.get('/api/dashboard/month', { params: { tahun, bulan, ...(userId ? { userId } : {}) } })
-  return res.data
+  return { data: res.data.data, totalKaryawan: res.data.totalKaryawan }
 }
