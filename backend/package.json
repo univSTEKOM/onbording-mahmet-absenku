@@ -86,5 +86,10 @@
     "transformIgnorePatterns": [
       "/node_modules/(?!better-auth|better-call)/"
     ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
