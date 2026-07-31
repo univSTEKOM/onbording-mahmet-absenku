@@ -7,7 +7,6 @@ import {
   Param,
   Query,
   UseGuards,
-  UsePipes,
   ParseIntPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -24,9 +23,8 @@ export class AbsensiController {
 
   @Post('/absensi')
   @UseGuards(AuthGuard)
-  @UsePipes(new ZodValidationPipe(checkInSchema))
   async checkIn(
-    @Body() body: CheckInDto,
+    @Body(new ZodValidationPipe(checkInSchema)) body: CheckInDto,
     @CurrentUser() currentUser: UserFromSession,
   ) {
     const record = await this.absensiService.checkIn(
@@ -39,10 +37,9 @@ export class AbsensiController {
 
   @Patch('/absensi/:id')
   @UseGuards(AuthGuard)
-  @UsePipes(new ZodValidationPipe(checkOutSchema))
   async checkOut(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: CheckOutDto,
+    @Body(new ZodValidationPipe(checkOutSchema)) body: CheckOutDto,
     @CurrentUser() currentUser: UserFromSession,
   ) {
     const record = await this.absensiService.checkOut(

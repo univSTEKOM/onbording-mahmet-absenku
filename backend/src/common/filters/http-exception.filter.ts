@@ -23,17 +23,29 @@ export class HttpExceptionFilter implements ExceptionFilter {
     else if (status === 429) code = 'RATE_LIMIT';
     else if (status === 422) code = 'UNPROCESSABLE';
 
-    const message =
-      typeof exceptionResponse === 'string'
-        ? exceptionResponse
-        : (exceptionResponse as Record<string, unknown>)?.message ||
-          exception.message;
+    let message = exception.message;
+
+    if (typeof exceptionResponse === 'string') {
+      message = exceptionResponse;
+    } else {
+      const res = exceptionResponse as Record<string, unknown>;
+      /* Support nested format: { success, error: { message } } */
+      if (
+        res.error &&
+        typeof res.error === 'object' &&
+        typeof (res.error as Record<string, unknown>).message === 'string'
+      ) {
+        message = (res.error as Record<string, unknown>).message as string;
+      } else if (typeof res.message === 'string') {
+        message = res.message;
+      }
+    }
 
     response.status(status).json({
       success: false,
       error: {
         code,
-        message: typeof message === 'string' ? message : 'Terjadi kesalahan',
+        message,
       },
     });
   }

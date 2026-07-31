@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   UseGuards,
-  UsePipes,
   ParseIntPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -31,9 +30,9 @@ export class PengajuanController {
 
   @Post('/pengajuan')
   @UseGuards(AuthGuard)
-  @UsePipes(new ZodValidationPipe(createPengajuanSchema))
   async create(
-    @Body() body: CreatePengajuanDto,
+    @Body(new ZodValidationPipe(createPengajuanSchema))
+    body: CreatePengajuanDto,
     @CurrentUser() currentUser: UserFromSession,
   ) {
     const record = await this.pengajuanService.create(
@@ -68,10 +67,10 @@ export class PengajuanController {
 
   @Patch('/pengajuan/:id')
   @UseGuards(AuthGuard)
-  @UsePipes(new ZodValidationPipe(updatePengajuanSchema))
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdatePengajuanDto,
+    @Body(new ZodValidationPipe(updatePengajuanSchema))
+    body: UpdatePengajuanDto,
     @CurrentUser() currentUser: UserFromSession,
   ) {
     const record = await this.pengajuanService.update(

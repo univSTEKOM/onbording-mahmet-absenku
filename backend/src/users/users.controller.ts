@@ -8,7 +8,6 @@ import {
   Param,
   Query,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -43,10 +42,9 @@ export class UsersController {
 
   @Patch('/users/:id')
   @UseGuards(AuthGuard)
-  @UsePipes(new ZodValidationPipe(updateUserSchema))
   async updateProfile(
     @Param('id') id: string,
-    @Body() body: UpdateUserDto,
+    @Body(new ZodValidationPipe(updateUserSchema)) body: UpdateUserDto,
     @CurrentUser() currentUser: UserFromSession,
   ) {
     const profile = await this.usersService.updateProfile(
@@ -100,10 +98,10 @@ export class UsersController {
   @Patch('/api/users/:id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @UsePipes(new ZodValidationPipe(adminUpdateUserSchema))
   async adminUpdateUser(
     @Param('id') id: string,
-    @Body() body: AdminUpdateUserDto,
+    @Body(new ZodValidationPipe(adminUpdateUserSchema))
+    body: AdminUpdateUserDto,
   ) {
     const result = await this.usersService.adminUpdateUser(id, body);
     return { success: true, data: result };
@@ -112,10 +110,10 @@ export class UsersController {
   @Patch('/api/users/:id/status')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @UsePipes(new ZodValidationPipe(updateUserStatusSchema))
   async updateUserStatus(
     @Param('id') id: string,
-    @Body() body: UpdateUserStatusDto,
+    @Body(new ZodValidationPipe(updateUserStatusSchema))
+    body: UpdateUserStatusDto,
   ) {
     const result = await this.usersService.updateUserStatus(id, body);
     return { success: true, data: result };
@@ -124,8 +122,10 @@ export class UsersController {
   @Post('/api/users/:id/notes')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
-  @UsePipes(new ZodValidationPipe(addNoteSchema))
-  async addUserNote(@Param('id') id: string, @Body() body: AddNoteDto) {
+  async addUserNote(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(addNoteSchema)) body: AddNoteDto,
+  ) {
     const result = await this.usersService.addUserNote(id, body);
     return { success: true, data: result };
   }

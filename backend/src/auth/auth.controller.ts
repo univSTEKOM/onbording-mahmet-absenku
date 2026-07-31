@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UsePipes } from '@nestjs/common';
+import { Controller, Post, Body, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
@@ -10,8 +10,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/api/register')
-  @UsePipes(new ZodValidationPipe(registerSchema))
-  async register(@Body() body: RegisterDto, @Req() req: Request) {
+  async register(
+    @Body(new ZodValidationPipe(registerSchema)) body: RegisterDto,
+    @Req() req: Request,
+  ) {
     const user = await this.authService.register(body, req);
     return { success: true, data: { user } };
   }
