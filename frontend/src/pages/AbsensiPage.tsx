@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { FaceVerification } from '@/components/shared/FaceVerification'
+import { ImageViewer } from '@/components/shared/ImageViewer'
 import { canCheckIn, CHECK_IN_START } from '@/lib/absensiRules'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { useAuth } from '@/hooks/useAuth'
@@ -17,6 +18,7 @@ import {
 import { useNavigate } from '@tanstack/react-router'
 import { LoadingState } from '@/components/shared/LoadingState'
 import { formatJam, hitungJam } from '@/lib/utils'
+import type { Photo } from '@/types'
 
 export default function AbsensiPage() {
   const { user } = useAuth()
@@ -29,6 +31,7 @@ export default function AbsensiPage() {
   const [showFaceVerification, setShowFaceVerification] = useState(false)
   const [mode, setMode] = useState<'in' | 'out'>('in')
   const [clock, setClock] = useState(new Date())
+  const [previewImage, setPreviewImage] = useState('')
 
   useEffect(() => {
     const id = setInterval(() => setClock(new Date()), 60000)
@@ -50,6 +53,9 @@ export default function AbsensiPage() {
   const totalJam = hitungJam(absensi?.checkIn || null, absensi?.checkOut || null)
   const progress = isCheckedOut ? 100 : isCheckedIn ? 60 : 0
   const lastAbsensi = recentAbsensi?.[0]
+  const checkInPhoto: Photo | undefined = absensi?.photos?.find(function(p) { return p.type === 'check_in' })
+  const checkOutPhoto: Photo | undefined = absensi?.photos?.find(function(p) { return p.type === 'check_out' })
+  const hasTodayPhotos = !!checkInPhoto || !!checkOutPhoto
 
   function handleFaceVerified(photo?: string) {
     setShowFaceVerification(false)
@@ -126,9 +132,14 @@ export default function AbsensiPage() {
 
   return (
     <div className="space-y-5 md:space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold tracking-tight">Absensi Hari Ini</h1>
-        <p className="text-sm text-muted-foreground">{today}</p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Absensi Hari Ini</h1>
+          <p className="text-sm text-muted-foreground">{today}</p>
+        </div>
+        <Button variant="outline" size="sm" className="gap-1.5 shrink-0" onClick={function() { navigate({ to: '/absensi/riwayat' }) }}>
+          <History className="h-4 w-4" /> Riwayat
+        </Button>
       </div>
 
       <Card className="overflow-hidden" data-slot="absensi-progress">
@@ -213,6 +224,42 @@ export default function AbsensiPage() {
         </CardContent>
       </Card>
 
+      {absensi && (
+        <Card>
+          <CardContent className="p-5 md:p-6">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Foto Absensi Hari Ini</h3>
+            {hasTodayPhotos ? (
+              <div className="grid grid-cols-2 gap-3">
+                {checkInPhoto && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <LogIn className="h-3 w-3" /> Check In · {formatJam(absensi.checkIn)}
+                    </p>
+                    <div className="rounded-lg overflow-hidden border cursor-pointer hover:opacity-80 transition-opacity" onClick={function() { setPreviewImage(checkInPhoto.url) }}>
+                      <img src={checkInPhoto.url} alt="Check in" className="w-full aspect-[4/3] object-cover" />
+                    </div>
+                  </div>
+                )}
+                {checkOutPhoto && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <LogOut className="h-3 w-3" /> Check Out · {formatJam(absensi.checkOut)}
+                    </p>
+                    <div className="rounded-lg overflow-hidden border cursor-pointer hover:opacity-80 transition-opacity" onClick={function() { setPreviewImage(checkOutPhoto.url) }}>
+                      <img src={checkOutPhoto.url} alt="Check out" className="w-full aspect-[4/3] object-cover" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Belum ada foto. Foto tersimpan otomatis saat check in / check out.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardContent className="p-5 md:p-6">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Linimasa</h3>
@@ -283,6 +330,8 @@ export default function AbsensiPage() {
         onVerified={handleFaceVerified}
         mode={mode}
       />
+
+      <ImageViewer open={!!previewImage} imageUrl={previewImage} alt="Foto absensi" onClose={function() { setPreviewImage('') }} />
     </div>
   )
 }
