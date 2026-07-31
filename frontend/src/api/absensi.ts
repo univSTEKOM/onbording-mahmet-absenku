@@ -53,13 +53,10 @@ export async function checkIn(data: CheckInData): Promise<Absensi> {
 }
 
 export async function checkOut(id: number, data?: CheckOutData): Promise<Absensi> {
-  const existing = await api.get(`/absensi/${id}`)
-  const existingData = existing.data.data ?? existing.data
-  const currentPhotos = existingData?.photos || []
-  const photos = data?.photos?.length ? [...currentPhotos, ...data.photos] : currentPhotos
+  /* Backend append photos existing + baru — tidak perlu GET dulu */
   const res = await api.patch(`/absensi/${id}`, {
     checkOut: data?.checkOut || new Date().toISOString(),
-    photos,
+    photos: data?.photos || [],
   })
   return res.data.data ?? res.data
 }
