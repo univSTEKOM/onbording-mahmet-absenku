@@ -27,7 +27,7 @@ Backend API absensi karyawan — NestJS 11 + PostgreSQL + Drizzle ORM + Better A
 | Tool | Version | Untuk |
 |------|---------|-------|
 | Node.js | ≥ 18.x | Runtime |
-| pnpm | ≥ 9.x | Package manager |
+| Bun | ≥ 1.x | Package manager & runtime |
 | Docker | ≥ 24.x | PostgreSQL + MinIO |
 | PostgreSQL 17 | — | Database (via Docker) |
 | MinIO | latest | File storage (via Docker) |
@@ -46,7 +46,7 @@ docker compose -f docker-compose.dev.yml up -d
 ### 2. Install Dependencies
 
 ```bash
-pnpm install
+bun install
 ```
 
 ### 3. Environment
@@ -68,16 +68,16 @@ MINIO_SECRET_KEY=minioadmin
 
 ```bash
 # Apply database migrations
-pnpm db:migrate
+bun run db:migrate
 
 # (Opsional) Seed demo data
-pnpm db:seed
+bun run db:seed
 ```
 
 ### 5. Start Development Server
 
 ```bash
-pnpm start:dev
+bun run start:dev
 ```
 
 API berjalan di `http://localhost:9090`.
@@ -88,17 +88,17 @@ API berjalan di `http://localhost:9090`.
 
 | Perintah | Fungsi |
 |----------|--------|
-| `pnpm start:dev` | Watch mode (development) |
-| `pnpm start:prod` | Production mode |
-| `pnpm build` | Compile TypeScript |
-| `pnpm test` | Unit tests (Jest) |
-| `pnpm test:e2e` | E2E tests (Supertest) |
-| `pnpm test:cov` | Unit tests + coverage |
-| `pnpm lint` | ESLint |
-| `pnpm db:generate` | Generate Drizzle migration from schema |
-| `pnpm db:migrate` | Apply pending migrations |
-| `pnpm db:push` | Push schema to DB (dev only) |
-| `pnpm db:seed` | Seed demo data |
+| `bun run start:dev` | Watch mode (development) |
+| `bun run start:prod` | Production mode |
+| `bun run build` | Compile TypeScript |
+| `bun run test` | Unit tests (Jest) |
+| `bun run test:e2e` | E2E tests (Supertest) |
+| `bun run test:cov` | Unit tests + coverage |
+| `bun run lint` | ESLint |
+| `bun run db:generate` | Generate Drizzle migration from schema |
+| `bun run db:migrate` | Apply pending migrations |
+| `bun run db:push` | Push schema to DB (dev only) |
+| `bun run db:seed` | Seed demo data |
 
 ---
 
@@ -213,13 +213,13 @@ src/
 
 ```bash
 # Semua unit tests
-pnpm test
+bun run test
 
 # File spesifik
-pnpm test -- src/absensi/absensi.service.spec.ts
+bun run test -- src/absensi/absensi.service.spec.ts
 
 # E2E tests (butuh PostgreSQL running)
-pnpm test:e2e
+bun run test:e2e
 ```
 
 **Coverage:** 41 unit tests, 6 test suites.
