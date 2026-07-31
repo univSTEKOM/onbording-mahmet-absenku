@@ -41,7 +41,6 @@ export class AuthService {
         email: dto.email,
         password: dto.password,
         name: dto.nama,
-        nama: dto.nama,
         role: effectiveRole,
         status: effectiveStatus,
         jabatan: dto.jabatan || '',

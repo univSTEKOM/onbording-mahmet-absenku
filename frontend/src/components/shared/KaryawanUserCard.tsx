@@ -21,9 +21,9 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
   useEffect(function() {
     const el = nameRef.current
     if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
-  }, [u.nama])
+  }, [u.name])
 
-  const initials = (u.nama || '?').charAt(0).toUpperCase()
+  const initials = (u.name || '?').charAt(0).toUpperCase()
   const joinedDate = u.createdAt
     ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     : '-'
@@ -48,9 +48,9 @@ const KaryawanUserCard = memo(function KaryawanUserCard(p: KaryawanUserCardProps
                 <p
                   ref={nameRef}
                   className={'text-sm font-semibold whitespace-nowrap ' + (isOverflow ? 'marquee' : 'truncate')}
-                  title={u.nama}
+                  title={u.name}
                 >
-                  {u.nama || '-'}
+                  {u.name || '-'}
                 </p>
               </div>
               <RoleBadge role={u.role} />

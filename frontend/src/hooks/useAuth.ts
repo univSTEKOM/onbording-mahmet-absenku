@@ -13,7 +13,7 @@ function mergeUserData(sessionUser: Record<string, unknown> | null | undefined, 
   return {
     id: String(p.id ?? base.id),
     email: (p.email as string) ?? (base.email as string) ?? '',
-    nama: (p.nama as string) ?? (base.name as string) ?? '',
+    name: (p.name as string) ?? (base.name as string) ?? '',
     jabatan: (p.jabatan as string) ?? (base.jabatan as string) ?? '',
     role: (p.role as User['role']) ?? (base.role as User['role']) ?? 'karyawan',
     status: (p.status as User['status']) ?? (base.status as User['status']) ?? 'approved',
@@ -90,7 +90,7 @@ export function useAuth() {
   const updateUser = useCallback(async (data: Partial<User>) => {
     if (!sessionUserId) return
     const body: Record<string, unknown> = {}
-    if (data.nama !== undefined) body.nama = data.nama
+    if (data.name !== undefined) body.nama = data.name
     if (data.jabatan !== undefined) body.jabatan = data.jabatan
     if (data.foto !== undefined) body.foto = data.foto
     if (data.phone !== undefined) body.phone = data.phone

@@ -19,7 +19,7 @@ export function UserLink({ user, showAvatar = true, className, children }: UserL
     if (isAdmin) navigate({ to: '/admin/profile', state: { user } })
   }
 
-  const initials = user.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = user.name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
 
   return (
     <span
@@ -35,7 +35,7 @@ export function UserLink({ user, showAvatar = true, className, children }: UserL
           <AvatarFallback className="text-xs">{initials}</AvatarFallback>
         </Avatar>
       )}
-      {children || <span className="font-medium truncate">{user.nama}</span>}
+      {children || <span className="font-medium truncate">{user.name}</span>}
     </span>
   )
 }

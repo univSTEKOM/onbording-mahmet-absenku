@@ -87,7 +87,7 @@ export async function buildExportWorkbook(
       kategori: catLabel(r.subCategory),
     }
     if (isAdmin) {
-      base.karyawan = r.nama || '-'
+      base.karyawan = r.name || '-'
     }
     return base
   })
@@ -308,7 +308,7 @@ export async function buildSimpleSheet(
       durasi: hitungJam(r.checkIn, r.checkOut),
       status: absensiStatusLabel[r.status as keyof typeof absensiStatusLabel] || r.status,
     }
-    if (isAdmin) base.karyawan = r.nama || '-'
+    if (isAdmin) base.karyawan = r.name || '-'
     const values = dataCols.map(function(col) { return base[col.key] ?? '-' })
     const statusIdx = dataCols.findIndex(function(c) { return c.key === 'status' })
     addDataRow(ws, headerRow + i + 1, values, {

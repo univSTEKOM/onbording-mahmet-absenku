@@ -261,7 +261,7 @@ export default function AdminRiwayatPage() {
           {absensi.map(function(a) {
             const u = users?.find(function(u) { return u.id === a.userId })
             const tgl = new Date(a.tanggal + 'T00:00:00')
-            const initials = (u?.nama || '?').charAt(0).toUpperCase()
+            const initials = (u?.name || '?').charAt(0).toUpperCase()
 
             return (
               <div
@@ -284,7 +284,7 @@ export default function AdminRiwayatPage() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1.5">
-                        <p className="text-sm font-semibold truncate">{u?.nama || '-'}</p>
+                        <p className="text-sm font-semibold truncate">{u?.name || '-'}</p>
                         <Badge variant="secondary" className={absensiStatusBadge[a.status] + ' shrink-0'}>{absensiStatusLabel[a.status]}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{u?.email || '-'}</p>
@@ -402,7 +402,7 @@ export default function AdminRiwayatPage() {
             if (!allData.length) return
             var data = allData.map(function(a) {
               var u = users?.find(function(u) { return u.id === a.userId })
-              return { nama: u?.nama || '-', tanggal: a.tanggal, checkIn: a.checkIn, checkOut: a.checkOut, status: a.status, subCategory: a.subCategory, mainCategory: a.mainCategory }
+              return { nama: u?.name || '-', tanggal: a.tanggal, checkIn: a.checkIn, checkOut: a.checkOut, status: a.status, subCategory: a.subCategory, mainCategory: a.mainCategory }
             })
             var wb = await buildExportWorkbook(data, from, to, true)
             await exportWorkbook(wb, 'laporan-absensi-' + new Date().toISOString().split('T')[0])

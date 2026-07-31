@@ -120,7 +120,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <GreetIcon className="h-5 w-5 text-primary" />
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight">{greeting.text}, {user.nama.split(' ')[0]}</h1>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">{greeting.text}, {user.name.split(' ')[0]}</h1>
           </div>
           <p className="text-xs md:text-sm text-muted-foreground">{todayStr}</p>
         </div>

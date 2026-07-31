@@ -60,7 +60,6 @@ export class UsersService {
     const updateFields: Record<string, unknown> = {};
     if (dto.nama !== undefined) {
       updateFields.name = dto.nama;
-      updateFields.nama = dto.nama;
     }
     if (dto.email !== undefined) {
       const [emailOwner] = await this.db
@@ -166,7 +165,6 @@ export class UsersService {
     const updateFields: Record<string, unknown> = {};
     if (dto.nama !== undefined) {
       updateFields.name = dto.nama;
-      updateFields.nama = dto.nama;
     }
     if (dto.email !== undefined) {
       const [emailOwner] = await this.db
