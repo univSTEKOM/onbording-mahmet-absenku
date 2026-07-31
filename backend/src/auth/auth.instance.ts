@@ -23,6 +23,7 @@ export function createAuth(pool: Pool) {
     },
     user: {
       additionalFields: {
+        nama: { type: 'string' },
         role: { type: 'string', required: true, defaultValue: 'karyawan' },
         status: { type: 'string', required: true, defaultValue: 'pending' },
         jabatan: { type: 'string' },

@@ -26,7 +26,7 @@ export default function AdminDashboardPage() {
   const { data: monthData, isLoading: monthLoading } = useMonthAttendance(currentYear, currentMonth + 1)
   const { data: pendingUsers } = useQuery({
     queryKey: ['users', 'pending'],
-    queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data as User[] }) },
+    queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data.data as User[] }) },
   })
 
   const s = adminData?.summary

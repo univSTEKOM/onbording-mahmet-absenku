@@ -83,6 +83,7 @@ export class SeedService {
             email: p.email,
             password,
             name: p.nama,
+            nama: p.nama,
             role: p.role,
             status: p.status,
             jabatan: p.jabatan,

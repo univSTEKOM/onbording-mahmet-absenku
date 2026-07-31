@@ -4,6 +4,7 @@ export const user = pgTable('user', {
   id: text('id').primaryKey(),
   email: text('email').notNull().unique(),
   name: text('name'),
+  nama: text('nama'),
   role: text('role').default('karyawan'),
   status: text('status').default('pending'),
   emailVerified: boolean('email_verified').default(false),

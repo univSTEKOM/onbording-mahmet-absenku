@@ -186,7 +186,7 @@ export default function AdminVerifikasiPage() {
 
   const { data: pendingUsers, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['users', 'pending'],
-    queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data as User[] }) },
+    queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data.data as User[] }) },
   })
 
   const approveMutation = useMutation({

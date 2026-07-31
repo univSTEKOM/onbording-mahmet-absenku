@@ -398,7 +398,7 @@ export default function AdminRiwayatPage() {
             if (filters.mainCategory) params.mainCategory = filters.mainCategory
             if (filters.statuses.length > 0) params.status = filters.statuses
             var res = await api.get('/absensi', { params: params })
-            var allData = (res.data || []) as Absensi[]
+            var allData = (res.data.data || []) as Absensi[]
             if (!allData.length) return
             var data = allData.map(function(a) {
               var u = users?.find(function(u) { return u.id === a.userId })

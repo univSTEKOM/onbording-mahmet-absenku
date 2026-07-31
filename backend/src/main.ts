@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -10,12 +11,15 @@ import {
 import type { Auth } from './auth/auth.instance';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableCors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     credentials: true,
   });
+
+  /* Foto base64 (WebP) bisa > 100kb — naikkan limit body parser */
+  app.useBodyParser('json', { limit: '10mb' });
 
   app.useGlobalFilters(new HttpExceptionFilter());
 
