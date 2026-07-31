@@ -5,33 +5,44 @@
 | Software | Min Versi | Cek |
 |----------|-----------|-----|
 | Node.js | 18.x | `node -v` |
-| npm | 9.x | `npm -v` |
+| pnpm | 9.x | `pnpm -v` |
+| PostgreSQL | 17.x | — |
+| Docker | 24.x | `docker -v` |
 | Git | — | `git --version` |
 
 ## 1. Clone & Setup
 
 ```bash
-git clone <repo> on-boarding-trials
-cd on-boarding-trials
+git clone <repo> absenku
+cd absenku
 ```
 
-## 2. Mock API (http://localhost:3001)
+## 2. Dependencies (PostgreSQL + MinIO)
 
 ```bash
-cd mock-api
-npm install
-cp .env.example .env      # Windows: copy .env.example .env
-node seed.js               # Reset & seed database (opsional)
-node server.js
+cd backend
+docker compose -f docker-compose.dev.yml up -d
+# → PostgreSQL :5432
+# → MinIO     :9000 (API), :9001 (Console)
 ```
 
-## 3. Frontend (http://localhost:5173)
+## 3. Backend
+
+```bash
+cd backend
+pnpm install
+cp .env.example .env      # sesuaikan DATABASE_URL
+pnpm db:migrate:seed      # migrate + seed demo data
+pnpm start:dev            # http://localhost:9090
+```
+
+## 4. Frontend
 
 ```bash
 cd frontend
-npm install
-cp .env.example .env
-npm run dev
+pnpm install
+cp .env.example .env      # VITE_API_URL=http://localhost:9090
+pnpm dev                  # http://localhost:5173
 ```
 
 ## Akun Demo
@@ -42,39 +53,45 @@ npm run dev
 | rudi@stekom.ac.id | password | karyawan | approved |
 | siti@stekom.ac.id | password | karyawan | approved |
 | budi@stekom.ac.id | password | karyawan | pending |
+| dewi@stekom.ac.id | password | karyawan | approved |
+| ani@stekom.ac.id | password | karyawan | approved |
+| tono@stekom.ac.id | password | karyawan | approved |
+| ferry@stekom.ac.id | password | karyawan | pending |
 
 ## Environment Variables
 
 | File | Variable | Default |
 |------|----------|---------|
-| `frontend/.env` | `VITE_API_URL` | `http://localhost:3001` |
+| `frontend/.env` | `VITE_API_URL` | `http://localhost:9090` |
 | `frontend/.env` | `VITE_APP_RELEASE_DATE` | `2026-07-13` |
-| `mock-api/.env` | `BETTER_AUTH_SECRET` | (min 32 chars) |
-| `mock-api/.env` | `BETTER_AUTH_URL` | `http://localhost:3001` |
+| `backend/.env` | `DATABASE_URL` | `postgresql://absenku:absenku@localhost:5432/absenku` |
+| `backend/.env` | `BETTER_AUTH_SECRET` | (min 32 chars) |
+| `backend/.env` | `BETTER_AUTH_URL` | `http://localhost:9090` |
+| `backend/.env` | `CORS_ORIGIN` | `http://localhost:5173` |
+| `backend/.env` | `MINIO_ENDPOINT` | `http://localhost:9000` |
+| `backend/.env` | `MINIO_PUBLIC_URL` | `http://localhost:9000` |
+| `backend/.env` | `MINIO_ACCESS_KEY` | `minioadmin` |
+| `backend/.env` | `MINIO_SECRET_KEY` | `minioadmin` |
 
-## Scripts
-
-### Frontend
-
-| Perintah | Fungsi |
-|----------|--------|
-| `npm run dev` | Start Vite dev server (port 5173) |
-| `npm run build` | TypeScript check + build production |
-| `npm run lint` | Jalankan oxlint (target: zero warnings) |
-| `npm run preview` | Preview production build |
-
-### Mock API
+## Scripts Backend
 
 | Perintah | Fungsi |
 |----------|--------|
-| `node server.js` | Start server (port 3001) |
-| `node seed.js` | Reset & seed database |
+| `pnpm start:dev` | Watch mode |
+| `pnpm test` | Unit tests (Jest) |
+| `pnpm lint` | ESLint |
+| `pnpm db:generate` | Generate migration dari schema |
+| `pnpm db:migrate` | Apply pending migrations |
+| `pnpm db:seed` | Seed demo data (idempotent, auto-repair) |
+| `pnpm db:migrate:seed` | Migrate + seed |
+| `pnpm db:fresh` | Reset ALL + migrate + seed |
 
 ## Troubleshooting
 
 | Masalah | Solusi |
 |---------|--------|
-| **Port 3001/5173 dipakai** | `netstat -ano \| Select-String ":3001"` → `Stop-Process -Id <PID> -Force` |
+| **Port 9090 dipakai** | Ubah `PORT` di `backend/.env` |
 | **Route tree tidak muncul** | Hapus `frontend/src/routeTree.gen.ts` → restart Vite |
-| **Table "user" already exists** | Hapus `mock-api/auth.db` → `node server.js` |
-| **Module not found** | `cd frontend && npm install` (atau `cd mock-api && npm install`) |
+| **Seed gagal** | Cek `DATABASE_URL` + PostgreSQL running |
+| **MinIO upload gagal** | Cek `docker compose -f backend/docker-compose.dev.yml up -d` |
+| **Module not found** | `pnpm install` di folder yang benar |

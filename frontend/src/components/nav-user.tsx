@@ -35,7 +35,7 @@ export function NavUser() {
   const { isMobile } = useSidebar()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  const initials = user?.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = user?.name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
   const fotoSrc = user?.foto || undefined
 
   async function handleLogout() {
@@ -55,7 +55,7 @@ export function NavUser() {
               <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{user?.nama}</span>
+              <span className="truncate font-medium">{user?.name}</span>
               <span className="truncate text-xs text-muted-foreground">{user?.jabatan}</span>
             </div>
             <ChevronsUpDown className="ml-auto size-4" />
@@ -74,7 +74,7 @@ export function NavUser() {
                     <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user?.nama}</span>
+                    <span className="truncate font-medium">{user?.name}</span>
                     <span className="truncate text-xs text-muted-foreground">{user?.jabatan}</span>
                   </div>
                 </div>

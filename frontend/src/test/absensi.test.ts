@@ -58,30 +58,27 @@ describe('checkOut', () => {
     vi.clearAllMocks()
   })
 
-  it('fetches existing then patches checkout', async () => {
-    mockApi.get.mockResolvedValue({ data: { photos: [] } })
+  it('patches checkout langsung tanpa GET', async () => {
     mockApi.patch.mockResolvedValue({ data: { id: 1, checkOut: '2026-07-25T16:00:00Z' } })
 
     const result = await checkOut(1, { checkOut: '2026-07-25T16:00:00Z', photos: [] })
 
-    expect(mockApi.get).toHaveBeenCalledWith('/absensi/1')
+    expect(mockApi.get).not.toHaveBeenCalled()
     expect(mockApi.patch).toHaveBeenCalledWith('/absensi/1', expect.objectContaining({
       checkOut: '2026-07-25T16:00:00Z',
     }))
     expect(result.checkOut).toBe('2026-07-25T16:00:00Z')
   })
 
-  it('merges existing photos with new checkout photos', async () => {
-    const existingPhotos = [{ type: 'check_in', url: 'data:image/old', capturedAt: '2026-07-25T07:30:00Z' }]
+  it('kirim photos check-out baru — backend yang merge dengan photos existing', async () => {
     const newPhotos = [{ type: 'check_out', url: 'data:image/new', capturedAt: '2026-07-25T16:00:00Z' }]
 
-    mockApi.get.mockResolvedValue({ data: { photos: existingPhotos } })
     mockApi.patch.mockResolvedValue({ data: { id: 1 } })
 
     await checkOut(1, { checkOut: '2026-07-25T16:00:00Z', photos: newPhotos })
 
     expect(mockApi.patch).toHaveBeenCalledWith('/absensi/1', expect.objectContaining({
-      photos: [...existingPhotos, ...newPhotos],
+      photos: newPhotos,
     }))
   })
 })

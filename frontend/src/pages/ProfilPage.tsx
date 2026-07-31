@@ -23,7 +23,7 @@ export default function ProfilPage() {
   const [editing, setEditing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
+  const [form, setForm] = useState({ nama: user?.name || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
   const [fotoPreview, setFotoPreview] = useState(user?.foto || '')
   const [photoChanged, setPhotoChanged] = useState(false)
   const [cropSource, setCropSource] = useState<string | null>(null)
@@ -31,10 +31,10 @@ export default function ProfilPage() {
 
   useEffect(() => {
     if (!editing) return
-    setForm({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
+    setForm({ nama: user?.name || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
     setFotoPreview(user?.foto || '')
     setPhotoChanged(false)
-  }, [editing, user?.nama, user?.email, user?.jabatan, user?.phone, user?.alamat, user?.foto])
+  }, [editing, user?.name, user?.email, user?.jabatan, user?.phone, user?.alamat, user?.foto])
 
   function validate() {
     const errs: Record<string, string> = {}
@@ -82,13 +82,13 @@ export default function ProfilPage() {
 
   function handleCancel() {
     setEditing(false); setErrors({})
-    setForm({ nama: user?.nama || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
+    setForm({ nama: user?.name || '', email: user?.email || '', jabatan: user?.jabatan || '', phone: user?.phone || '', alamat: user?.alamat || '' })
     setFotoPreview(user?.foto || '')
     setPhotoChanged(false)
     setCropSource(null)
   }
 
-  const initials = user?.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = user?.name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
   if (!user) return null
 
   function handleCropComplete(croppedDataUrl: string) {
@@ -125,7 +125,7 @@ export default function ProfilPage() {
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoChange} />
             </div>
             <div className="text-center sm:text-left">
-              <h2 className="text-xl font-semibold">{user.nama}</h2>
+              <h2 className="text-xl font-semibold">{user.name}</h2>
               <p className="text-sm text-muted-foreground">{user.jabatan}</p>
               <p className="text-xs text-muted-foreground capitalize mt-0.5">{user.role}</p>
             </div>

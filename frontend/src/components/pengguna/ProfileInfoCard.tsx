@@ -21,7 +21,7 @@ const statusBadge: Record<string, string> = {
 }
 
 export function ProfileInfoCard({ user }: ProfileInfoCardProps) {
-  const initials = user.nama?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = user.name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
 
   return (
     <Card>
@@ -32,7 +32,7 @@ export function ProfileInfoCard({ user }: ProfileInfoCardProps) {
             <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
           </Avatar>
           <div className="text-center sm:text-left flex-1 min-w-0">
-            <h2 className="text-xl font-semibold truncate">{user.nama}</h2>
+            <h2 className="text-xl font-semibold truncate">{user.name}</h2>
             <div className="flex items-center gap-2 mt-1 justify-center sm:justify-start flex-wrap">
               <RoleBadge role={user.role} size="md" />
               <Badge variant="secondary" className={statusBadge[user.status] || ''}>

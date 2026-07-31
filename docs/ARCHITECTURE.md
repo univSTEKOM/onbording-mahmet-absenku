@@ -19,34 +19,46 @@
 | Face Recognition | face-api.js (tinyFaceDetector) |
 | Linter | oxlint — **zero errors** |
 
-### Mock API
+### Backend
 
 | Layer | Teknologi |
 |-------|-----------|
-| Server | Express 5 + json-server 0.17 |
-| Auth | better-auth + SQLite (better-sqlite3) |
+| Framework | NestJS 11 |
+| Database | PostgreSQL 17 |
 | ORM | Drizzle ORM |
+| Auth | better-auth (cookie session, Drizzle adapter) |
+| Validation | Zod 4 |
+| File Storage | MinIO (S3-compatible) |
+| Rate Limiting | In-memory Map |
+| Testing | Jest (unit) + Supertest (E2E) |
+| Linter | ESLint — **zero errors** |
 
 ## Struktur Folder
 
 ```
-on-boarding-trials/
+absenku/
 ├── frontend/src/
 │   ├── api/            # Axios service per domain
 │   ├── components/     # ui/(shadcn), shared/, layout/, pengajuan/, tour/
 │   ├── hooks/          # TanStack Query hooks per domain
 │   ├── lib/            # Utilities, constants, chart config, validation
-│   ├── pages/          # Page components (16 pages)
+│   ├── pages/          # Page components
 │   ├── routes/         # TanStack Router (nested layouts + role guards)
 │   └── types/          # TypeScript interfaces
-├── mock-api/           # Express + json-server + SQLite
-└── docs/               # Dokumentasi
+├── backend/
+│   ├── src/            # NestJS modules (auth, users, absensi, pengajuan, dashboard, storage, seed)
+│   ├── drizzle/        # Migration files
+│   └── docs/           # PRD + API reference
+└── docs/               # Dokumentasi project
 ```
 
 ## Alur Data
 
 ```
-Browser → React → TanStack Query → Axios → localhost:3001 → json-server / better-auth → db.json / SQLite
+Browser → React → TanStack Query → Axios → localhost:9090 → NestJS Controller
+    → Service (Drizzle ORM) → PostgreSQL
+    → File upload → MinIO
+    → Auth → better-auth (cookie session)
 ```
 
 ## Role & Route Guards

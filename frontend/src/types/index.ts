@@ -33,7 +33,7 @@ export interface RejectionNote {
 export interface User {
   id: string
   email: string
-  nama: string
+  name: string
   jabatan: string
   role: Role
   status: UserStatus

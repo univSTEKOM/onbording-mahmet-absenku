@@ -36,9 +36,9 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
   useEffect(function() {
     const el = nameRef.current
     if (el) setIsOverflow(el.scrollWidth > el.clientWidth)
-  }, [u.nama])
+  }, [u.name])
 
-  const initials = (u.nama || '?').charAt(0).toUpperCase()
+  const initials = (u.name || '?').charAt(0).toUpperCase()
   const joinedDate = u.createdAt
     ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     : '-'
@@ -63,9 +63,9 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
                 <p
                   ref={nameRef}
                   className={'text-sm font-semibold whitespace-nowrap ' + (isOverflow ? 'marquee' : 'truncate')}
-                  title={u.nama}
+                  title={u.name}
                 >
-                  {u.nama || '-'}
+                  {u.name || '-'}
                 </p>
               </div>
               <span className="inline-flex items-center gap-1 rounded-full text-[10px] font-medium px-2 py-0.5 shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
@@ -108,7 +108,8 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
 
       <div className="hidden lg:flex flex-col rounded-r-xl overflow-hidden border-l border-border/40 w-14">
         <Tooltip>
-          <TooltipTrigger className="flex-1 flex items-stretch">
+          <TooltipTrigger asChild>
+            <span className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Setujui"
@@ -118,11 +119,12 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
             >
               <CheckCircle2 className="h-4 w-4" />
             </button>
-          </TooltipTrigger>
+          </span></TooltipTrigger>
           <TooltipContent side="bottom"><p>Setujui pengguna ini</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger className="flex-1 flex items-stretch">
+          <TooltipTrigger asChild>
+            <span className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Tolak"
@@ -131,11 +133,12 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
             >
               <XCircle className="h-4 w-4" />
             </button>
-          </TooltipTrigger>
+          </span></TooltipTrigger>
           <TooltipContent side="bottom"><p>Tolak pengguna ini</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger className="flex-1 flex items-stretch">
+          <TooltipTrigger asChild>
+            <span className="flex-1 flex items-stretch">
             <button
               type="button"
               aria-label="Hapus"
@@ -144,7 +147,7 @@ const VerifikasiUserCard = memo(function VerifikasiUserCard(p: VerifikasiUserCar
             >
               <Trash2 className="h-4 w-4" />
             </button>
-          </TooltipTrigger>
+          </span></TooltipTrigger>
           <TooltipContent side="bottom"><p>Hapus pengguna ini</p></TooltipContent>
         </Tooltip>
       </div>
@@ -186,7 +189,7 @@ export default function AdminVerifikasiPage() {
 
   const { data: pendingUsers, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['users', 'pending'],
-    queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data as User[] }) },
+    queryFn: function() { return api.get('/api/users/pending').then(function(r) { return r.data.data as User[] }) },
   })
 
   const approveMutation = useMutation({
@@ -267,7 +270,7 @@ export default function AdminVerifikasiPage() {
       <Dialog open={!!rejectTarget} onOpenChange={function(o) { if (!o) setRejectTarget(null); setRejectNote('') }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tolak {rejectTarget?.nama}</DialogTitle>
+            <DialogTitle>Tolak {rejectTarget?.name}</DialogTitle>
             <DialogDescription>Berikan alasan penolakan agar user dapat memperbaiki pendaftarannya.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -294,7 +297,7 @@ export default function AdminVerifikasiPage() {
             <DialogTitle>Detail</DialogTitle>
           </DialogHeader>
           {detailTarget && function(u) {
-            const initials = (u.nama || '?').charAt(0).toUpperCase()
+            const initials = (u.name || '?').charAt(0).toUpperCase()
             const joinedDate = u.createdAt
               ? new Date(u.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
               : '-'
@@ -317,7 +320,7 @@ export default function AdminVerifikasiPage() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="text-base font-semibold truncate">{u.nama}</p>
+                      <p className="text-base font-semibold truncate">{u.name}</p>
                       <span className="inline-flex items-center gap-1 rounded-full text-[10px] font-medium px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 mt-0.5">
                         <Clock className="h-2.5 w-2.5" />
                         Pending
@@ -407,7 +410,7 @@ export default function AdminVerifikasiPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={function(o) { if (!o) setDeleteTarget(null) }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus {deleteTarget?.nama}?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus {deleteTarget?.name}?</AlertDialogTitle>
             <AlertDialogDescription>Data user dan seluruh data terkait (absensi, pengajuan) akan dihapus permanen.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
