@@ -70,9 +70,16 @@ export class AbsensiService {
       .limit(1);
     if (!existingUser) throw new NotFoundException('User tidak ditemukan');
 
-    const checkInResult = evaluateCheckIn();
-    if (!checkInResult.allowed)
-      throw new BadRequestException('Absensi dibuka pukul 06:45.');
+    const checkInResult = evaluateCheckIn(
+      dto.checkIn ? new Date(dto.checkIn) : undefined,
+    );
+    if (!checkInResult.allowed) {
+      throw new BadRequestException(
+        checkInResult.status === 'too_early'
+          ? `Absensi sudah ditutup. Maksimal absensi pukul 23:59.`
+          : 'Absensi sudah ditutup. Maksimal absensi pukul 23:59.',
+      );
+    }
 
     const [duplicate] = await this.db
       .select({ id: absensi.id })

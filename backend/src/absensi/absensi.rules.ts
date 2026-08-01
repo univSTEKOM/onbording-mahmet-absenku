@@ -1,6 +1,6 @@
-export const CHECK_IN_START = '06:45';
-export const CHECK_IN_END = '07:45';
+export const CHECK_IN_END = '09:00';
 export const CHECK_OUT_MIN = '16:00';
+export const MAX_CHECK_IN = '23:59';
 
 function toMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -13,7 +13,7 @@ function nowMinutes(now?: Date): number {
 }
 
 export type CheckInResult =
-  | { allowed: false; status: 'too_early' }
+  | { allowed: false; status: 'tidak_bisa' }
   | {
       allowed: true;
       status: 'hadir';
@@ -27,13 +27,16 @@ export type CheckInResult =
       subCategory: string;
     };
 
-/** @param now — optional Date untuk testing. default: new Date() */
-export function evaluateCheckIn(now?: Date): CheckInResult {
-  const current = nowMinutes(now);
-  const start = toMinutes(CHECK_IN_START);
+/**
+ * @param checkInTime — waktu check-in dari frontend (ISO string yang sudah di-parse).
+ *                      Default: new Date() (server time)
+ */
+export function evaluateCheckIn(checkInTime?: Date): CheckInResult {
+  const current = nowMinutes(checkInTime);
   const end = toMinutes(CHECK_IN_END);
+  const max = toMinutes(MAX_CHECK_IN);
 
-  if (current < start) return { allowed: false, status: 'too_early' };
+  if (current > max) return { allowed: false, status: 'tidak_bisa' };
   if (current <= end)
     return {
       allowed: true,
@@ -49,14 +52,29 @@ export function evaluateCheckIn(now?: Date): CheckInResult {
   };
 }
 
-/** @param now — optional Date untuk testing. default: new Date() */
 export function evaluateCheckOut(now?: Date): {
   pulangCepat: boolean;
+  halfDay: boolean;
   subCategory: string;
 } {
   const current = nowMinutes(now);
-  if (current < toMinutes(CHECK_OUT_MIN)) {
-    return { pulangCepat: true, subCategory: 'physical_violation' };
+  if (current < toMinutes('14:00')) {
+    return {
+      pulangCepat: true,
+      halfDay: true,
+      subCategory: 'physical_violation',
+    };
   }
-  return { pulangCepat: false, subCategory: 'physical_standard' };
+  if (current < toMinutes(CHECK_OUT_MIN)) {
+    return {
+      pulangCepat: true,
+      halfDay: false,
+      subCategory: 'physical_violation',
+    };
+  }
+  return {
+    pulangCepat: false,
+    halfDay: false,
+    subCategory: 'physical_standard',
+  };
 }
