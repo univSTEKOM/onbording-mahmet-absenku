@@ -1,96 +1,66 @@
-# AbsenKu Backend
+<h1 align="center">AbsenKu Backend</h1>
 
-Backend API absensi karyawan — NestJS 11 + PostgreSQL + Drizzle ORM + Better Auth.
+<p align="center">
+  <strong>REST API for Attendance System</strong><br>
+  <em>NestJS + PostgreSQL + Drizzle ORM + Better Auth</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS">
+  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Drizzle_ORM-0.45-C5F641?style=flat-square&logo=drizzle&logoColor=black" alt="Drizzle ORM">
+  <img src="https://img.shields.io/badge/Better_Auth-1.6-FF6B35?style=flat-square" alt="Better Auth">
+  <img src="https://img.shields.io/badge/Bun-1-FBF0DF?style=flat-square&logo=bun&logoColor=black" alt="Bun">
+</p>
 
 ---
 
 ## Tech Stack
 
-| Layer | Teknologi |
-|-------|-----------|
+| Layer | Technology |
+|-------|------------|
 | Framework | NestJS 11 |
-| Language | TypeScript 5.7 (strict) |
+| Language | TypeScript 6 (strict) |
+| Runtime | Bun |
 | Database | PostgreSQL 17 |
 | ORM | Drizzle ORM |
-| Auth | Better Auth (cookie session) |
+| Auth | Better Auth (cookie session, Drizzle adapter) |
 | Validation | Zod 4 |
 | File Storage | MinIO (S3-compatible) |
 | Rate Limiting | In-memory Map |
 | Testing | Jest (unit) + Supertest (E2E) |
 | Linter | ESLint + typescript-eslint |
-| Container | Docker Compose |
 
 ---
 
-## Prerequisites
-
-| Tool | Version | Untuk |
-|------|---------|-------|
-| Node.js | ≥ 18.x | Runtime |
-| Bun | ≥ 1.x | Package manager & runtime |
-| Docker | ≥ 24.x | PostgreSQL + MinIO |
-| PostgreSQL 17 | — | Database (via Docker) |
-| MinIO | latest | File storage (via Docker) |
-
----
-
-## Setup
-
-### 1. Start Dependencies
+## Quick Start
 
 ```bash
-# PostgreSQL + MinIO dalam 1 command
+# 1. Start dependencies (PostgreSQL + MinIO)
 docker compose -f docker-compose.dev.yml up -d
-```
 
-### 2. Install Dependencies
-
-```bash
+# 2. Install dependencies
 bun install
-```
 
-### 3. Environment
+# 3. Migrate + seed
+bun run db:migrate:seed
 
-Copy `.env` (already provided dengan default untuk development):
-```env
-PORT=9090
-DATABASE_URL=postgresql://absenku:absenku@localhost:5432/absenku
-BETTER_AUTH_SECRET=change-this-in-production-min-32-chars
-BETTER_AUTH_URL=http://localhost:9090
-CORS_ORIGIN=http://localhost:5173
-MINIO_ENDPOINT=http://localhost:9000
-MINIO_PUBLIC_URL=http://localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-```
-
-### 4. Migrate & Seed
-
-```bash
-# Apply database migrations
-bun run db:migrate
-
-# (Opsional) Seed demo data
-bun run db:seed
-```
-
-### 5. Start Development Server
-
-```bash
+# 4. Start dev server
 bun run start:dev
 ```
 
-API berjalan di `http://localhost:9090`.
+API running at `http://localhost:9090`.
 
 ---
 
 ## Scripts
 
-| Perintah | Fungsi |
-|----------|--------|
+| Command | Description |
+|---------|-------------|
 | `bun run start:dev` | Watch mode (development) |
 | `bun run start:prod` | Production mode |
-| `bun run build` | Compile TypeScript |
+| `bun run build` | Compile TypeScript → `dist/` |
 | `bun run test` | Unit tests (Jest) |
 | `bun run test:e2e` | E2E tests (Supertest) |
 | `bun run test:cov` | Unit tests + coverage |
@@ -99,25 +69,29 @@ API berjalan di `http://localhost:9090`.
 | `bun run db:migrate` | Apply pending migrations |
 | `bun run db:push` | Push schema to DB (dev only) |
 | `bun run db:seed` | Seed demo data |
+| `bun run db:migrate:seed` | Migrate + seed (production) |
+| `bun run db:fresh` | Drop ALL + migrate + seed (dev) |
 
 ---
 
 ## Environment Variables
 
-| Variable | Default | Wajib | Deskripsi |
-|----------|---------|-------|-----------|
-| `PORT` | `9090` | — | Port server |
+| Variable | Default | Required | Description |
+|----------|---------|:--------:|-------------|
+| `PORT` | `9090` | — | Server port |
 | `NODE_ENV` | `development` | — | Environment |
 | `DATABASE_URL` | — | ✅ | PostgreSQL connection string |
 | `BETTER_AUTH_SECRET` | — | ✅ | Secret key (min 32 chars) |
-| `BETTER_AUTH_URL` | `http://localhost:9090` | — | Backend URL untuk Better Auth |
-| `CORS_ORIGIN` | `http://localhost:5173` | — | Origin yang diizinkan |
-| `DEMO_PASSWORD` | `password` | — | Password untuk akun demo |
-| `APP_RELEASE_DATE` | `2026-07-13` | — | Tanggal rilis aplikasi |
-| `MINIO_ENDPOINT` | `http://localhost:9000` | — | Endpoint MinIO S3 API |
-| `MINIO_PUBLIC_URL` | `http://localhost:9000` | — | URL publik untuk akses file |
-| `MINIO_ACCESS_KEY` | `minioadmin` | — | Access key MinIO |
-| `MINIO_SECRET_KEY` | `minioadmin` | — | Secret key MinIO |
+| `BETTER_AUTH_URL` | `http://localhost:9090` | — | Backend URL for Better Auth |
+| `CORS_ORIGIN` | `http://localhost:5173` | — | Allowed origin |
+| `DEMO_PASSWORD` | `password` | — | Password for demo accounts |
+| `APP_RELEASE_DATE` | `2026-07-13` | — | Application release date |
+| `MINIO_ENDPOINT` | `http://localhost:9000` | — | MinIO S3 API endpoint |
+| `MINIO_PUBLIC_URL` | `http://localhost:9000` | — | Public URL for file access |
+| `MINIO_ACCESS_KEY` | `minioadmin` | — | MinIO access key |
+| `MINIO_SECRET_KEY` | `minioadmin` | — | MinIO secret key |
+| `MINIO_BUCKET_FOTO` | `absenku-foto` | — | Bucket for profile photos |
+| `MINIO_BUCKET_ABSENSI` | `absenku-absensi` | — | Bucket for attendance photos |
 
 ---
 
@@ -125,22 +99,11 @@ API berjalan di `http://localhost:9090`.
 
 ```
 src/
+├── main.ts                     # Entry point
+├── app.module.ts               # Root module
+├── migrate.ts                  # Drizzle migrator
+├── reset.ts                    # Database reset
 ├── attendance-categories.ts    # Shared category helpers
-├── common/                     # Shared infrastructure
-│   ├── decorators/             # @CurrentUser(), @Roles()
-│   ├── filters/                # HttpExceptionFilter
-│   ├── guards/                 # AuthGuard, RolesGuard
-│   ├── pipes/                  # ZodValidationPipe
-│   └── utils.ts                # fmtDate(), dll
-├── config/
-│   └── env.config.ts           # Zod schema validasi env
-├── database/
-│   ├── database.module.ts      # Global module
-│   ├── database.providers.ts   # PG pool + Drizzle factory
-│   └── schema/                 # Drizzle table definitions
-│       ├── auth.schema.ts      # user, session, account, verification
-│       ├── absensi.schema.ts
-│       └── pengajuan.schema.ts
 ├── auth/                       # Auth module
 │   ├── auth.controller.ts      # POST /api/register
 │   ├── auth.instance.ts        # Better Auth singleton
@@ -168,12 +131,66 @@ src/
 │   ├── storage.controller.ts   # POST /api/upload/foto
 │   ├── storage.service.ts      # MinIO S3 client
 │   └── storage.module.ts
-├── seed/                       # Seed system
-│   ├── seed.service.ts
-│   ├── seed.data.ts
-│   └── seed.ts                 # CLI entry: ts-node src/seed/seed.ts
-├── main.ts                     # Entry point
-└── migrate.ts                  # Drizzle migrator
+├── database/                   # Database layer
+│   ├── database.module.ts      # Global module
+│   ├── database.providers.ts   # PG pool + Drizzle factory
+│   └── schema/                 # Drizzle table definitions
+│       ├── auth.schema.ts      # user, session, account, verification
+│       ├── absensi.schema.ts
+│       └── pengajuan.schema.ts
+├── common/                     # Shared infrastructure
+│   ├── decorators/             # @CurrentUser(), @Roles()
+│   ├── filters/                # HttpExceptionFilter
+│   ├── guards/                 # AuthGuard, RolesGuard
+│   ├── pipes/                  # ZodValidationPipe
+│   └── utils.ts                # fmtDate(), dll
+├── config/
+│   └── env.config.ts           # Zod schema validasi env
+└── seed/                       # Seed system
+    ├── seed.service.ts
+    ├── seed.data.ts
+    └── seed.ts                 # CLI entry
+```
+
+---
+
+## Request Flow
+
+```
+Client Request
+      │
+      ▼
+┌─────────────────┐
+│   Rate Limiter  │  ← /api/auth/sign-in/email, /api/register
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Auth Guard    │  ← Session cookie → Better Auth
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Controller    │  ← Request validation (Zod)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│    Service      │  ← Business logic + rules engine
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Drizzle ORM    │  ← Query builder
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   PostgreSQL    │
+└─────────────────┘
+
+File Upload Path:
+Client → Controller → StorageService → MinIO (S3)
 ```
 
 ---
@@ -181,88 +198,76 @@ src/
 ## API Endpoints
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|:----:|------|-------------|
 | `POST` | `/api/auth/sign-in/email` | — | — | Login |
-| `POST` | `/api/auth/sign-out` | Required | — | Logout |
-| `GET` | `/api/auth/get-session` | — | — | Cek session |
-| `POST` | `/api/register` | Optional | — | Register akun baru |
-| `GET` | `/api/me` | Required | — | Profile sendiri |
-| `PATCH` | `/users/:id` | Required | Self | Update profile |
-| `GET` | `/api/users/pending` | Required | Admin | User pending |
-| `GET` | `/api/users/all` | Required | Admin | Semua user |
-| `PATCH` | `/api/users/:id` | Required | Admin | Update user |
-| `PATCH` | `/api/users/:id/status` | Required | Admin | Approve/reject |
-| `POST` | `/api/users/:id/notes` | Required | Admin | Tambah catatan |
-| `DELETE` | `/api/users/:id` | Required | Admin | Hapus user |
-| `POST` | `/absensi` | Required | — | Check-in |
-| `PATCH` | `/absensi/:id` | Required | — | Check-out |
-| `GET` | `/absensi` | Required | — | Riwayat absensi |
-| `GET` | `/api/absensi/search` | Required | — | Cari absensi by nama |
-| `POST` | `/pengajuan` | Required | — | Buat pengajuan |
-| `GET` | `/pengajuan` | Required | — | List pengajuan |
-| `PATCH` | `/pengajuan/:id` | Required | Admin | Update status |
-| `DELETE` | `/pengajuan/:id` | Required | Self | Hapus pengajuan |
-| `GET` | `/api/dashboard/recent` | Required | — | 7 hari terakhir |
-| `GET` | `/api/dashboard/admin/week` | Required | Admin | Tren 7 hari |
-| `GET` | `/api/dashboard/month` | Required | — | Data bulanan |
-| `POST` | `/api/upload/foto` | Required | — | Upload foto |
+| `POST` | `/api/auth/sign-out` | ✅ | — | Logout |
+| `GET` | `/api/auth/get-session` | — | — | Get session |
+| `POST` | `/api/register` | — | — | Register new account |
+| `GET` | `/api/me` | ✅ | — | Current user profile |
+| `PATCH` | `/users/:id` | ✅ | Self | Update profile |
+| `GET` | `/api/users/pending` | ✅ | Admin | Pending users |
+| `GET` | `/api/users/all` | ✅ | Admin | All users |
+| `PATCH` | `/api/users/:id` | ✅ | Admin | Update user |
+| `PATCH` | `/api/users/:id/status` | ✅ | Admin | Approve/reject |
+| `POST` | `/api/users/:id/notes` | ✅ | Admin | Add notes |
+| `DELETE` | `/api/users/:id` | ✅ | Admin | Delete user |
+| `POST` | `/absensi` | ✅ | — | Check-in |
+| `PATCH` | `/absensi/:id` | ✅ | — | Check-out |
+| `GET` | `/absensi` | ✅ | — | Attendance history |
+| `GET` | `/api/absensi/search` | ✅ | — | Search attendance |
+| `POST` | `/pengajuan` | ✅ | — | Create submission |
+| `GET` | `/pengajuan` | ✅ | — | List submissions |
+| `PATCH` | `/pengajuan/:id` | ✅ | Admin | Update status |
+| `DELETE` | `/pengajuan/:id` | ✅ | Self | Delete submission |
+| `GET` | `/api/dashboard/recent` | ✅ | — | Last 7 days |
+| `GET` | `/api/dashboard/admin/week` | ✅ | Admin | 7-day trend |
+| `GET` | `/api/dashboard/month` | ✅ | — | Monthly data |
+| `POST` | `/api/upload/foto` | ✅ | — | Upload photo |
 
 ---
 
 ## Testing
 
 ```bash
-# Semua unit tests
+# All unit tests
 bun run test
 
-# File spesifik
+# Specific file
 bun run test -- src/absensi/absensi.service.spec.ts
 
-# E2E tests (butuh PostgreSQL running)
+# E2E tests (requires PostgreSQL)
 bun run test:e2e
+
+# Coverage
+bun run test:cov
 ```
 
-**Coverage:** 41 unit tests, 6 test suites.
-
----
-
-## Demo Akun
-
-| Email | Password | Role | Status |
-|-------|----------|------|--------|
-| andika@stekom.ac.id | password | admin | approved |
-| rudi@stekom.ac.id | password | karyawan | approved |
-| siti@stekom.ac.id | password | karyawan | approved |
-| dewi@stekom.ac.id | password | karyawan | approved |
-| ani@stekom.ac.id | password | karyawan | approved |
-| tono@stekom.ac.id | password | karyawan | approved |
-| budi@stekom.ac.id | password | karyawan | pending |
-| ferry@stekom.ac.id | password | karyawan | pending |
+**Stats:** 41 unit tests, 6 test suites.
 
 ---
 
 ## Docker
 
-### Development (PostgreSQL + MinIO saja)
+### Development (dependencies only)
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d
+# → PostgreSQL :5432
+# → MinIO     :9000 (API), :9001 (Console)
 ```
 
-### Full Stack (PostgreSQL + Backend + Frontend)
+### Full Stack
 
-```bash
-# Dari root project
-cd ..
-docker compose up -d
-```
+See [root README](../README.md) for complete Docker Compose setup.
 
 ---
 
-## Dokumentasi
+## Documentation
 
-| Dokumen | Lokasi |
-|---------|--------|
-| PRD | `docs/PRD.md` |
-| API Reference | `docs/API.md` (project root) |
-| Architecture | `docs/ARCHITECTURE.md` (project root) |
+| Document | Description |
+|----------|-------------|
+| [PRD.md](docs/PRD.md) | Product requirements |
+| [API.md](docs/API.md) | API reference |
+| [ARCHITECTURE.md](../docs/ARCHITECTURE.md) | Architecture overview |
+| [DOCKER.md](../docs/DOCKER.md) | Docker deployment |
+| [DOKPLOY.md](../docs/DOKPLOY.md) | Dokploy deployment |
