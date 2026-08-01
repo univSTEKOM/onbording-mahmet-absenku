@@ -7,6 +7,7 @@ import { AbsensiModule } from './absensi/absensi.module';
 import { PengajuanModule } from './pengajuan/pengajuan.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { StorageModule } from './storage/storage.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -19,5 +20,6 @@ import { StorageModule } from './storage/storage.module';
     DashboardModule,
     StorageModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
