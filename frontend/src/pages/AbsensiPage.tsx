@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { FaceVerification } from '@/components/shared/FaceVerification'
 import { ImageViewer } from '@/components/shared/ImageViewer'
-import { canCheckIn, CHECK_IN_START } from '@/lib/absensiRules'
+import { canCheckIn } from '@/lib/absensiRules'
 import { absensiStatusBadge, absensiStatusLabel } from '@/lib/constants'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -217,7 +217,7 @@ export default function AbsensiPage() {
             )}
             {!checkInGate.allowed && !isCheckedIn && (
               <p className="text-xs text-muted-foreground text-center shrink-0">
-                Buka {CHECK_IN_START}
+                {checkInGate.message}
               </p>
             )}
           </div>
