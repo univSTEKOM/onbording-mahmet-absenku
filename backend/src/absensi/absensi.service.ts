@@ -75,9 +75,7 @@ export class AbsensiService {
     );
     if (!checkInResult.allowed) {
       throw new BadRequestException(
-        checkInResult.status === 'too_early'
-          ? `Absensi sudah ditutup. Maksimal absensi pukul 23:59.`
-          : 'Absensi sudah ditutup. Maksimal absensi pukul 23:59.',
+        'Absensi sudah ditutup. Maksimal absensi pukul 23:59.',
       );
     }
 
